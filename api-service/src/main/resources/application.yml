@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: nutrition-api
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/nutrition}
+    username: ${SPRING_DATASOURCE_USERNAME:nutrition}
+    password: ${SPRING_DATASOURCE_PASSWORD:nutrition}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: ${SERVER_PORT:8080}
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:local-development-secret-change-me-please-1234567890}
+    expiration: ${APP_JWT_EXPIRATION:PT24H}
+  storage:
+    upload-dir: ${APP_UPLOAD_DIR:uploads}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

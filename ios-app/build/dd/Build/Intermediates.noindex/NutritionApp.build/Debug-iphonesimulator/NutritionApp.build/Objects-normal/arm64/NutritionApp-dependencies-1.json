@@ -16,6 +16,16 @@
   },
   {
     "isFramework" : true,
+    "moduleName" : "ActivityKit",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/ActivityKit.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "AppIntents",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/AppIntents.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
     "moduleName" : "AudioToolbox",
     "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/AudioToolbox.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
   },
@@ -68,6 +78,11 @@
     "isFramework" : false,
     "moduleName" : "CoreMedia",
     "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/CoreMedia.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreSpotlight",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/CoreSpotlight.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
   },
   {
     "isFramework" : true,
@@ -126,6 +141,11 @@
   },
   {
     "isFramework" : false,
+    "moduleName" : "Intents",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Intents.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
     "moduleName" : "Metal",
     "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Metal.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
   },
@@ -163,6 +183,11 @@
     "isFramework" : false,
     "moduleName" : "QuartzCore",
     "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/QuartzCore.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "RelevanceKit",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/RelevanceKit.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
   },
   {
     "isFramework" : false,
@@ -220,9 +245,19 @@
     "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/UniformTypeIdentifiers.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
   },
   {
+    "isFramework" : true,
+    "moduleName" : "WidgetKit",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/WidgetKit.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
     "isFramework" : false,
     "moduleName" : "XPC",
     "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/XPC.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "_AppIntents_SwiftUI",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/_AppIntents_SwiftUI.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
   },
   {
     "isFramework" : false,
@@ -303,6 +338,20 @@
     "moduleName" : "Accessibility"
   },
   {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/ActivityKit.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/ActivityKit-DQPCDFVZ197YQMMJ7F8ULYMDO.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ActivityKit"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/AppIntents.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/AppIntents-29RQX76VY75S2Y3DDUNGS9P3P.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "AppIntents"
+  },
+  {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/AudioToolbox.framework\/Modules\/module.modulemap",
     "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/AudioToolbox-A2SNBSFGHKRU3LY461607R2AW.pcm",
     "isBridgingHeaderDependency" : false,
@@ -378,6 +427,13 @@
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "CoreMedia"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/CoreSpotlight.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/CoreSpotlight-EM3BZ5A4WLYTZP813P8CBTDVL.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreSpotlight"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/CoreText.framework\/Modules\/module.modulemap",
@@ -464,6 +520,13 @@
     "moduleName" : "ImageIO"
   },
   {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/Intents.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/Intents-94TZBQQJLWNQVB7CFH63DH71B.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Intents"
+  },
+  {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/DarwinBasic.modulemap",
     "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/MachO-9K4NGGOC1PT6ZV6XBPYBFB8HL.pcm",
     "isBridgingHeaderDependency" : false,
@@ -534,6 +597,13 @@
     "moduleName" : "QuartzCore"
   },
   {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/RelevanceKit.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/RelevanceKit-ABCZKZ2N2X7LSFMM76IX7F87D.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "RelevanceKit"
+  },
+  {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/Security.framework\/Modules\/module.modulemap",
     "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/Security-EDBX4RFBAC4GQUFUG29NB74QW.pcm",
     "isBridgingHeaderDependency" : false,
@@ -602,6 +672,13 @@
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "UserNotifications"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/WidgetKit.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/WidgetKit-59CXYIJLWQMWM4GKASIU81104.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "WidgetKit"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/xpc.modulemap",

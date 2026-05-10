@@ -1,0 +1,716 @@
+[
+  {
+    "isFramework" : true,
+    "moduleName" : "Accessibility",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Accessibility.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "ActivityKit",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/ActivityKit.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "AppIntents",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/AppIntents.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "Combine",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Combine.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreData",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/CoreData.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "CoreFoundation",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/CoreFoundation.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreGraphics",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/CoreGraphics.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "CoreImage",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/CoreImage.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "CoreLocation",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/CoreLocation.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreSpotlight",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/CoreSpotlight.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreText",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/CoreText.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreTransferable",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/CoreTransferable.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "CoreVideo",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/CoreVideo.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Darwin",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Darwin.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "DataDetection",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/DataDetection.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "DeveloperToolsSupport",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/DeveloperToolsSupport.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Dispatch",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Dispatch.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Distributed",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Distributed.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "ExtensionFoundation",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/ExtensionFoundation.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "FileProvider",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/FileProvider.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "Foundation",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Foundation.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Intents",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Intents.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Metal",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Metal.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "Network",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Network.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "OSLog",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/OSLog.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "ObjectiveC",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/ObjectiveC.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Observation",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Observation.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "QuartzCore",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/QuartzCore.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "RelevanceKit",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/RelevanceKit.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Spatial",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Spatial.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Swift",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Swift.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "SwiftOnoneSupport",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/SwiftOnoneSupport.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "SwiftUI",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/SwiftUI.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "SwiftUICore",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/SwiftUICore.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "Symbols",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/Symbols.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "System",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/System.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "UIKit",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/UIKit.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "UniformTypeIdentifiers",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/UniformTypeIdentifiers.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "WidgetKit",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/WidgetKit.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "XPC",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/XPC.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "_AppIntents_SwiftUI",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/_AppIntents_SwiftUI.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_Builtin_float",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/_Builtin_float.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_Concurrency",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/_Concurrency.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation1",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/_DarwinFoundation1.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation2",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/_DarwinFoundation2.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation3",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/_DarwinFoundation3.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_StringProcessing",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/_StringProcessing.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "os",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/os.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "simd",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphonesimulator\/prebuilt-modules\/26.2\/simd.swiftmodule\/arm64-apple-ios-simulator.swiftmodule"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/Accessibility.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/Accessibility-DNRNP4F1B2ULN1B9ZJ9ISJ9SY.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Accessibility"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/ActivityKit.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/ActivityKit-8IRHDETQMIC5QH03D10FV1ID1.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ActivityKit"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/AppIntents.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/AppIntents-B2SIEG3M5Q509XXNJI64Q0FW9.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "AppIntents"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/CFNetwork.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/CFNetwork-3JRDR2DLYZPRRSV1A7ZPNAOD6.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CFNetwork"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/CoreData.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/CoreData-F3F9JWW51GTXO7W8Y9GILER08.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreData"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/CoreFoundation.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/CoreFoundation-ER8Q4E1P2VSIA5MF48XHMX2TJ.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreFoundation"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/CoreGraphics.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/CoreGraphics-41UDRKH3OG330CXM275R2D3IJ.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreGraphics"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/CoreImage.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/CoreImage-7UFV0AFTNG5JC0HJNFZ65D07H.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreImage"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/CoreLocation.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/CoreLocation-7YDC5RKJGSQMHKOU8DOUB21B2.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreLocation"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/CoreSpotlight.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/CoreSpotlight-C57R9TY5D9GX1GZILYKK0OB0F.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreSpotlight"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/CoreText.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/CoreText-12EV3DJ3QVOH8KRU6NHSOA84A.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreText"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/CoreTransferable.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/CoreTransferable-EUSE3BU592DFAXHY3I8EPMK29.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreTransferable"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/CoreVideo.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/CoreVideo-8C98PTYD574CRQT25J26EK2JD.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreVideo"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/Darwin.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/Darwin-1ZHJWBMVTU8PKBXKE9DXZAH21.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Darwin"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/DataDetection.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/DataDetection-47YG3T494ISTJ2WVX1B1J3U5F.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "DataDetection"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/DeveloperToolsSupport.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/DeveloperToolsSupport-4OH2KMU0T2FDCZVWQ1RAIGWWS.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "DeveloperToolsSupport"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/dispatch.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/Dispatch-6IYWI3VQ3FYDKWNW48WSJOXSL.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Dispatch"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/ExtensionFoundation.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/ExtensionFoundation-7FOUFMG8PRYXUWYD8KII5L63R.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ExtensionFoundation"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/FileProvider.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/FileProvider-B7BAIZ2F2K388C11M697VZO24.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "FileProvider"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/Foundation.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/Foundation-CC9ERS238FOPAWRXDDUV75CI6.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Foundation"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/IOSurface.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/IOSurface-7L1JIGK9F0EZOP9QC391ZPD45.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "IOSurface"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/ImageIO.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/ImageIO-BN8DZPEIYMDWCHJI0GIS5WE6.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ImageIO"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/Intents.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/Intents-60RG0SLV7447SB4OHS3IYGPI1.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Intents"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/DarwinBasic.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/MachO-4CC8QFJ3ASJGY99YI65PUMDW9.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "MachO"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/Metal.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/Metal-5IV8BIY0CLJ5X42BQR62YULUE.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Metal"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/Network.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/Network-6J9LSX6FU56VESZY79Y7SBSVV.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Network"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/OSLog.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/OSLog-EXVPR5L3P7TTOETUF8OITUKOQ.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "OSLog"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/ObjectiveC.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/ObjectiveC-CQ38FKMS2J0G4H8R5GFI0B20K.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ObjectiveC"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/OpenGLES.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/OpenGLES-2JW7IZWZ3FD5RHIE51QF71CQL.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "OpenGLES"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/QuartzCore.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/QuartzCore-C2AO1BS9M3B208JPCWS8ZOJFM.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "QuartzCore"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/RelevanceKit.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/RelevanceKit-9HFYNJ1MRCW0BDTRM0ZMDJMUR.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "RelevanceKit"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/Security.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/Security-9R9LMIXITTV2EHN953Q8D78IT.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Security"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/Spatial\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/Spatial-4ERLQE6GB754I7S07UC0ET6H7.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Spatial"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/lib\/swift\/shims\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/SwiftShims-9QW9NUGRW3HLLX27VEPLDYCPR.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "SwiftShims"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/SwiftUI.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/SwiftUI-4YUTMIOHR6OF63QK67NDPDEA8.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "SwiftUI"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/SwiftUICore.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/SwiftUICore-6STLNS1K8VQHLMFTAR60SJR1S.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "SwiftUICore"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/Symbols.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/Symbols-1AKO1JIBGACAU48GKG7L2AGSN.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Symbols"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/UIKit.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/UIKit-4R4VLLOY5GIJ3I8MY0MZMKIWL.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "UIKit"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/SubFrameworks\/UIUtilities.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/UIUtilities-6YJYXNE94YU0QU4E6X3DOE56A.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "UIUtilities"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/UniformTypeIdentifiers.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/UniformTypeIdentifiers-DSMO0K2HRY1O9CZ78Q73GMQ6E.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "UniformTypeIdentifiers"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/UserNotifications.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/UserNotifications-ESS9PVOVQIZ5892CBW9SQ8QBY.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "UserNotifications"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/WidgetKit.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/WidgetKit-QWXE4D3O7H7EITW85LQJ022N.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "WidgetKit"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/xpc.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/XPC-1DNEPGE9JONDUN6PRCPLF6I0E.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "XPC"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/DarwinFoundation1.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_AvailabilityInternal-3R9GLXARBOKWFNQSL4JF0YIDR.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_AvailabilityInternal"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_Builtin_float-ES4OI8HDQQN2SO216XWQI66GB.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_float"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_Builtin_intrinsics-F09GUKKD521AQ8108UKJF6DJ9.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_intrinsics"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_Builtin_inttypes-CA62ZVR3ALC8BKUQV4TROPENR.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_inttypes"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_Builtin_limits-68HX133XOLG6DHSZ3XT5KBEE2.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_limits"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_Builtin_stdarg-777UFC19UHXLGQWRWHHF26U13.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdarg"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_Builtin_stdatomic-3Z8HU4M50Y30LZ58J2GBT4S1F.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdatomic"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_Builtin_stdbool-AWC4U9T5PQ5Z8CUA2PVOHQTCQ.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdbool"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_Builtin_stddef-7BORP6KWWDCSPN839V414MEH0.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stddef"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_Builtin_stdint-BMBLM4WKVF9UO73YGWPD3CDDC.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdint"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_Builtin_tgmath-5FIVNNHIVV1UO308LW089DU9A.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_tgmath"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/DarwinFoundation1.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_DarwinFoundation1-58MM0WT3Q08IC0CT4EYHERB7V.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation1"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/DarwinFoundation2.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_DarwinFoundation2-2RGTS04DKTEQG8WKCGZP0CCWP.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation2"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/DarwinFoundation3.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_DarwinFoundation3-9LWAB0OFP9RZ4GA3ROGUT9S4P.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation3"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/System\/Library\/Frameworks\/_LocationEssentials.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_LocationEssentials-5GQ9D95J8GLAXTXH7O053CG1A.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_LocationEssentials"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/lib\/swift\/shims\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/_SwiftConcurrencyShims-D57O9NBX2OV4D480NPIMJUHCW.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_SwiftConcurrencyShims"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/dnssd.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/dnssd-8B79COOZ6S5JJF0O5EYD06D3R.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "dnssd"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/os.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/os-3HPDU270T8AVD709BL9T4FXVM.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "os"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/os.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/os_object-8BHPZUN0NLWMTUSIYR6OG2X68.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "os_object"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/os.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/os_workgroup-61IIX35HOI6QS1EWBWBXP5AZ5.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "os_workgroup"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/ptrauth-1IEJ166LAKCAMMYL44DSBG00G.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ptrauth"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/ptrcheck-AMW7TTXLB4KLO2SDX9K73P88E.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ptrcheck"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/simd\/module.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/simd-9J7R53GGYLEURJKIDII516A4L.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "simd"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneSimulator.platform\/Developer\/SDKs\/iPhoneSimulator.sdk\/usr\/include\/DarwinFoundation2.modulemap",
+    "clangModulePath" : "\/Users\/denizozturk\/IdeaProjects\/team-password123\/ios-app\/build\/dd\/ModuleCache.noindex\/sys_types-9YS92D7XA3VT3MBMBMJUEIS4R.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "sys_types"
+  }
+]

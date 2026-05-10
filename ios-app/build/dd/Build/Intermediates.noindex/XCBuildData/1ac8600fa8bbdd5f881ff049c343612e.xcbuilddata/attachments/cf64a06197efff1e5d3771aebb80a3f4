@@ -1,0 +1,189 @@
+{
+  "" : {
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionApp-primary.dia",
+    "emit-module-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionApp-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionApp-primary-emit-module.dia",
+    "pch" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionApp-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionApp-primary.swiftdeps"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Components/MacroProgressRing.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroProgressRing.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroProgressRing.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroProgressRing.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroProgressRing.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroProgressRing.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroProgressRing.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroProgressRing.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroProgressRing~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Components/MacroSummaryCard.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroSummaryCard.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroSummaryCard.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroSummaryCard.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroSummaryCard.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroSummaryCard.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroSummaryCard.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroSummaryCard.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MacroSummaryCard~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Components/MealRow.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MealRow.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MealRow.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MealRow.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MealRow.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MealRow.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MealRow.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MealRow.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/MealRow~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Models/FoodLog.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/FoodLog.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/FoodLog.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/FoodLog.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/FoodLog.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/FoodLog.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/FoodLog.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/FoodLog.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/FoodLog~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Models/UserProfile.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/UserProfile.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/UserProfile.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/UserProfile.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/UserProfile.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/UserProfile.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/UserProfile.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/UserProfile.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/UserProfile~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/NutritionAppApp.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionAppApp.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionAppApp.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionAppApp.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionAppApp.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionAppApp.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionAppApp.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionAppApp.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NutritionAppApp~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Services/CSVExporter.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/CSVExporter.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/CSVExporter.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/CSVExporter.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/CSVExporter.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/CSVExporter.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/CSVExporter.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/CSVExporter.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/CSVExporter~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Services/DateRange.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/DateRange.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/DateRange.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/DateRange.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/DateRange.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/DateRange.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/DateRange.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/DateRange.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/DateRange~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Services/GoalCalculator.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/GoalCalculator.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/GoalCalculator.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/GoalCalculator.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/GoalCalculator.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/GoalCalculator.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/GoalCalculator.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/GoalCalculator.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/GoalCalculator~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Services/NotificationsManager.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NotificationsManager.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NotificationsManager.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NotificationsManager.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NotificationsManager.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NotificationsManager.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NotificationsManager.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NotificationsManager.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/NotificationsManager~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Services/StreakCalculator.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/StreakCalculator.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/StreakCalculator.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/StreakCalculator.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/StreakCalculator.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/StreakCalculator.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/StreakCalculator.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/StreakCalculator.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/StreakCalculator~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Views/Analytics/AnalyticsView.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/AnalyticsView.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/AnalyticsView.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/AnalyticsView.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/AnalyticsView.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/AnalyticsView.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/AnalyticsView.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/AnalyticsView.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/AnalyticsView~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Views/Log/LogMealView.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/LogMealView.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/LogMealView.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/LogMealView.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/LogMealView.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/LogMealView.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/LogMealView.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/LogMealView.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/LogMealView~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Views/Log/ManualEntryForm.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ManualEntryForm.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ManualEntryForm.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ManualEntryForm.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ManualEntryForm.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ManualEntryForm.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ManualEntryForm.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ManualEntryForm.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ManualEntryForm~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Views/Log/PhotoEntryForm.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/PhotoEntryForm.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/PhotoEntryForm.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/PhotoEntryForm.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/PhotoEntryForm.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/PhotoEntryForm.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/PhotoEntryForm.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/PhotoEntryForm.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/PhotoEntryForm~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Views/Profile/ProfileView.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ProfileView.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ProfileView.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ProfileView.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ProfileView.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ProfileView.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ProfileView.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ProfileView.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/ProfileView~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Views/RootTabView.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/RootTabView.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/RootTabView.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/RootTabView.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/RootTabView.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/RootTabView.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/RootTabView.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/RootTabView.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/RootTabView~partial.swiftmodule"
+  },
+  "/Users/denizozturk/IdeaProjects/team-password123/ios-app/NutritionApp/Views/Today/TodayView.swift" : {
+    "const-values" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/TodayView.swiftconstvalues",
+    "dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/TodayView.d",
+    "diagnostics" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/TodayView.dia",
+    "index-unit-output-path" : "/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/TodayView.o",
+    "llvm-bc" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/TodayView.bc",
+    "object" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/TodayView.o",
+    "swift-dependencies" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/TodayView.swiftdeps",
+    "swiftmodule" : "/Users/denizozturk/IdeaProjects/team-password123/ios-app/build/dd/Build/Intermediates.noindex/NutritionApp.build/Debug-iphonesimulator/NutritionApp.build/Objects-normal/arm64/TodayView~partial.swiftmodule"
+  }
+}

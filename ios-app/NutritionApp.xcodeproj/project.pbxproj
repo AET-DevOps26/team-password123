@@ -7,36 +7,86 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04C1BFAF539DB4064CB2B5EF /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D64B53C77E07F0E64FA7EB03 /* WidgetSnapshot.swift */; };
 		0D1ECED0E6588CB98B39C8A6 /* MealRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0753D0E88F680BDD1BF5CD5 /* MealRow.swift */; };
 		161EF657C6E45FECE16EAD08 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09CED11CE23B480D912E6ED /* RootTabView.swift */; };
+		31145DE9A8F3AE3CAB74DA12 /* NotificationsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35174A661AAD488DDC0FB1CB /* NotificationsManager.swift */; };
 		441F20EFEB9DAA9811B4263D /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A391605835182A9D23365A2E /* UserProfile.swift */; };
+		72C091E755BF9197353B5B14 /* StreakCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF17FC0161456FB5700F699E /* StreakCalculator.swift */; };
 		74D7ABF9C27BEE0320F410E8 /* LogMealView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D7BBEA2439F43227D54753 /* LogMealView.swift */; };
+		76E3C1136E825C215F58083E /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B645C5E48200F20E149C549A /* HistoryView.swift */; };
 		81313D545AE20982BB939022 /* NutritionAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09667794BEE400391EBD78A9 /* NutritionAppApp.swift */; };
-		A1EDBED43638E9BC1601507A /* PhotoEntryForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12281CB72433462CEE3B54DA /* PhotoEntryForm.swift */; };
-		A65F77C0EA9EC369E495BF0C /* ManualEntryForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E4423A33A0A45C75D3A1AF /* ManualEntryForm.swift */; };
+		8DC23C2443A89988E8DAC2D7 /* StreakBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D8839B55A90B997348014E1 /* StreakBadge.swift */; };
+		A376DB6756810E82483EA0BE /* WidgetSnapshotWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D9B3E3D9B15F0CC258CC7B /* WidgetSnapshotWriter.swift */; };
+		A6AD0A8C4019E70C76B97B20 /* GoalCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C357AB841D80EDCD7D6407 /* GoalCalculator.swift */; };
 		AA684ECDF1EF7CCCD19244CC /* MacroSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BFD94DC4F7351C746B99240 /* MacroSummaryCard.swift */; };
 		AE7BE654226DD8E12D2BB134 /* FoodLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091ECD459F6D373AC5B0B88B /* FoodLog.swift */; };
+		B7C2E35970286EA914A71307 /* NutritionWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 022399A48CCFA1E809252591 /* NutritionWidget.swift */; };
+		C1BE062B693874B1D6DBE470 /* WaterCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85D4EE3FBDB5B642AFB60DCE /* WaterCard.swift */; };
 		C238F4D622CDBD8ACB0F8983 /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84C11BC6B4523E65D47ABBA /* AnalyticsView.swift */; };
 		C77BFE1581332BF2858CA61D /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22E99F7B1F292426CDEE5946 /* ProfileView.swift */; };
+		C8A6E2D40FA366FAF2978151 /* DateRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F6E49E18D6CF5B0077BECF8 /* DateRange.swift */; };
+		CB6FF2851A328A9592270F37 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37206E7E18C0502E4B03FEDA /* OnboardingView.swift */; };
 		DA79643068CCA72B4E3F28F7 /* MacroProgressRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9BBA610C5424E48A977314B /* MacroProgressRing.swift */; };
+		DFA57277197E4ADF772033DB /* NutritionAppWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D13AFB8312222500F7B316B3 /* NutritionAppWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E25C49DCE603C61D42A39C99 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFA99942BAF5C48D08C52E90 /* TodayView.swift */; };
+		E3323F58DC9E659E858021C6 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D64B53C77E07F0E64FA7EB03 /* WidgetSnapshot.swift */; };
+		F160EE7E57655C6886A78B83 /* CSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B12222C77A2775629D044F5C /* CSVExporter.swift */; };
+		FDFFF144E87639700D7D757C /* MealEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACFCF419B30DEE2B1F9BFDE /* MealEditorView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		472C57F3234165FA35CB9E93 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E4937E754592E7B18BB86921 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 63433371EA63FC5DB7BBD702;
+			remoteInfo = NutritionAppWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1B1BDBED3CB4FC2FE6ECB0D4 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				DFA57277197E4ADF772033DB /* NutritionAppWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		022399A48CCFA1E809252591 /* NutritionWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionWidget.swift; sourceTree = "<group>"; };
 		091ECD459F6D373AC5B0B88B /* FoodLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLog.swift; sourceTree = "<group>"; };
 		09667794BEE400391EBD78A9 /* NutritionAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionAppApp.swift; sourceTree = "<group>"; };
-		09E4423A33A0A45C75D3A1AF /* ManualEntryForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualEntryForm.swift; sourceTree = "<group>"; };
-		12281CB72433462CEE3B54DA /* PhotoEntryForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoEntryForm.swift; sourceTree = "<group>"; };
 		17D7BBEA2439F43227D54753 /* LogMealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMealView.swift; sourceTree = "<group>"; };
 		22E99F7B1F292426CDEE5946 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		35174A661AAD488DDC0FB1CB /* NotificationsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsManager.swift; sourceTree = "<group>"; };
+		37206E7E18C0502E4B03FEDA /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		3D8839B55A90B997348014E1 /* StreakBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakBadge.swift; sourceTree = "<group>"; };
 		4BFD94DC4F7351C746B99240 /* MacroSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroSummaryCard.swift; sourceTree = "<group>"; };
+		55D9B3E3D9B15F0CC258CC7B /* WidgetSnapshotWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotWriter.swift; sourceTree = "<group>"; };
+		6F6E49E18D6CF5B0077BECF8 /* DateRange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateRange.swift; sourceTree = "<group>"; };
+		85D4EE3FBDB5B642AFB60DCE /* WaterCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaterCard.swift; sourceTree = "<group>"; };
+		8A48841676DBFB0130A9C0A7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A0753D0E88F680BDD1BF5CD5 /* MealRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealRow.swift; sourceTree = "<group>"; };
 		A391605835182A9D23365A2E /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
+		AACFCF419B30DEE2B1F9BFDE /* MealEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealEditorView.swift; sourceTree = "<group>"; };
+		B12222C77A2775629D044F5C /* CSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExporter.swift; sourceTree = "<group>"; };
+		B645C5E48200F20E149C549A /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		C09CED11CE23B480D912E6ED /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
 		CFA99942BAF5C48D08C52E90 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		D13AFB8312222500F7B316B3 /* NutritionAppWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = NutritionAppWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D64B53C77E07F0E64FA7EB03 /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
+		DF17FC0161456FB5700F699E /* StreakCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakCalculator.swift; sourceTree = "<group>"; };
 		E7149981F43B6EAD35AE9FE7 /* NutritionApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NutritionApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F84C11BC6B4523E65D47ABBA /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
 		F9BBA610C5424E48A977314B /* MacroProgressRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroProgressRing.swift; sourceTree = "<group>"; };
+		F9C357AB841D80EDCD7D6407 /* GoalCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalCalculator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -45,7 +95,9 @@
 			children = (
 				C09CED11CE23B480D912E6ED /* RootTabView.swift */,
 				118F551B2B393C37A7D3B8B7 /* Analytics */,
+				5C7D1F998A6A19CAF903CCBA /* History */,
 				3D488EBEF2CA6DB907844EB2 /* Log */,
+				22A5BB94A0D80848130AC0F0 /* Onboarding */,
 				8B179532E16427E377FF5FA2 /* Profile */,
 				C5C54AF09B931F3554CB8D17 /* Today */,
 			);
@@ -60,6 +112,14 @@
 			path = Analytics;
 			sourceTree = "<group>";
 		};
+		22A5BB94A0D80848130AC0F0 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				37206E7E18C0502E4B03FEDA /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
 		3944AAAE7ECFAB029BDFD1F4 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -69,10 +129,24 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		394E299D350BCCEA4201ABC6 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B12222C77A2775629D044F5C /* CSVExporter.swift */,
+				6F6E49E18D6CF5B0077BECF8 /* DateRange.swift */,
+				F9C357AB841D80EDCD7D6407 /* GoalCalculator.swift */,
+				35174A661AAD488DDC0FB1CB /* NotificationsManager.swift */,
+				DF17FC0161456FB5700F699E /* StreakCalculator.swift */,
+				55D9B3E3D9B15F0CC258CC7B /* WidgetSnapshotWriter.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		3BD1C62B0332CD974D0392FE /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				E7149981F43B6EAD35AE9FE7 /* NutritionApp.app */,
+				D13AFB8312222500F7B316B3 /* NutritionAppWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -81,10 +155,17 @@
 			isa = PBXGroup;
 			children = (
 				17D7BBEA2439F43227D54753 /* LogMealView.swift */,
-				09E4423A33A0A45C75D3A1AF /* ManualEntryForm.swift */,
-				12281CB72433462CEE3B54DA /* PhotoEntryForm.swift */,
+				AACFCF419B30DEE2B1F9BFDE /* MealEditorView.swift */,
 			);
 			path = Log;
+			sourceTree = "<group>";
+		};
+		5C7D1F998A6A19CAF903CCBA /* History */ = {
+			isa = PBXGroup;
+			children = (
+				B645C5E48200F20E149C549A /* HistoryView.swift */,
+			);
+			path = History;
 			sourceTree = "<group>";
 		};
 		875DD4EECE8F732A18F0D8BC /* Components */ = {
@@ -93,6 +174,8 @@
 				F9BBA610C5424E48A977314B /* MacroProgressRing.swift */,
 				4BFD94DC4F7351C746B99240 /* MacroSummaryCard.swift */,
 				A0753D0E88F680BDD1BF5CD5 /* MealRow.swift */,
+				3D8839B55A90B997348014E1 /* StreakBadge.swift */,
+				85D4EE3FBDB5B642AFB60DCE /* WaterCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -105,12 +188,21 @@
 			path = Profile;
 			sourceTree = "<group>";
 		};
+		A32530350A0189F458CC7B68 /* SharedKit */ = {
+			isa = PBXGroup;
+			children = (
+				D64B53C77E07F0E64FA7EB03 /* WidgetSnapshot.swift */,
+			);
+			path = SharedKit;
+			sourceTree = "<group>";
+		};
 		A5F169B7C41119C7E0F02DE9 /* NutritionApp */ = {
 			isa = PBXGroup;
 			children = (
 				09667794BEE400391EBD78A9 /* NutritionAppApp.swift */,
 				875DD4EECE8F732A18F0D8BC /* Components */,
 				3944AAAE7ECFAB029BDFD1F4 /* Models */,
+				394E299D350BCCEA4201ABC6 /* Services */,
 				0072CC031AFDB2B289F699E4 /* Views */,
 			);
 			path = NutritionApp;
@@ -128,22 +220,52 @@
 			isa = PBXGroup;
 			children = (
 				A5F169B7C41119C7E0F02DE9 /* NutritionApp */,
+				CDD7A90EDEBAC82037602508 /* NutritionAppWidget */,
+				A32530350A0189F458CC7B68 /* SharedKit */,
 				3BD1C62B0332CD974D0392FE /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		CDD7A90EDEBAC82037602508 /* NutritionAppWidget */ = {
+			isa = PBXGroup;
+			children = (
+				8A48841676DBFB0130A9C0A7 /* Info.plist */,
+				022399A48CCFA1E809252591 /* NutritionWidget.swift */,
+			);
+			path = NutritionAppWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		63433371EA63FC5DB7BBD702 /* NutritionAppWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C65FA6B932186CCEFF26D944 /* Build configuration list for PBXNativeTarget "NutritionAppWidget" */;
+			buildPhases = (
+				DF0D711F8D4C2BF9055418BF /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NutritionAppWidget;
+			packageProductDependencies = (
+			);
+			productName = NutritionAppWidget;
+			productReference = D13AFB8312222500F7B316B3 /* NutritionAppWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		BCAF5B6E08C426DDF7EF5863 /* NutritionApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C1A602C766CAE3D98ACA45F2 /* Build configuration list for PBXNativeTarget "NutritionApp" */;
 			buildPhases = (
 				BD46E83E5AAA1BE5B3643DBE /* Sources */,
+				1B1BDBED3CB4FC2FE6ECB0D4 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				E149BFCE7FBAD6D5CD528A4E /* PBXTargetDependency */,
 			);
 			name = NutritionApp;
 			packageProductDependencies = (
@@ -161,6 +283,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					63433371EA63FC5DB7BBD702 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Manual;
+					};
 					BCAF5B6E08C426DDF7EF5863 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Manual;
@@ -182,6 +308,7 @@
 			projectRoot = "";
 			targets = (
 				BCAF5B6E08C426DDF7EF5863 /* NutritionApp */,
+				63433371EA63FC5DB7BBD702 /* NutritionAppWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -192,22 +319,49 @@
 			buildActionMask = 2147483647;
 			files = (
 				C238F4D622CDBD8ACB0F8983 /* AnalyticsView.swift in Sources */,
+				F160EE7E57655C6886A78B83 /* CSVExporter.swift in Sources */,
+				C8A6E2D40FA366FAF2978151 /* DateRange.swift in Sources */,
 				AE7BE654226DD8E12D2BB134 /* FoodLog.swift in Sources */,
+				A6AD0A8C4019E70C76B97B20 /* GoalCalculator.swift in Sources */,
+				76E3C1136E825C215F58083E /* HistoryView.swift in Sources */,
 				74D7ABF9C27BEE0320F410E8 /* LogMealView.swift in Sources */,
 				DA79643068CCA72B4E3F28F7 /* MacroProgressRing.swift in Sources */,
 				AA684ECDF1EF7CCCD19244CC /* MacroSummaryCard.swift in Sources */,
-				A65F77C0EA9EC369E495BF0C /* ManualEntryForm.swift in Sources */,
+				FDFFF144E87639700D7D757C /* MealEditorView.swift in Sources */,
 				0D1ECED0E6588CB98B39C8A6 /* MealRow.swift in Sources */,
+				31145DE9A8F3AE3CAB74DA12 /* NotificationsManager.swift in Sources */,
 				81313D545AE20982BB939022 /* NutritionAppApp.swift in Sources */,
-				A1EDBED43638E9BC1601507A /* PhotoEntryForm.swift in Sources */,
+				CB6FF2851A328A9592270F37 /* OnboardingView.swift in Sources */,
 				C77BFE1581332BF2858CA61D /* ProfileView.swift in Sources */,
 				161EF657C6E45FECE16EAD08 /* RootTabView.swift in Sources */,
+				8DC23C2443A89988E8DAC2D7 /* StreakBadge.swift in Sources */,
+				72C091E755BF9197353B5B14 /* StreakCalculator.swift in Sources */,
 				E25C49DCE603C61D42A39C99 /* TodayView.swift in Sources */,
 				441F20EFEB9DAA9811B4263D /* UserProfile.swift in Sources */,
+				C1BE062B693874B1D6DBE470 /* WaterCard.swift in Sources */,
+				04C1BFAF539DB4064CB2B5EF /* WidgetSnapshot.swift in Sources */,
+				A376DB6756810E82483EA0BE /* WidgetSnapshotWriter.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF0D711F8D4C2BF9055418BF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B7C2E35970286EA914A71307 /* NutritionWidget.swift in Sources */,
+				E3323F58DC9E659E858021C6 /* WidgetSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E149BFCE7FBAD6D5CD528A4E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 63433371EA63FC5DB7BBD702 /* NutritionAppWidget */;
+			targetProxy = 472C57F3234165FA35CB9E93 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		3FB66241BED4FE73D999D223 /* Release */ = {
@@ -245,6 +399,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
@@ -271,10 +426,30 @@
 			};
 			name = Release;
 		};
+		5D97A7991A4F2788359D044C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = NutritionAppWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = NutritionAppWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.password123.NutritionApp.Widget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		7F9039B29A409983D9A50AAE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = NutritionApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -288,7 +463,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.password123.NutritionApp;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -299,6 +474,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = NutritionApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -312,7 +488,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.password123.NutritionApp;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -354,6 +530,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
@@ -387,6 +564,25 @@
 			};
 			name = Debug;
 		};
+		A84E66DDB80C12766A5C8317 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = NutritionAppWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = NutritionAppWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.password123.NutritionApp.Widget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -404,6 +600,15 @@
 			buildConfigurations = (
 				8E482B9FB3746958FF7AB1B4 /* Debug */,
 				7F9039B29A409983D9A50AAE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C65FA6B932186CCEFF26D944 /* Build configuration list for PBXNativeTarget "NutritionAppWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5D97A7991A4F2788359D044C /* Debug */,
+				A84E66DDB80C12766A5C8317 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

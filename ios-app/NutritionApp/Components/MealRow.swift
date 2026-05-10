@@ -20,9 +20,18 @@ struct MealRow: View {
                     .font(.body)
                     .fontWeight(.medium)
                     .lineLimit(1)
-                Text(Self.timeFormatter.string(from: log.timestamp))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 6) {
+                    Text(Self.timeFormatter.string(from: log.timestamp))
+                    if log.servings != 1.0 {
+                        Text("• \(String(format: "%.2gx", log.servings))")
+                    }
+                    if log.hasIngredientBreakdown {
+                        Image(systemName: "list.bullet")
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
                 Text(macroLine)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -31,7 +40,7 @@ struct MealRow: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 2) {
-                Text("\(log.calories)")
+                Text("\(log.effectiveCalories)")
                     .font(.headline)
                 Text("kcal")
                     .font(.caption2)
@@ -39,6 +48,7 @@ struct MealRow: View {
             }
         }
         .padding(.vertical, 4)
+        .contentShape(Rectangle())
     }
 
     @ViewBuilder
@@ -50,7 +60,7 @@ struct MealRow: View {
         } else {
             ZStack {
                 Color(.tertiarySystemFill)
-                Image(systemName: log.isManual ? "fork.knife" : "camera")
+                Image(systemName: log.inferredCategory.systemImage)
                     .foregroundStyle(.secondary)
             }
         }
@@ -59,7 +69,7 @@ struct MealRow: View {
     private var macroLine: String {
         String(
             format: "P %.0fg • C %.0fg • F %.0fg",
-            log.proteinGrams, log.carbsGrams, log.fatsGrams
+            log.effectiveProtein, log.effectiveCarbs, log.effectiveFats
         )
     }
 }

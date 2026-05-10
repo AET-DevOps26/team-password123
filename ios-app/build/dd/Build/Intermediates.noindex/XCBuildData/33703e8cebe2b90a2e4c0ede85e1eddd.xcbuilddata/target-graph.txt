@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'NutritionApp' in project 'NutritionApp'
+➜ Explicit dependency on target 'NutritionAppWidget' in project 'NutritionApp'
+Target 'NutritionAppWidget' in project 'NutritionApp' (no dependencies)

@@ -12,12 +12,16 @@ settings:
     CODE_SIGN_IDENTITY: ""
     CODE_SIGNING_REQUIRED: "NO"
     CODE_SIGNING_ALLOWED: "NO"
+    CODE_SIGN_ENTITLEMENTS: ""
 targets:
   NutritionApp:
     type: application
     platform: iOS
     sources:
       - path: NutritionApp
+      - path: SharedKit
+    dependencies:
+      - target: NutritionAppWidget
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.password123.NutritionApp
@@ -29,5 +33,20 @@ targets:
         INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "Pick a photo of your meal to log nutrition."
         INFOPLIST_KEY_NSCameraUsageDescription: "Take a photo of your meal to log nutrition."
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "0.1.0"
+        MARKETING_VERSION: "0.2.0"
         CURRENT_PROJECT_VERSION: "1"
+        CODE_SIGN_ENTITLEMENTS: NutritionApp.entitlements
+  NutritionAppWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: NutritionAppWidget
+      - path: SharedKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.password123.NutritionApp.Widget
+        INFOPLIST_FILE: NutritionAppWidget/Info.plist
+        SKIP_INSTALL: "YES"
+        MARKETING_VERSION: "0.2.0"
+        CURRENT_PROJECT_VERSION: "1"
+        CODE_SIGN_ENTITLEMENTS: NutritionAppWidget.entitlements

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>logFormatVersion</key>
+	<integer>12</integer>
+	<key>logs</key>
+	<dict>
+		<key>38D25266-F113-47CD-8638-2F0A9126FC9F</key>
+		<dict>
+			<key>className</key>
+			<string>IDECommandLineBuildLog</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
+			<key>fileName</key>
+			<string>38D25266-F113-47CD-8638-2F0A9126FC9F.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+				<key>totalNumberOfAnalyzerIssues</key>
+				<integer>0</integer>
+				<key>totalNumberOfErrors</key>
+				<integer>0</integer>
+				<key>totalNumberOfTestFailures</key>
+				<integer>0</integer>
+				<key>totalNumberOfWarnings</key>
+				<integer>0</integer>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>NutritionApp project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>NutritionApp</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Building project NutritionApp with scheme NutritionApp and configuration Debug</string>
+			<key>timeStartedRecording</key>
+			<real>800105669.17032802</real>
+			<key>timeStoppedRecording</key>
+			<real>800105671.76177001</real>
+			<key>title</key>
+			<string>Building project NutritionApp with scheme NutritionApp and configuration Debug</string>
+			<key>uniqueIdentifier</key>
+			<string>38D25266-F113-47CD-8638-2F0A9126FC9F</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

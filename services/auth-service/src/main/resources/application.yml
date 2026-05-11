@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/nutrition?currentSchema=auth}
+    username: ${SPRING_DATASOURCE_USERNAME:nutrition}
+    password: ${SPRING_DATASOURCE_PASSWORD:nutrition}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: auth
+    open-in-view: false
+  flyway:
+    schemas: auth
+    default-schema: auth
+
+server:
+  port: ${SERVER_PORT:8081}
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:local-development-secret-change-me-please-1234567890}
+    expiration: ${APP_JWT_EXPIRATION:PT24H}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

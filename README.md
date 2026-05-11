@@ -8,40 +8,62 @@ GenAI is the engine, not a bolted-on feature: a multi-modal LLM identifies foods
 
 | Path | What's there |
 |------|--------------|
-| [`api-service/`](api-service) | Spring Boot REST API (Java 21, PostgreSQL, JWT). Handles auth, meal logging, goals, and analytics. |
-| [`ios-app/`](ios-app) | SwiftUI + SwiftData iOS client. Local-only prototype today; networking layer will plug into the API. |
-| [`docs/`](docs) | Problem statement, system architecture, and UML diagrams (use case, class, top-level architecture). |
+| [`services/auth-service/`](services/auth-service) | Identity, registration, login, JWT issuance. Port 8081, schema `auth`. |
+| [`services/meals-service/`](services/meals-service) | Manual meal logging and photo placeholders. Port 8082, schema `meals`. |
+| [`services/analytics-service/`](services/analytics-service) | Goals and daily/weekly aggregations. Port 8083, schema `analytics`. |
+| [`ios-app/`](ios-app) | SwiftUI + SwiftData iOS client. Local-only prototype; networking layer will plug into the services. |
+| [`docs/`](docs) | Problem statement, system architecture, and UML diagrams. |
+| [`infra/postgres/`](infra/postgres) | Postgres init scripts (creates the per-service schemas). |
+| [`api-service/`](api-service) | Legacy monolith — kept for reference until the new split is fully verified end-to-end. |
 
-A Python + LangChain GenAI microservice is planned per [`docs/System Architecture.md`](docs/System%20Architecture.md) but not yet in the repo. Photo uploads currently land with `AI_NOT_AVAILABLE` status and can be converted into manual logs.
+A Python + LangChain GenAI microservice is planned but not yet in the repo. Photo uploads currently land with `AI_NOT_AVAILABLE` status and can be converted into manual logs.
 
 ## Architecture
 
 ```
-┌──────────────┐      JWT/REST       ┌───────────────────┐      HTTP      ┌─────────────────┐
-│  iOS client  │ ──────────────────▶ │  Spring Boot API  │ ─────────────▶ │  GenAI service  │
-│ (SwiftUI)    │                     │  (Java 21)        │                │  (Python, TBD)  │
-└──────────────┘                     └─────────┬─────────┘                └─────────────────┘
-                                               │
-                                               ▼
-                                       ┌──────────────┐
-                                       │  PostgreSQL  │
-                                       └──────────────┘
+┌──────────────┐    JWT/REST    ┌─────────────────┐
+│  iOS client  │ ─────────────▶ │  auth-service   │  issues JWT
+│  (SwiftUI)   │                │  :8081          │
+└──────────────┘                └────────┬────────┘
+       │                                 │
+       │ JWT/REST                        ▼
+       │                        ┌─────────────────┐
+       ├──────────────────────▶ │  meals-service  │
+       │                        │  :8082          │
+       │                        └────────┬────────┘
+       │                                 │  REST (token forwarded)
+       │                                 ▼
+       │                        ┌─────────────────┐    ┌─────────────────┐
+       └──────────────────────▶ │ analytics-svc   │    │  GenAI service  │
+                                │  :8083          │    │  (Python, TBD)  │
+                                └────────┬────────┘    └─────────────────┘
+                                         │
+                                         ▼
+                                ┌─────────────────────────────┐
+                                │   PostgreSQL                │
+                                │   schemas: auth, meals,     │
+                                │   analytics                 │
+                                └─────────────────────────────┘
 ```
+
+All three services validate JWTs using the same `APP_JWT_SECRET`. Only `auth-service` issues them. Each service owns its DB schema; cross-context reads happen via REST, not shared tables.
 
 See [`docs/sys-architecture.png`](docs/sys-architecture.png) and [`docs/usecase-diagram.png`](docs/usecase-diagram.png) for the full diagrams.
 
 ## Quick start
 
-### API service
-
 ```bash
-cd api-service
-cp .env.example .env          # set JWT secret + DB creds
-docker compose up -d          # PostgreSQL
-mvn spring-boot:run
+cp .env.example .env
+docker compose up --build
 ```
 
-Swagger UI: <http://localhost:8080/swagger-ui.html>. See [`api-service/README.md`](api-service/README.md) for the endpoint catalog.
+Postgres + all three services come up in one shot. Each service exposes its own Swagger UI:
+
+- Auth: <http://localhost:8081/swagger-ui.html>
+- Meals: <http://localhost:8082/swagger-ui.html>
+- Analytics: <http://localhost:8083/swagger-ui.html>
+
+Per-service details are in [`services/README.md`](services/README.md) and the individual service READMEs.
 
 ### iOS app
 
@@ -49,11 +71,16 @@ Open the project in Xcode 15+ targeting iOS 17. Setup steps and the SwiftData mo
 
 ## Status
 
-- [x] Spring Boot API: auth, goals, manual meals, photo placeholders, daily/weekly analytics
+- [x] Server side split into 3 microservices (auth, meals, analytics) with shared-secret JWT and per-schema isolation
+- [x] Root `docker-compose.yml` brings up Postgres + all 3 services in one command
 - [x] iOS prototype: local SwiftData persistence, manual + photo logging, daily progress, weekly charts
 - [ ] GenAI microservice for food recognition and nutritional inference
-- [ ] iOS networking layer wired to the API (auth, meals, analytics clients)
-- [ ] Offline cache reconciliation between SwiftData and the API
+- [ ] Web client (React/Angular/Vue) per the course requirements
+- [ ] GitHub Actions CI/CD
+- [ ] Kubernetes manifests / Helm charts (Rancher + Azure)
+- [ ] Prometheus + Grafana with exported dashboards and alert rules
+- [ ] iOS networking layer wired to the services
+- [ ] Retire the legacy `api-service/` monolith
 
 ## Intended users
 
@@ -65,4 +92,5 @@ Open the project in Xcode 15+ targeting iOS 17. Setup steps and the SwiftData mo
 
 - [Problem statement](docs/Problem%20Statement.md)
 - [System architecture](docs/System%20Architecture.md)
+- Services overview: [`services/README.md`](services/README.md)
 - Backlog: [Miro board](https://miro.com/app/board/uXjVHdWuFjk=/)

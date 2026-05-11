@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nutrition}
+      POSTGRES_USER: ${POSTGRES_USER:-nutrition}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nutrition}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nutrition}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  auth-service:
+    build: ./services/auth-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nutrition}?currentSchema=auth
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nutrition}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-nutrition}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-local-development-secret-change-me-please-1234567890}
+      APP_JWT_EXPIRATION: ${APP_JWT_EXPIRATION:-PT24H}
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  meals-service:
+    build: ./services/meals-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nutrition}?currentSchema=meals
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nutrition}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-nutrition}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-local-development-secret-change-me-please-1234567890}
+      APP_UPLOAD_DIR: /app/uploads
+      SERVER_PORT: 8082
+    ports:
+      - "8082:8082"
+    volumes:
+      - meals-uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  analytics-service:
+    build: ./services/analytics-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nutrition}?currentSchema=analytics
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nutrition}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-nutrition}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-local-development-secret-change-me-please-1234567890}
+      MEALS_SERVICE_URL: http://meals-service:8082
+      SERVER_PORT: 8083
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      meals-service:
+        condition: service_started
+
+volumes:
+  postgres-data:
+  meals-uploads:

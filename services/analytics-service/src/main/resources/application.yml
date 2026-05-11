@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: analytics-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/nutrition?currentSchema=analytics}
+    username: ${SPRING_DATASOURCE_USERNAME:nutrition}
+    password: ${SPRING_DATASOURCE_PASSWORD:nutrition}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: analytics
+    open-in-view: false
+  flyway:
+    schemas: analytics
+    default-schema: analytics
+
+server:
+  port: ${SERVER_PORT:8083}
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:local-development-secret-change-me-please-1234567890}
+  meals-service:
+    base-url: ${MEALS_SERVICE_URL:http://localhost:8082}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

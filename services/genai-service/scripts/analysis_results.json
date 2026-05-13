@@ -1,0 +1,50 @@
+{
+  "Chicken-and-Broccoli.jpg": {
+    "foods": [
+      "chicken",
+      "rice",
+      "broccoli"
+    ],
+    "calories": 500.0,
+    "protein_grams": 25.0,
+    "carbs_grams": 60.0,
+    "fat_grams": 15.0,
+    "fiber_grams": 5.0,
+    "confidence": 0.85
+  },
+  "Chili-beans.jpg": {
+    "foods": [
+      "beans",
+      "tomatoes",
+      "onions"
+    ],
+    "calories": 500.0,
+    "protein_grams": 25.0,
+    "carbs_grams": 60.0,
+    "fat_grams": 15.0,
+    "fiber_grams": 5.0,
+    "confidence": 0.85
+  },
+  "Hamburger.jpg": {
+    "foods": [
+      "hamburger"
+    ],
+    "calories": 500.0,
+    "protein_grams": 25.0,
+    "carbs_grams": 60.0,
+    "fat_grams": 15.0,
+    "fiber_grams": 5.0,
+    "confidence": 0.85
+  },
+  "Italian-Chopped-Salad.jpg": {
+    "foods": [
+      "salad"
+    ],
+    "calories": 500.0,
+    "protein_grams": 25.0,
+    "carbs_grams": 60.0,
+    "fat_grams": 15.0,
+    "fiber_grams": 5.0,
+    "confidence": 0.85
+  }
+}

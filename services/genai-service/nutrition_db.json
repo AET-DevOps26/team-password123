@@ -1,0 +1,170 @@
+{
+  "chicken_breast": {
+    "name": "Chicken Breast",
+    "calories_per_100g": 165,
+    "protein_per_100g": 31,
+    "carbs_per_100g": 0,
+    "fat_per_100g": 3.6,
+    "fiber_per_100g": 0
+  },
+  "chicken": {
+    "name": "Chicken (average)",
+    "calories_per_100g": 165,
+    "protein_per_100g": 31,
+    "carbs_per_100g": 0,
+    "fat_per_100g": 3.6,
+    "fiber_per_100g": 0
+  },
+  "broccoli": {
+    "name": "Broccoli",
+    "calories_per_100g": 34,
+    "protein_per_100g": 2.8,
+    "carbs_per_100g": 7,
+    "fat_per_100g": 0.4,
+    "fiber_per_100g": 2.4
+  },
+  "hamburger": {
+    "name": "Hamburger/Ground Beef",
+    "calories_per_100g": 217,
+    "protein_per_100g": 26,
+    "carbs_per_100g": 0,
+    "fat_per_100g": 11,
+    "fiber_per_100g": 0
+  },
+  "burger": {
+    "name": "Hamburger/Ground Beef",
+    "calories_per_100g": 217,
+    "protein_per_100g": 26,
+    "carbs_per_100g": 0,
+    "fat_per_100g": 11,
+    "fiber_per_100g": 0
+  },
+  "beans": {
+    "name": "Cooked Beans (average)",
+    "calories_per_100g": 127,
+    "protein_per_100g": 8.67,
+    "carbs_per_100g": 23,
+    "fat_per_100g": 0.5,
+    "fiber_per_100g": 6.4
+  },
+  "tomatoes": {
+    "name": "Tomatoes",
+    "calories_per_100g": 18,
+    "protein_per_100g": 0.9,
+    "carbs_per_100g": 3.9,
+    "fat_per_100g": 0.2,
+    "fiber_per_100g": 1.2
+  },
+  "onions": {
+    "name": "Onions",
+    "calories_per_100g": 40,
+    "protein_per_100g": 1.1,
+    "carbs_per_100g": 9,
+    "fat_per_100g": 0.1,
+    "fiber_per_100g": 1.7
+  },
+  "rice": {
+    "name": "Cooked Rice (white)",
+    "calories_per_100g": 130,
+    "protein_per_100g": 2.7,
+    "carbs_per_100g": 28,
+    "fat_per_100g": 0.3,
+    "fiber_per_100g": 0.4
+  },
+  "salad": {
+    "name": "Mixed Salad (with dressing estimate)",
+    "calories_per_100g": 80,
+    "protein_per_100g": 2.5,
+    "carbs_per_100g": 4,
+    "fat_per_100g": 6,
+    "fiber_per_100g": 1.5
+  },
+  "lettuce": {
+    "name": "Lettuce",
+    "calories_per_100g": 15,
+    "protein_per_100g": 1.2,
+    "carbs_per_100g": 2.9,
+    "fat_per_100g": 0.2,
+    "fiber_per_100g": 1.3
+  },
+  "oil": {
+    "name": "Oil/Olive Oil",
+    "calories_per_100g": 884,
+    "protein_per_100g": 0,
+    "carbs_per_100g": 0,
+    "fat_per_100g": 100,
+    "fiber_per_100g": 0
+  },
+  "bread": {
+    "name": "Bread (whole wheat)",
+    "calories_per_100g": 247,
+    "protein_per_100g": 10,
+    "carbs_per_100g": 41,
+    "fat_per_100g": 3.7,
+    "fiber_per_100g": 7.1
+  },
+  "fish": {
+    "name": "Fish (average)",
+    "calories_per_100g": 82,
+    "protein_per_100g": 17.4,
+    "carbs_per_100g": 0,
+    "fat_per_100g": 0.7,
+    "fiber_per_100g": 0
+  },
+  "pasta": {
+    "name": "Cooked Pasta",
+    "calories_per_100g": 131,
+    "protein_per_100g": 4.7,
+    "carbs_per_100g": 25,
+    "fat_per_100g": 1.1,
+    "fiber_per_100g": 1.8
+  },
+  "potatoes": {
+    "name": "Potatoes (cooked)",
+    "calories_per_100g": 77,
+    "protein_per_100g": 2.1,
+    "carbs_per_100g": 17,
+    "fat_per_100g": 0.1,
+    "fiber_per_100g": 2.1
+  },
+  "egg": {
+    "name": "Egg",
+    "calories_per_100g": 155,
+    "protein_per_100g": 13,
+    "carbs_per_100g": 1.1,
+    "fat_per_100g": 11,
+    "fiber_per_100g": 0
+  },
+  "milk": {
+    "name": "Milk (whole)",
+    "calories_per_100g": 61,
+    "protein_per_100g": 3.2,
+    "carbs_per_100g": 4.8,
+    "fat_per_100g": 3.3,
+    "fiber_per_100g": 0
+  },
+  "cheese": {
+    "name": "Cheese (cheddar)",
+    "calories_per_100g": 403,
+    "protein_per_100g": 23,
+    "carbs_per_100g": 3.1,
+    "fat_per_100g": 33,
+    "fiber_per_100g": 0
+  },
+  "vegetables": {
+    "name": "Mixed Vegetables",
+    "calories_per_100g": 30,
+    "protein_per_100g": 1.2,
+    "carbs_per_100g": 6,
+    "fat_per_100g": 0.2,
+    "fiber_per_100g": 1.8
+  },
+  "fruit": {
+    "name": "Fruit (average)",
+    "calories_per_100g": 60,
+    "protein_per_100g": 0.6,
+    "carbs_per_100g": 15,
+    "fat_per_100g": 0.3,
+    "fiber_per_100g": 2.4
+  }
+}

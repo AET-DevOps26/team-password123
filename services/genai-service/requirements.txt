@@ -1,0 +1,33 @@
+# FastAPI and async server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+numpy==2.4.4
+
+# LangChain and LLM integrations
+langchain>=0.2.0,<1.0
+langchain-core>=0.2.0,<1.0
+langchain-ollama>=0.2.0,<1.0
+langchain-openai>=0.2.0,<1.0
+
+# Image processing
+pillow==10.4.0
+
+# HTTP requests
+requests==2.31.0
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Logging and utilities
+python-multipart==0.0.6
+pydantic>=2.5,<3.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+
+# TODO: Installation steps:
+#   1. Create virtual environment: python -m venv venv
+#   2. Activate: venv\Scripts\activate (Windows) or source venv/bin/activate (Mac/Linux)
+#   3. Install: pip install -r requirements.txt
+#   4. Then proceed to nutrition_analyzer.py

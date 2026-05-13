@@ -1,0 +1,17 @@
+{
+  "Chicken-and-Broccoli.jpg": {
+    "status": 200,
+    "response": {
+      "foods": [
+        "chicken",
+        "broccoli"
+      ],
+      "calories": 500.0,
+      "protein_grams": 25.0,
+      "carbs_grams": 60.0,
+      "fat_grams": 15.0,
+      "fiber_grams": 5.0,
+      "confidence": 0.85
+    }
+  }
+}

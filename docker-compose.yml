@@ -65,6 +65,25 @@ services:
       meals-service:
         condition: service_started
 
+  genai-service:
+    build: ./services/genai-service
+    environment:
+      LLM_PROVIDER: ollama
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      OLLAMA_MODEL: llava
+      PORT: 8084
+      DEBUG: "false"
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; r = requests.get('http://localhost:8084/health', timeout=3); raise SystemExit(0 if r.status_code == 200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
 volumes:
   postgres-data:
   meals-uploads:

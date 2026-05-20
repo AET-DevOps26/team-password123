@@ -19,7 +19,7 @@ import base64
 import logging
 from datetime import datetime, timezone
 
-from nutrition_analyzer import NutritionAnalyzer, NutritionResponse
+from nutrition_analyzer import NutritionAnalyzer, NutritionResponse, NutritionComparisonResponse
 from config import PORT, DEBUG
 
 # Set up logging
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 # Create FastAPI app
 app = FastAPI(
     title="Nutrition GenAI Service",
-    description="Analyzes food images and returns nutritional estimates using Ollama or OpenAI",
+    description="Analyzes food images and returns nutritional estimates using Ollama, OpenAI, or Google Gemini",
     version="0.1.0"
 )
 
@@ -57,7 +57,7 @@ async def health_check():
     }
     
     if not analyzer:
-        status_info["error"] = "NutritionAnalyzer not initialized. Check Ollama or OpenAI configuration."
+        status_info["error"] = "NutritionAnalyzer not initialized. Check Ollama, OpenAI, or Google configuration."
     
     return status_info
 
@@ -76,7 +76,7 @@ async def analyze_meal(file: UploadFile = File(...)):
     if not analyzer:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="GenAI service not initialized. Ensure Ollama is running (http://localhost:11434) or OPENAI_API_KEY is set."
+            detail="GenAI service not initialized. Ensure Ollama is running, or set OPENAI_API_KEY / GOOGLE_API_KEY."
         )
     
     try:
@@ -142,6 +142,46 @@ async def analyze_meal_base64(request_data: dict):
     except Exception as e:
         logger.error(f"Error: {e}", exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
+
+@app.post("/api/analyze/compare", response_model=NutritionComparisonResponse)
+async def compare_meal(file: UploadFile = File(...)):
+    """Analyze the same image with two providers and compare calorie estimates."""
+    if not analyzer:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="GenAI service not initialized. Ensure Ollama is running, or set OPENAI_API_KEY / GOOGLE_API_KEY."
+        )
+
+    try:
+        if not file.filename:
+            raise ValueError("File must have a name")
+
+        image_data = await file.read()
+        if not image_data:
+            raise ValueError("Empty image file")
+
+        image_base64 = base64.b64encode(image_data).decode("utf-8")
+
+        logger.info(f"Comparing providers for image: {file.filename}")
+        result = analyzer.compare_providers(image_base64)
+
+        logger.info(
+            "Comparison complete: primary %.0f cal vs secondary %.0f cal",
+            result.primary.calories,
+            result.secondary.calories,
+        )
+        return result
+
+    except ValueError as e:
+        logger.error(f"Validation error: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(f"Comparison error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Comparison failed. Check service logs."
+        )
 
 
 if __name__ == "__main__":

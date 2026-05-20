@@ -5,7 +5,8 @@ Multi-modal LLM-powered food image recognition and nutritional inference microse
 - **Port**: 8084
 - **Framework**: FastAPI (Python)
 - **Default LLM**: Ollama (local, free, offline-capable)
-- **Fallback LLM**: OpenAI GPT-4o (cloud, premium accuracy)
+- **Fallback LLMs**: OpenAI GPT-4o or Google Gemini (cloud)
+- **Nutrition data**: USDA FoodData Central first, then Open Food Facts, with a local cache fallback
 - **Architecture**: LangChain abstracts provider switching
 
 ## Endpoints
@@ -13,6 +14,7 @@ Multi-modal LLM-powered food image recognition and nutritional inference microse
 | Method | Path | Input | Output | Notes |
 |--------|------|-------|--------|-------|
 | POST | `/api/analyze` | File upload (image) | `NutritionResponse` | Recommended for file uploads |
+| POST | `/api/analyze/compare` | File upload (image) | `NutritionComparisonResponse` | Compares two LLM vision providers and calorie estimates |
 | POST | `/api/analyze/base64` | JSON `{"image": "base64_string"}` | `NutritionResponse` | For pre-encoded images |
 | GET | `/health` | none | `{"status": "ok"}` | Health check |
 
@@ -32,47 +34,24 @@ Multi-modal LLM-powered food image recognition and nutritional inference microse
 
 ## Nutrition Data
 
-### Current Implementation: Lookup Table (MVP)
-The service currently uses a **static JSON lookup table** (`nutrition_db.json`) containing standardized nutritional values for common foods. Each entry includes:
-- Calories per 100g
-- Protein, carbs, fat, and fiber per 100g
+### Nutrition Data Sources
+The service now resolves nutrition values through a live lookup pipeline:
 
-**Example: Broccoli (100g)**
-```json
-{
-  "name": "Broccoli",
-  "calories_per_100g": 34,
-  "protein_per_100g": 2.8,
-  "carbs_per_100g": 7,
-  "fat_per_100g": 0.4,
-  "fiber_per_100g": 2.4
-}
-```
+1. **USDA FoodData Central** as the primary nutrition source.
+2. **Open Food Facts** for packaged foods and branded products.
+3. **Local cache fallback** (`nutrition_db.json`) for offline or partial coverage.
 
-### Why a Lookup Table?
-- **Accurate**: Based on USDA/nutritional standards
-- **Fast**: No API calls needed
-- **Reliable**: Consistent values across requests
-- **Offline**: Works without external services
+This keeps the current image-analysis flow intact while replacing the old MVP-only table with real data sources. The analyzer still scales the per-100g values by the portion estimate returned by the vision model.
 
-### Future: AI-Powered Nutrition Model
-This lookup table is a **temporary solution** for MVP validation. Future versions will:
-- Train a custom ML model on food composition data
-- Support variable cooking methods and preparation styles
-- Handle regional/brand variations
-- Reduce manual lookup maintenance
-- Provide confidence scores per nutrient prediction
-
-For now, the workflow is:
-1. Vision model (llava) **identifies foods** and estimates portions (grams)
-2. Lookup table **provides accurate macros** per 100g
-3. Calculations **scale by portion size** to get final estimates
+The service also exposes a provider comparison path so you can see how two vision models differ on the same image and how far apart their calorie estimates are.
 
 ## Local Development
 
 ### Prerequisites
 - Ollama installed from https://ollama.ai (for local inference)
 - **OR** OpenAI API key (for cloud fallback)
+- **OR** Google Gemini API key for the Google provider path
+- USDA FoodData Central API key for the best nutrition coverage
 
 ### Step 1: Download a vision model (Ollama)
 
@@ -96,6 +75,7 @@ Create a `.env` file in `services/genai-service/`:
 # Choose default provider
 LLM_PROVIDER=ollama
 # or: LLM_PROVIDER=openai
+# or: LLM_PROVIDER=google
 
 # Ollama settings
 OLLAMA_BASE_URL=http://localhost:11434
@@ -103,6 +83,14 @@ OLLAMA_MODEL=llava-phi
 
 # OpenAI settings (optional, used as fallback)
 OPENAI_API_KEY=sk-...  # Only needed if using OpenAI or as fallback
+
+# Google Gemini settings (optional, used if LLM_PROVIDER=google or as fallback)
+# GOOGLE_API_KEY=AIza...
+GOOGLE_MODEL=gemini-2.0-flash
+
+# Nutrition data source selection
+NUTRITION_DATA_PROVIDER=usda
+USDA_FDC_API_KEY=...
 
 PORT=8084
 DEBUG=true
@@ -140,6 +128,14 @@ curl -X POST http://localhost:8084/api/analyze/base64 \
   -H "Content-Type: application/json" \
   -d '{"image": "base64_encoded_image_string"}'
 ```
+
+**Option C: Compare two providers**
+```bash
+curl -X POST http://localhost:8084/api/analyze/compare \
+  -F "file=@/path/to/meal.jpg"
+```
+
+This returns both provider outputs and a `calorie_difference` so you can compare how far apart their estimates are.
 
 Expected response:
 ```json
@@ -254,26 +250,26 @@ See [meals-service/README.md](../meals-service/README.md) for exact endpoint wir
 
 ## Next Steps
 
-1. **TODO**: Fill in [nutrition_analyzer.py](nutrition_analyzer.py) with actual LLM logic
-2. **TODO**: Test `/api/analyze` locally with Swagger UI
-3. **TODO**: Update [docker-compose.yml](../../docker-compose.yml) with genai-service section
-4. **TODO**: Wire genai-service into meals-service photo handling
-5. **TODO**: Add tests for different food types and edge cases
+1. Tune the provider defaults for your deployment mix.
+2. Add caching or rate-limit protection if nutrition lookups get heavy.
+3. Wire genai-service into meals-service photo handling.
+4. Add more food-specific tests and image fixtures.
 
 ## Completed
 
 - ✅ GenAI service working locally with Ollama
+- ✅ Google Gemini provider path added
+- ✅ Live nutrition lookup via USDA FoodData Central and Open Food Facts
 - ✅ FastAPI endpoints for image analysis
 - ✅ Docker image builds successfully
 - ✅ Added to docker-compose.yml (connects to host Ollama on Windows)
 - ✅ Smoke tests created and documented
-- ✅ .env.example added with Ollama requirement documentation
+- ✅ .env.example updated for Google and nutrition API configuration
 
 ## Future Improvements
 
 1. Wire genai-service into meals-service photo handling
 2. Add caching for repeated analyses
-3. Support multiple vision models (llava, bakllava, llava-phi)
-4. Expose Prometheus metrics for monitoring
-5. Add GitHub Actions CI/CD job to build and test genai-service
-6. Load-test with high-volume image submissions
+3. Expose Prometheus metrics for monitoring
+4. Add GitHub Actions CI/CD job to build and test genai-service
+5. Load-test with high-volume image submissions

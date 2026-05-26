@@ -5,7 +5,7 @@
   gap: 16px;
 }
 
-/* Зона drag-and-drop */
+/* drag-and-drop zone */
 .dropzone {
   width: 100%;
   min-height: 220px;
@@ -36,11 +36,6 @@
   min-height: auto;
 }
 
-.icon {
-  font-size: 48px;
-  line-height: 1;
-}
-
 .hint {
   color: #6b7280;
   font-size: 14px;
@@ -50,8 +45,7 @@
 .hint strong {
   color: #374151;
 }
-
-/* Предпросмотр загруженного фото */
+/* Preview uploaded photo */
 .preview {
   width: 100%;
   max-height: 300px;
@@ -60,12 +54,10 @@
   display: block;
 }
 
-/* Скрытый инпут для файла */
 .hiddenInput {
   display: none;
 }
 
-/* Кнопка анализа */
 .analyzeButton {
   width: 100%;
   padding: 14px;
@@ -87,8 +79,7 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
-
-/* Сообщение об ошибке */
+/* Error message*/
 .error {
   color: #ef4444;
   font-size: 14px;
@@ -99,8 +90,7 @@
   width: 100%;
   box-sizing: border-box;
 }
-
-/* Кнопка сброса фото */
+/* Reset photo button */
 .resetButton {
   background: none;
   border: none;

@@ -24,6 +24,7 @@ gradle-app.setting
 # ─── React / TypeScript frontend ─────────────────────────────────────────────
 node_modules/
 dist/
+package-lock.json
 .next/
 .nuxt/
 .cache/

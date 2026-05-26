@@ -3,7 +3,6 @@ import type { Meal, MealAnalysisResponse } from '../types';
 
 export const mealApi = {
   // POST /api/meals/analyze
-  // Sends the photo as FormData (key "image")
   analyzePhoto: (imageFile: File): Promise<MealAnalysisResponse> => {
     const formData = new FormData();
     formData.append('image', imageFile);

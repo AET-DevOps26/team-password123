@@ -4,23 +4,16 @@ import type { MealAnalysisResponse, ApiError } from '../../types';
 import { mealApi } from '../../api/mealApi';
 
 interface PhotoUploadProps {
-  // Called when analysis completes successfully
   onAnalysisComplete: (result: MealAnalysisResponse) => void;
 }
 
 export function PhotoUpload({ onAnalysisComplete }: PhotoUploadProps) {
-  // URL for previewing the selected image
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  // The file that will be sent to the backend
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  // Whether a request is in flight
   const [isLoading, setIsLoading] = useState(false);
-  // Error message if something went wrong
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  // Highlight the drop zone on drag-over
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // Ref to the hidden <input type="file">
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Accept a file — validate type and create a preview URL
@@ -112,7 +105,6 @@ export function PhotoUpload({ onAnalysisComplete }: PhotoUploadProps) {
 
   return (
     <div className={styles.container}>
-      {/* Drop zone / preview */}
       <div
         className={dropzoneClasses}
         onClick={!previewUrl ? handleDropzoneClick : undefined}
@@ -128,7 +120,6 @@ export function PhotoUpload({ onAnalysisComplete }: PhotoUploadProps) {
           />
         ) : (
           <>
-            <span className={styles.icon}>🍽️</span>
             <p className={styles.hint}>
               <strong>Click</strong> or drag a photo here
             </p>
@@ -146,7 +137,6 @@ export function PhotoUpload({ onAnalysisComplete }: PhotoUploadProps) {
         onChange={handleInputChange}
       />
 
-      {/* Error message */}
       {errorMessage && (
         <p className={styles.error}>{errorMessage}</p>
       )}
@@ -159,7 +149,7 @@ export function PhotoUpload({ onAnalysisComplete }: PhotoUploadProps) {
             onClick={handleAnalyze}
             disabled={isLoading}
           >
-            {isLoading ? '⏳ Analyzing...' : '🔍 Count Calories'}
+            {isLoading ? 'Analyzing...' : 'Count Calories'}
           </button>
 
           <button className={styles.resetButton} onClick={handleReset}>

@@ -4,12 +4,10 @@ import type { ApiError } from '../types';
 // In development mode vite.config.ts proxies /api -> http://localhost:8080
 const BASE_URL = '/api';
 
-// Read the token from localStorage (stored there after login)
 function getToken(): string | null {
   return localStorage.getItem('token');
 }
 
-// Generic request function
 async function request<T>(
   path: string,
   options: RequestInit = {}
@@ -35,13 +33,12 @@ async function request<T>(
   });
 
   if (!response.ok) {
-    // Try to read the error message from the backend
     let errorMessage = `HTTP error: ${response.status}`;
     try {
       const errorBody = await response.json();
       errorMessage = errorBody.message ?? errorMessage;
     } catch {
-      // If JSON parsing fails — keep the default message
+      // JSON parsing failed, keep the default message
     }
 
     const error: ApiError = {
@@ -51,12 +48,11 @@ async function request<T>(
     throw error;
   }
 
-  // If the response is empty (e.g. 204 No Content) — return null
+  // Empty body (e.g. 204 No Content)
   const text = await response.text();
   return text ? (JSON.parse(text) as T) : (null as T);
 }
 
-// Convenience methods
 export const apiClient = {
   get: <T>(path: string) => request<T>(path),
 

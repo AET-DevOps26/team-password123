@@ -1,0 +1,64 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ─── Java / Maven ────────────────────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# ─── Java / Gradle ───────────────────────────────────────────────────────────
+.gradle/
+build/
+out/
+!**/src/**/build/
+!**/src/**/out/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# ─── React / TypeScript frontend ─────────────────────────────────────────────
+node_modules/
+dist/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# IDEs & editors
+.idea/
+!.idea/.gitignore
+*.iml
+*.iws
+.vscode/
+*.swp
+*.swo
+*~
+
+# IntelliJ IDEA — local/generated files inside .idea/
+.idea/shelf/
+.idea/workspace.xml
+.idea/queries/
+.idea/dataSources/
+.idea/dataSources.local.xml
+.idea/httpRequests/
+
+# ─── Service-specific ────────────────────────────────────────────────────────
+# meals-service uploaded files
+services/meals-service/uploads/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

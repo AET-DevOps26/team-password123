@@ -1,0 +1,115 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Зона drag-and-drop */
+.dropzone {
+  width: 100%;
+  min-height: 220px;
+  border: 2px dashed #c0c9d6;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  background-color: #f8fafc;
+  padding: 24px;
+  text-align: center;
+}
+
+.dropzone:hover,
+.dropzoneActive {
+  border-color: #4f8ef7;
+  background-color: #eef4ff;
+}
+
+.dropzoneWithImage {
+  border-style: solid;
+  border-color: #4f8ef7;
+  padding: 8px;
+  min-height: auto;
+}
+
+.icon {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.hint {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0;
+}
+
+.hint strong {
+  color: #374151;
+}
+
+/* Предпросмотр загруженного фото */
+.preview {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+
+/* Скрытый инпут для файла */
+.hiddenInput {
+  display: none;
+}
+
+/* Кнопка анализа */
+.analyzeButton {
+  width: 100%;
+  padding: 14px;
+  background-color: #4f8ef7;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.analyzeButton:hover:not(:disabled) {
+  background-color: #3a7de8;
+}
+
+.analyzeButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Сообщение об ошибке */
+.error {
+  color: #ef4444;
+  font-size: 14px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Кнопка сброса фото */
+.resetButton {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.resetButton:hover {
+  color: #374151;
+}

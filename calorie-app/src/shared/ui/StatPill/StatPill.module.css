@@ -1,0 +1,43 @@
+.pill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 15px;
+  box-shadow: var(--shadow);
+}
+
+.icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--green-press);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.value {
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.05;
+  letter-spacing: -.02em;
+}
+
+.label {
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+
+@media (max-width: 860px) {
+  .pill {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

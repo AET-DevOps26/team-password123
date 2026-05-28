@@ -1,4 +1,4 @@
-import { apiClient } from '../../../api/client';
+import { apiClient } from '../../../shared/api/client';
 import type { AuthResponse, LoginRequest, RegisterRequest } from '../model/types';
 import type { UserResponse } from '../../../entities/user';
 

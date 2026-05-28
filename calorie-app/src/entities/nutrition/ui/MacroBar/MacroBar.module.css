@@ -1,0 +1,39 @@
+.macro {
+  display: flex;
+  flex-direction: column;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 7px;
+}
+
+.label {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.val {
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.val b {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.track {
+  height: 8px;
+  border-radius: 6px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width .8s cubic-bezier(.4, 0, .2, 1);
+}

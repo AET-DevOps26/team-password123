@@ -3,6 +3,9 @@
 .AppleDouble
 .LSOverride
 
+# claude
+.claude
+
 # ─── Java / Maven ────────────────────────────────────────────────────────────
 target/
 *.class

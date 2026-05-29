@@ -12,10 +12,11 @@ interface ScanModalProps {
 }
 
 const TITLES: Record<string, string> = {
-  idle:     'Scan a meal',
-  scanning: 'Analyzing…',
-  result:   'Review & log',
-  error:    'Scan a meal',
+  idle:             'Scan a meal',
+  scanning:         'Uploading…',
+  result:           'Review & log',
+  manual_required:  'Fill in details',
+  error:            'Scan a meal',
 };
 
 const SLOTS: MealSlot[] = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
@@ -31,29 +32,55 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
     scan.setFile(file);
   }
 
-  function handleAdd() {
-    scan.addToDiary();
-    onAdded(scan.result?.nutrition.calories ?? 0);
+  async function handleAdd() {
+    await scan.addToDiary();
+    const kcal =
+      scan.stage === 'result'
+        ? (scan.result?.nutrition.calories ?? 0)
+        : parseInt(scan.manualForm.calories, 10) || 0;
+    onAdded(kcal);
   }
 
-  const footer = scan.stage === 'result' ? (
-    <>
-      <select
-        className={styles.slotSelect}
-        value={scan.slot}
-        onChange={(e) => scan.setSlot(e.target.value as MealSlot)}
-      >
-        {SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
-      </select>
-      <button className={`${styles.btn} ${styles.primary} ${styles.grow}`} onClick={handleAdd}>
-        <CheckIcon /> Add {scan.result?.nutrition.calories ?? 0} kcal to diary
-      </button>
-    </>
-  ) : undefined;
+  const manualFormValid =
+    scan.manualForm.name.trim().length > 0 &&
+    parseInt(scan.manualForm.calories, 10) > 0;
+
+  const footer =
+    scan.stage === 'result' ? (
+      <>
+        <select
+          className={styles.slotSelect}
+          value={scan.slot}
+          onChange={(e) => scan.setSlot(e.target.value as MealSlot)}
+        >
+          {SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <button className={`${styles.btn} ${styles.primary} ${styles.grow}`} onClick={handleAdd}>
+          <CheckIcon /> Add {scan.result?.nutrition.calories ?? 0} kcal to diary
+        </button>
+      </>
+    ) : scan.stage === 'manual_required' ? (
+      <>
+        <select
+          className={styles.slotSelect}
+          value={scan.slot}
+          onChange={(e) => scan.setSlot(e.target.value as MealSlot)}
+        >
+          {SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <button
+          className={`${styles.btn} ${styles.primary} ${styles.grow}`}
+          disabled={!manualFormValid}
+          onClick={handleAdd}
+        >
+          <CheckIcon /> Log {parseInt(scan.manualForm.calories, 10) || 0} kcal
+        </button>
+      </>
+    ) : undefined;
 
   return (
     <Modal title={TITLES[scan.stage]} onClose={onClose} footer={footer}>
-      {/* ── Photo preview area ── */}
+      {/* ── Photo area ── */}
       <div className={styles.photo}>
         {scan.previewUrl ? (
           <img src={scan.previewUrl} alt="Meal" className={styles.photoImg} />
@@ -76,24 +103,19 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
           </div>
         )}
 
-        {/* Scan animation overlay */}
         {scan.stage === 'scanning' && (
           <div className={styles.scanVeil}>
             <div className={styles.scanLine} />
           </div>
         )}
 
-        {/* Result badge */}
         {scan.stage === 'result' && scan.result && (
           <div className={styles.resultTag}>
             <span className={styles.tagName}>{scan.result.dishName}</span>
-            <span className={styles.tagConf}>
-              {Math.round(scan.result.confidence * 100)}% match
-            </span>
+            <span className={styles.tagConf}>{Math.round(scan.result.confidence * 100)}% match</span>
           </div>
         )}
 
-        {/* Retake button when photo selected in idle */}
         {scan.stage === 'idle' && scan.previewUrl && (
           <button className={styles.retakeBtn} onClick={scan.clearFile}>
             <RetakeIcon /> Retake
@@ -109,7 +131,7 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
         onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
       />
 
-      {/* ── Stage-specific content ── */}
+      {/* ── Stage content ── */}
 
       {scan.stage === 'idle' && (
         <div className={styles.idleBody}>
@@ -157,6 +179,51 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
         </div>
       )}
 
+      {scan.stage === 'manual_required' && (
+        <div className={styles.idleBody}>
+          <p className={styles.hint}>
+            AI analysis is not available yet — enter the nutrition info for this meal.
+          </p>
+          <div className={styles.manualFields}>
+            <label className={styles.fieldLabel}>
+              Dish name
+              <input
+                className={styles.fieldInput}
+                value={scan.manualForm.name}
+                onChange={(e) => scan.patchManualForm({ name: e.target.value })}
+                placeholder="e.g. Chicken pasta"
+              />
+            </label>
+            <label className={styles.fieldLabel}>
+              Calories (kcal)
+              <input
+                className={styles.fieldInput}
+                type="number"
+                min={0}
+                value={scan.manualForm.calories}
+                onChange={(e) => scan.patchManualForm({ calories: e.target.value })}
+                placeholder="e.g. 520"
+              />
+            </label>
+            <div className={styles.macroRow}>
+              {(['protein', 'carbs', 'fat'] as const).map((k) => (
+                <label key={k} className={styles.fieldLabel}>
+                  {k.charAt(0).toUpperCase() + k.slice(1)} (g)
+                  <input
+                    className={styles.fieldInput}
+                    type="number"
+                    min={0}
+                    value={scan.manualForm[k]}
+                    onChange={(e) => scan.patchManualForm({ [k]: e.target.value })}
+                    placeholder="0"
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {scan.stage === 'error' && (
         <div className={styles.error}>
           <p className={styles.errorMsg}>{scan.errorMessage}</p>
@@ -179,7 +246,6 @@ function CameraIcon() {
     </svg>
   );
 }
-
 function BoltIcon() {
   return (
     <svg width={18} height={18} viewBox="0 0 24 24" fill="none"
@@ -188,7 +254,6 @@ function BoltIcon() {
     </svg>
   );
 }
-
 function CheckIcon() {
   return (
     <svg width={18} height={18} viewBox="0 0 24 24" fill="none"
@@ -197,7 +262,6 @@ function CheckIcon() {
     </svg>
   );
 }
-
 function RetakeIcon() {
   return (
     <svg width={15} height={15} viewBox="0 0 24 24" fill="none"

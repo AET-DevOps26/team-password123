@@ -5,15 +5,15 @@ import { MOCK_MODE } from '../../../shared/config/flags';
 
 interface MealStore {
   entries: MealEntry[];
-  addEntry: (entry: MealEntry) => void;
+  addEntry:   (entry: MealEntry) => void;
+  setEntries: (entries: MealEntry[]) => void;
   clearEntries: () => void;
 }
 
 export const useMealStore = create<MealStore>((set) => ({
   entries: MOCK_MODE ? MOCK_MEALS : [],
 
-  addEntry: (entry) =>
-    set((state) => ({ entries: [entry, ...state.entries] })),
-
-  clearEntries: () => set({ entries: [] }),
+  addEntry:    (entry)   => set((s) => ({ entries: [entry, ...s.entries] })),
+  setEntries:  (entries) => set({ entries }),
+  clearEntries: ()       => set({ entries: [] }),
 }));

@@ -10,22 +10,50 @@ function getToken(): string | null {
 // Fake responses for OFFLINE_MODE — mirrors real backend shapes so the app
 // renders an empty-state experience without any network errors.
 function offlineResponse<T>(path: string, method: string): T {
-  if (
-    (path === '/auth/login' || path === '/auth/register') &&
-    method === 'POST'
-  ) {
+  // Auth
+  if ((path === '/auth/login' || path === '/auth/register') && method === 'POST') {
     return {
-      token: 'offline',
-      user: {
-        id: 'offline',
-        email: 'guest@local',
-        displayName: 'Guest User',
-        createdAt: new Date().toISOString(),
-      },
+      tokenType:   'Bearer',
+      accessToken: 'offline',
+      expiresAt:   new Date(Date.now() + 86400_000).toISOString(),
+      userId:      'offline',
+      email:       'guest@local',
+      displayName: 'Guest User',
     } as T;
   }
-  // GET /meals list
-  if (path === '/meals' && method === 'GET') return [] as T;
+
+  // Meals list / manual save / photo upload / photo convert
+  if (path.startsWith('/meals') && (method === 'GET' || path === '/meals')) {
+    if (method === 'GET') return [] as T;
+  }
+  if (path === '/meals/manual' && method === 'POST') return null as T;
+  if (path === '/meals/photo' && method === 'POST') {
+    return {
+      id: 'offline-photo',
+      originalFilename: 'photo.jpg',
+      contentType: 'image/jpeg',
+      status: 'AI_NOT_AVAILABLE',
+      linkedMealLogId: null,
+      createdAt: new Date().toISOString(),
+    } as T;
+  }
+  if (path.includes('/convert-manual') && method === 'POST') return null as T;
+
+  // Analytics
+  if (path.startsWith('/analytics/')) {
+    return {
+      from: new Date().toISOString().slice(0, 10),
+      to:   new Date().toISOString().slice(0, 10),
+      mealCount: 0,
+      calories: 0, proteinGrams: 0, carbsGrams: 0, fatGrams: 0, fiberGrams: 0,
+      calorieGoalDelta: null, proteinGoalDelta: null,
+      carbsGoalDelta: null, fatGoalDelta: null, fiberGoalDelta: null,
+    } as T;
+  }
+
+  // Goals
+  if (path === '/goals') return null as T;
+
   return null as T;
 }
 

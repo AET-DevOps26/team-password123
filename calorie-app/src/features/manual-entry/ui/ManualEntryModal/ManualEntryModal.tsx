@@ -14,8 +14,8 @@ const SLOTS: MealSlot[] = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 export function ManualEntryModal({ onClose, onAdded, defaultSlot }: ManualEntryModalProps) {
   const entry = useManualEntry(defaultSlot);
 
-  function handleSave() {
-    const kcal = entry.save();
+  async function handleSave() {
+    const kcal = await entry.save();
     onAdded(kcal);
   }
 

@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { MOCK_STATS } from '../../../entities/nutrition';
 import { getMockMealsForOffset, MOCK_MEALS } from '../../../entities/meal/model/mock';
+import { mealApi } from '../../../entities/meal/api/mealApi';
 import { useProfileStore } from '../../../entities/user/model/profile';
 import { MOCK_MODE } from '../../../shared/config/flags';
 import styles from './InsightsPage.module.css';
@@ -77,7 +78,8 @@ function dayStatus(d: Date): BarStatus {
   return 'ok';
 }
 
-function dayStats(d: Date): Stats & { status: BarStatus } {
+// dayStats is overridden inside the component when !MOCK_MODE to use apiDayCache
+function dayStatsMock(d: Date): Stats & { status: BarStatus } {
   const status = dayStatus(d);
   if (status === 'today' || status === 'ok') return { ...genDay(d), status };
   return { cal: 0, protein: 0, carbs: 0, fat: 0, status };
@@ -87,7 +89,9 @@ function dayStats(d: Date): Stats & { status: BarStatus } {
 // Bar builders
 // ─────────────────────────────────────────────────────────────────────────────
 
-function buildWeekBars(weekStart: Date): BarItem[] {
+type DayStatsFn = (d: Date) => Stats & { status: BarStatus };
+
+function buildWeekBars(weekStart: Date, dayStats: DayStatsFn): BarItem[] {
   return Array.from({ length: 7 }, (_, i) => {
     const d = addDays(weekStart, i);
     const s = dayStats(d);
@@ -103,7 +107,7 @@ function buildWeekBars(weekStart: Date): BarItem[] {
   });
 }
 
-function buildMonthBars(year: number, month: number): BarItem[] {
+function buildMonthBars(year: number, month: number, dayStats: DayStatsFn): BarItem[] {
   const firstDay = new Date(year, month, 1);
   const lastDay  = new Date(year, month + 1, 0);
   let ws = weekMonday(firstDay);
@@ -144,7 +148,7 @@ function buildMonthBars(year: number, month: number): BarItem[] {
   return bars;
 }
 
-function buildYearBars(year: number): BarItem[] {
+function buildYearBars(year: number, dayStats: DayStatsFn): BarItem[] {
   const curMonthStart = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
   const dataStart     = new Date(TODAY.getFullYear() - 1, TODAY.getMonth(), 1);
 
@@ -418,6 +422,10 @@ interface InsightsPageProps {
   onOpenDay?: (offset: number) => void;
 }
 
+function isoDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export function InsightsPage({ onOpenDay }: InsightsPageProps) {
   const goals       = useProfileStore((s) => s.goals);
   const calGoal     = goals.calories || 2000;
@@ -429,12 +437,65 @@ export function InsightsPage({ onOpenDay }: InsightsPageProps) {
   const [yearNum,   setYearNum]   = useState<number>(TODAY.getFullYear());
   const [history,   setHistory]   = useState<HistoryEntry[]>([]);
 
+  // Cache of real per-day stats fetched from API: key = YYYY-MM-DD
+  const [apiDayCache, setApiDayCache] = useState<Map<string, Stats>>(new Map());
+
+  // Fetch a date range from the API and merge into cache
+  const fetchRange = useCallback(async (from: Date, to: Date) => {
+    if (MOCK_MODE) return;
+    try {
+      const raw = await mealApi.getHistory(isoDate(from), isoDate(to));
+      if (!raw) return;
+      const byDate = new Map<string, Stats>();
+      for (const r of raw) {
+        const dateKey = r.loggedAt.slice(0, 10);
+        const existing = byDate.get(dateKey) ?? { cal: 0, protein: 0, carbs: 0, fat: 0 };
+        byDate.set(dateKey, {
+          cal:     existing.cal     + Math.round(r.calories),
+          protein: existing.protein + Math.round(r.proteinGrams),
+          carbs:   existing.carbs   + Math.round(r.carbsGrams),
+          fat:     existing.fat     + Math.round(r.fatGrams),
+        });
+      }
+      setApiDayCache((prev) => new Map([...prev, ...byDate]));
+    } catch { /* keep cached data */ }
+  }, []);
+
+  // Fetch when visible range changes (real API path only)
+  useEffect(() => {
+    if (MOCK_MODE) return;
+    if (range === 'Week') {
+      fetchRange(weekStart, addDays(weekStart, 6));
+    } else if (range === 'Month') {
+      const from = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+      const to   = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+      fetchRange(from, to);
+    } else {
+      // Year: fetch full year
+      fetchRange(new Date(yearNum, 0, 1), new Date(yearNum, 11, 31));
+    }
+  }, [range, weekStart, monthDate, yearNum, fetchRange]);
+
+  // ── dayStats function — uses API cache when !MOCK_MODE ────────
+  const dayStats = useCallback((d: Date): Stats & { status: BarStatus } => {
+    if (MOCK_MODE) return dayStatsMock(d);
+    const key = isoDate(d);
+    const cached = apiDayCache.get(key);
+    const status = dayStatus(d);
+    if (status === 'future' || status === 'nodata') {
+      return { cal: 0, protein: 0, carbs: 0, fat: 0, status };
+    }
+    if (cached) return { ...cached, status: status === 'today' ? 'today' : 'ok' };
+    // Data not yet loaded — show as nodata until fetch completes
+    return { cal: 0, protein: 0, carbs: 0, fat: 0, status: 'nodata' };
+  }, [apiDayCache]);
+
   // ── Build bar data ────────────────────────────────────────────
   const bars = useMemo(() => {
-    if (range === 'Week')  return buildWeekBars(weekStart);
-    if (range === 'Month') return buildMonthBars(monthDate.getFullYear(), monthDate.getMonth());
-    return buildYearBars(yearNum);
-  }, [range, weekStart, monthDate, yearNum]);
+    if (range === 'Week')  return buildWeekBars(weekStart, dayStats);
+    if (range === 'Month') return buildMonthBars(monthDate.getFullYear(), monthDate.getMonth(), dayStats);
+    return buildYearBars(yearNum, dayStats);
+  }, [range, weekStart, monthDate, yearNum, dayStats]);
 
   // ── Macro averages ────────────────────────────────────────────
   const active = bars.filter(b => b.cal > 0);
@@ -445,7 +506,7 @@ export function InsightsPage({ onOpenDay }: InsightsPageProps) {
   };
 
   const kpis      = useMemo(() => computeKPIs(bars, calGoal, proteinGoal), [bars, calGoal, proteinGoal]);
-  const yearBars  = useMemo(() => range === 'Year' ? bars : buildYearBars(yearNum), [range, bars, yearNum]);
+  const yearBars  = useMemo(() => range === 'Year' ? bars : buildYearBars(yearNum, dayStats), [range, bars, yearNum, dayStats]);
   const trendVals = yearBars.map(b => b.cal);
   const trendLbls = yearBars.map(b => b.label);
 

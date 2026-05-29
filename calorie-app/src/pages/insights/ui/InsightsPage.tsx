@@ -418,23 +418,31 @@ function ChevRight() {
 // Main page
 // ─────────────────────────────────────────────────────────────────────────────
 
+export interface InsightsSnapshot {
+  range: Range;
+  weekStart: Date;
+  monthDate: Date;
+  yearNum: number;
+}
+
 interface InsightsPageProps {
-  onOpenDay?: (offset: number) => void;
+  onOpenDay?: (offset: number, snapshot: InsightsSnapshot) => void;
+  initialState?: InsightsSnapshot;
 }
 
 function isoDate(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export function InsightsPage({ onOpenDay }: InsightsPageProps) {
+export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
   const goals       = useProfileStore((s) => s.goals);
   const calGoal     = goals.calories || 2000;
   const proteinGoal = goals.protein  || 120;
 
-  const [range,     setRange]     = useState<Range>('Week');
-  const [weekStart, setWeekStart] = useState<Date>(() => weekMonday(TODAY));
-  const [monthDate, setMonthDate] = useState<Date>(() => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1));
-  const [yearNum,   setYearNum]   = useState<number>(TODAY.getFullYear());
+  const [range,     setRange]     = useState<Range>(initialState?.range ?? 'Week');
+  const [weekStart, setWeekStart] = useState<Date>(initialState?.weekStart ?? weekMonday(TODAY));
+  const [monthDate, setMonthDate] = useState<Date>(initialState?.monthDate ?? new Date(TODAY.getFullYear(), TODAY.getMonth(), 1));
+  const [yearNum,   setYearNum]   = useState<number>(initialState?.yearNum ?? TODAY.getFullYear());
   const [history,   setHistory]   = useState<HistoryEntry[]>([]);
 
   // Cache of real per-day stats fetched from API: key = YYYY-MM-DD
@@ -557,7 +565,7 @@ export function InsightsPage({ onOpenDay }: InsightsPageProps) {
       return;
     }
     if (bar.diaryOffset !== undefined) {
-      onOpenDay?.(bar.diaryOffset);
+      onOpenDay?.(bar.diaryOffset, { range, weekStart: new Date(weekStart), monthDate: new Date(monthDate), yearNum });
     }
   }
 

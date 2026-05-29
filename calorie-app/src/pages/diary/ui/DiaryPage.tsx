@@ -94,6 +94,22 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
     ? `Today, ${viewDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}`
     : viewDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
+  // Week strip — 7 days of the week containing viewDate
+  function getMondayOffset(baseOffset: number): number {
+    const d = new Date(DIARY_ANCHOR);
+    d.setDate(d.getDate() + baseOffset);
+    const dow = d.getDay();
+    return baseOffset - (dow === 0 ? 6 : dow - 1);
+  }
+  const WD_STRIPS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const mondayOffset = getMondayOffset(offset);
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const dayOffset = mondayOffset + i;
+    const d = new Date(DIARY_ANCHOR);
+    d.setDate(d.getDate() + dayOffset);
+    return { offset: dayOffset, dayNum: d.getDate(), label: WD_STRIPS[i], isToday: dayOffset === 0 };
+  });
+
   return (
     <div className={styles.screen}>
       {onBack && (
@@ -126,6 +142,21 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
           <ScanMealButton onClick={onScan} />
         </div>
       </header>
+
+      {/* Week day strip */}
+      <div className={styles.weekStrip}>
+        {weekDays.map((d) => (
+          <button
+            key={d.offset}
+            className={`${styles.dayPill} ${d.offset === offset ? styles.dayPillActive : ''} ${d.isToday && d.offset !== offset ? styles.dayPillToday : ''}`}
+            onClick={() => setOffset(d.offset)}
+            disabled={d.offset > 0}
+          >
+            <span className={styles.dayPillLabel}>{d.label}</span>
+            <span className={styles.dayPillNum}>{d.dayNum}</span>
+          </button>
+        ))}
+      </div>
 
       {/* Day total */}
       <div className={`${styles.card} ${styles.dayTotal}`}>

@@ -9,6 +9,7 @@ import { useProfileStore } from '../entities/user/model/profile';
 import { HomePage } from '../pages/home';
 import { DiaryPage } from '../pages/diary';
 import { InsightsPage } from '../pages/insights';
+import type { InsightsSnapshot } from '../pages/insights';
 import { ProfilePage } from '../pages/profile';
 import styles from './App.module.css';
 
@@ -23,11 +24,13 @@ export function App() {
   const [page, setPage]         = useState<Page>('home');
   const [diaryOffset, setDiaryOffset] = useState(0);
   const [fromInsights, setFromInsights] = useState(false);
+  const [insightsSnapshot, setInsightsSnapshot] = useState<InsightsSnapshot | undefined>(undefined);
   const [showScan, setShowScan] = useState(false);
   const [toast, setToast]       = useState<string | null>(null);
 
   function navigate(p: Page) {
     if (p !== 'diary') setFromInsights(false);
+    if (p !== 'insights') setInsightsSnapshot(undefined);
     setPage(p);
   }
 
@@ -64,7 +67,15 @@ export function App() {
               onBack={fromInsights ? () => { setFromInsights(false); setPage('insights'); } : undefined}
             />
           )}
-          {page === 'insights' && <InsightsPage onOpenDay={(offset) => { setDiaryOffset(offset); setFromInsights(true); setPage('diary'); }} />}
+          {page === 'insights' && <InsightsPage
+            initialState={insightsSnapshot}
+            onOpenDay={(offset, snapshot) => {
+              setDiaryOffset(offset);
+              setInsightsSnapshot(snapshot);
+              setFromInsights(true);
+              setPage('diary');
+            }}
+          />}
           {page === 'profile'  && <ProfilePage onSignOut={handleSignOut} />}
         </div>
       </main>

@@ -1,0 +1,193 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.pageTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+/* Section */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  margin: 0 4px;
+  text-transform: capitalize;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 16px;
+}
+
+/* Input row */
+.inputRow {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  gap: 12px;
+}
+
+.rowLabel {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-width: 90px;
+}
+
+.inlineInput {
+  flex: 1;
+  text-align: right;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  color: var(--text-2);
+  outline: none;
+  min-width: 0;
+}
+
+.inlineInput::placeholder { color: var(--text-3); }
+.inlineInput[readonly] { cursor: default; }
+
+/* Stepper row */
+.stepperRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  min-height: 52px;
+}
+
+.stepperRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stepperVal {
+  font-size: 15px;
+  color: var(--text-2);
+  min-width: 80px;
+  text-align: right;
+}
+
+.stepperBtns {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.stepBtn {
+  width: 32px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 17px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s;
+}
+
+.stepBtn:hover { background: var(--bg); }
+
+.stepBtnDiv {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+}
+
+/* Macro dots */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.dot_protein { background: var(--protein); }
+.dot_carbs   { background: var(--carbs); }
+.dot_fats    { background: var(--fat); }
+.dot_water   { background: #60a5fa; }
+
+/* Toggle */
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+}
+
+.toggle {
+  width: 48px;
+  height: 28px;
+  border-radius: 14px;
+  border: none;
+  background: var(--border);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggleOn { background: var(--green); }
+
+.toggleThumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  transition: left 0.2s;
+}
+
+.toggleOn .toggleThumb { left: 23px; }
+
+/* Sign out */
+.signOutBtn {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 500;
+  color: #dc2626;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.signOutBtn:hover { background: var(--bg); }

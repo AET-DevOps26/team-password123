@@ -6,7 +6,7 @@ import styles from './Sidebar.module.css';
 const NAV: { id: Page; label: string; Icon: React.FC<{ size?: number }>; enabled: boolean }[] = [
   { id: 'home',     label: 'Today',    Icon: IconHome,  enabled: true  },
   { id: 'diary',    label: 'Diary',    Icon: IconBook,  enabled: true  },
-  { id: 'insights', label: 'Insights', Icon: IconChart, enabled: false },
+  { id: 'insights', label: 'Insights', Icon: IconChart, enabled: true },
   { id: 'profile',  label: 'Profile',  Icon: IconUser,  enabled: true  },
 ];
 

@@ -8,6 +8,7 @@ import { useUserStore } from '../entities/user';
 import { useProfileStore } from '../entities/user/model/profile';
 import { HomePage } from '../pages/home';
 import { DiaryPage } from '../pages/diary';
+import { InsightsPage } from '../pages/insights';
 import { ProfilePage } from '../pages/profile';
 import styles from './App.module.css';
 
@@ -20,8 +21,15 @@ export function App() {
   const onboardingComplete = useProfileStore((s) => s.onboardingComplete);
 
   const [page, setPage]         = useState<Page>('home');
+  const [diaryOffset, setDiaryOffset] = useState(0);
+  const [fromInsights, setFromInsights] = useState(false);
   const [showScan, setShowScan] = useState(false);
   const [toast, setToast]       = useState<string | null>(null);
+
+  function navigate(p: Page) {
+    if (p !== 'diary') setFromInsights(false);
+    setPage(p);
+  }
 
   if (!token) {
     return <AuthPage />;
@@ -43,17 +51,25 @@ export function App() {
 
   return (
     <div className={styles.shell}>
-      <Sidebar currentPage={page} onNavigate={setPage} onScan={() => setShowScan(true)} onSignOut={handleSignOut} />
+      <Sidebar currentPage={page} onNavigate={navigate} onScan={() => setShowScan(true)} onSignOut={handleSignOut} />
 
       <main className={styles.main}>
         <div className={styles.content}>
-          {page === 'home'    && <HomePage  onScan={() => setShowScan(true)} />}
-          {page === 'diary'   && <DiaryPage onScan={() => setShowScan(true)} />}
-          {page === 'profile' && <ProfilePage onSignOut={handleSignOut} />}
+          {page === 'home'     && <HomePage  onScan={() => setShowScan(true)} />}
+          {page === 'diary'    && (
+            <DiaryPage
+              onScan={() => setShowScan(true)}
+              initialOffset={diaryOffset}
+              onOffsetChange={setDiaryOffset}
+              onBack={fromInsights ? () => { setFromInsights(false); setPage('insights'); } : undefined}
+            />
+          )}
+          {page === 'insights' && <InsightsPage onOpenDay={(offset) => { setDiaryOffset(offset); setFromInsights(true); setPage('diary'); }} />}
+          {page === 'profile'  && <ProfilePage onSignOut={handleSignOut} />}
         </div>
       </main>
 
-      <Tabbar currentPage={page} onNavigate={setPage} onScan={() => setShowScan(true)} />
+      <Tabbar currentPage={page} onNavigate={navigate} onScan={() => setShowScan(true)} />
 
       {showScan && (
         <ScanModal onClose={() => setShowScan(false)} onAdded={handleAdded} />

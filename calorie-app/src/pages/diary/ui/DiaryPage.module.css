@@ -3,6 +3,22 @@
   flex-direction: column;
 }
 
+/* ── Back button ── */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 18px;
+  padding: 6px 4px;
+  border-radius: 8px;
+  transition: color .15s;
+}
+
+.backBtn:hover { color: var(--green-press); }
+
 /* ── Header ── */
 .head {
   display: flex;
@@ -10,6 +26,38 @@
   align-items: flex-end;
   gap: 16px;
   margin-bottom: 26px;
+}
+
+.headLeft {
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--text-2);
+  flex-shrink: 0;
+  transition: background .15s, color .15s;
+}
+
+.navArrow:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.navArrow:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
 
 .eyebrow {

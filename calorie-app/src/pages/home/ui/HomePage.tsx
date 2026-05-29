@@ -1,5 +1,6 @@
 import { CalorieRing, MacroBar, MOCK_GOAL, MOCK_TODAY, MOCK_STATS } from '../../../entities/nutrition';
 import { MealRow, useMealStore } from '../../../entities/meal';
+import { useUserStore } from '../../../entities/user';
 import { ScanMealButton } from '../../../features/scan-meal';
 import { StatPill } from '../../../shared/ui/StatPill/StatPill';
 import { IconFlame, IconTarget, IconTrend, IconBolt, IconChevR } from '../../../shared/ui/icons';
@@ -11,13 +12,15 @@ interface HomePageProps {
 
 export function HomePage({ onScan }: HomePageProps) {
   const entries = useMealStore((s) => s.entries);
+  const user    = useUserStore((s) => s.user);
+  const firstName = user?.displayName?.split(' ')[0] ?? 'there';
 
   return (
     <div className={styles.screen}>
       <header className={styles.head}>
         <div>
           <div className={styles.eyebrow}>{MOCK_TODAY.dateLabel}</div>
-          <h1 className={styles.title}>Good afternoon, there</h1>
+          <h1 className={styles.title}>Good afternoon, {firstName}</h1>
         </div>
         <div className={styles.headActions}>
           <ScanMealButton onClick={onScan} />

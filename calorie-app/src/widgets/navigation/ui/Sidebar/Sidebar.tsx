@@ -1,4 +1,5 @@
 import { IconHome, IconBook, IconChart, IconUser, IconFlame, IconCamera } from '../../../../shared/ui/icons';
+import { useUserStore } from '../../../../entities/user';
 import type { Page } from '../../../../app/App';
 import styles from './Sidebar.module.css';
 
@@ -13,9 +14,15 @@ interface SidebarProps {
   currentPage: Page;
   onNavigate: (page: Page) => void;
   onScan: () => void;
+  onSignOut: () => void;
 }
 
-export function Sidebar({ currentPage, onNavigate, onScan }: SidebarProps) {
+export function Sidebar({ currentPage, onNavigate, onScan, onSignOut }: SidebarProps) {
+  const user = useUserStore((s) => s.user);
+  const initials = user?.displayName
+    ? user.displayName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+    : '??';
+
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brand}>
@@ -39,12 +46,24 @@ export function Sidebar({ currentPage, onNavigate, onScan }: SidebarProps) {
       </button>
 
       <div className={styles.foot}>
-        <span className={styles.avatar}>MC</span>
-        <div>
-          <div className={styles.userName}>Mia Carter</div>
-          <div className={styles.plan}>Free plan</div>
+        <span className={styles.avatar}>{initials}</span>
+        <div className={styles.footInfo}>
+          <div className={styles.userName}>{user?.displayName ?? 'You'}</div>
+          <div className={styles.plan}>{user?.email ?? ''}</div>
         </div>
+        <button className={styles.signOutBtn} onClick={onSignOut} title="Sign out">
+          <SignOutIcon />
+        </button>
       </div>
     </aside>
+  );
+}
+
+function SignOutIcon() {
+  return (
+    <svg width={17} height={17} viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+    </svg>
   );
 }

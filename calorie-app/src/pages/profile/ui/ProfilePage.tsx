@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { useProfileStore } from '../../../entities/user/model/profile';
 import { useUserStore } from '../../../entities/user';
+import { goalsApi } from '../../../entities/nutrition/api/goalsApi';
+import { MOCK_MODE } from '../../../shared/config/flags';
 import styles from './ProfilePage.module.css';
 
 interface Props {
@@ -8,10 +11,30 @@ interface Props {
 
 export function ProfilePage({ onSignOut }: Props) {
   const profile = useProfileStore();
-  const user = useUserStore((s) => s.user);
+  const user    = useUserStore((s) => s.user);
+  const [saving, setSaving] = useState(false);
+  const [saved,  setSaved]  = useState(false);
 
   function patchGoal(key: keyof typeof profile.goals, delta: number) {
     profile.patch({ goals: { ...profile.goals, [key]: Math.max(0, profile.goals[key] + delta) } });
+    setSaved(false);
+  }
+
+  async function saveGoals() {
+    if (MOCK_MODE) return;
+    setSaving(true);
+    try {
+      await goalsApi.save({
+        dailyCalories: profile.goals.calories,
+        proteinGrams:  profile.goals.protein,
+        carbsGrams:    profile.goals.carbs,
+        fatGrams:      profile.goals.fats,
+        fiberGrams:    0,
+      });
+      setSaved(true);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -38,6 +61,17 @@ export function ProfilePage({ onSignOut }: Props) {
 
       {/* ── Daily goals ── */}
       <Section label="Daily goals">
+        {!MOCK_MODE && (
+          <div className={styles.saveRow}>
+            <button
+              className={`${styles.saveBtn} ${saved ? styles.saveBtnDone : ''}`}
+              onClick={saveGoals}
+              disabled={saving}
+            >
+              {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save goals'}
+            </button>
+          </div>
+        )}
         <StepperRow
           label="Calories"
           dot={null}

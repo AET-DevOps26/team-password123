@@ -191,3 +191,23 @@
 }
 
 .signOutBtn:hover { background: var(--bg); }
+
+.saveRow {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 16px 4px;
+}
+
+.saveBtn {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.saveBtn:disabled { opacity: 0.55; cursor: default; }
+.saveBtnDone { background: oklch(0.55 0.08 158); }

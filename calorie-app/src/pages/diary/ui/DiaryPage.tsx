@@ -1,12 +1,20 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useMealStore, MealRow } from '../../../entities/meal';
+import { getMockMealsForOffset } from '../../../entities/meal/model/mock';
+import { mealApi } from '../../../entities/meal/api/mealApi';
+import { mealResponseToEntry } from '../../../entities/meal/model/mapper';
 import type { MealEntry } from '../../../entities/meal';
 import { MacroChip, MOCK_GOAL } from '../../../entities/nutrition';
+import { useProfileStore } from '../../../entities/user/model/profile';
 import { ScanMealButton } from '../../../features/scan-meal';
 import { ManualEntryModal } from '../../../features/manual-entry';
 import type { MealSlot } from '../../../features/manual-entry/model/useManualEntry';
 import { Toast } from '../../../widgets/notification';
+import { MOCK_MODE } from '../../../shared/config/flags';
 import styles from './DiaryPage.module.css';
+
+// Anchor for date math — same as InsightsPage
+const DIARY_ANCHOR = new Date(2026, 4, 28);
 
 const SLOTS: MealSlot[] = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
@@ -18,16 +26,47 @@ interface DiaryPageProps {
 }
 
 export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }: DiaryPageProps) {
-  const entries = useMealStore((s) => s.entries);
-  const [showManual, setShowManual] = useState(false);
-  const [defaultSlot, setDefaultSlot] = useState<MealSlot>('Lunch');
-  const [offset, setOffsetState] = useState(initialOffset);
+  const storeEntries = useMealStore((s) => s.entries);
+  const goals        = useProfileStore((s) => s.goals);
+  const [showManual,   setShowManual]  = useState(false);
+  const [defaultSlot,  setDefaultSlot] = useState<MealSlot>('Lunch');
+  const [offset,       setOffsetState] = useState(initialOffset);
+  const [apiEntries,   setApiEntries]  = useState<MealEntry[] | null>(null);
 
   function setOffset(n: number) {
     setOffsetState(n);
     onOffsetChange?.(n);
   }
   const [toast, setToast] = useState<string | null>(null);
+
+  // Compute ISO date string for a given offset relative to the anchor
+  function offsetToIsoDate(off: number): string {
+    const d = new Date(DIARY_ANCHOR);
+    d.setDate(d.getDate() + off);
+    return d.toISOString().slice(0, 10);
+  }
+
+  // Fetch meals from API when MOCK_MODE is off
+  const fetchMeals = useCallback(async (off: number) => {
+    if (MOCK_MODE) return;
+    try {
+      const date = offsetToIsoDate(off);
+      const raw  = await mealApi.getHistory(date, date);
+      setApiEntries((raw ?? []).map(mealResponseToEntry));
+    } catch {
+      setApiEntries([]);
+    }
+  }, []);
+
+  useEffect(() => { fetchMeals(offset); }, [offset, fetchMeals]);
+
+  // Determine which entries to show
+  const mockEntries = useMemo(() => getMockMealsForOffset(offset), [offset]);
+  const entries: MealEntry[] = MOCK_MODE
+    ? (offset !== 0 ? mockEntries : storeEntries)
+    : (apiEntries ?? storeEntries);
+
+  const calGoal = MOCK_MODE ? MOCK_GOAL.calories : (goals.calories || 2000);
 
   const bySlot = (slot: MealSlot): MealEntry[] =>
     entries.filter((e) => e.slot === slot);
@@ -45,10 +84,11 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
   function handleAdded(kcal: number) {
     setShowManual(false);
     setToast(`Logged ${kcal} kcal to your diary`);
+    // Re-fetch the day so the new entry appears (real API path)
+    if (!MOCK_MODE) fetchMeals(offset);
   }
 
-  // Use the same mock anchor as InsightsPage so diary offsets align
-  const viewDate = new Date(2026, 4, 28);
+  const viewDate = new Date(DIARY_ANCHOR);
   viewDate.setDate(viewDate.getDate() + offset);
   const dateLabel = offset === 0
     ? `Today, ${viewDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}`
@@ -93,7 +133,7 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
           <div className={styles.totalMeta}>Total today</div>
           <div className={styles.totalNum}>
             {totalCal.toLocaleString()}
-            <span> / {MOCK_GOAL.calories.toLocaleString()} kcal</span>
+            <span> / {calGoal.toLocaleString()} kcal</span>
           </div>
         </div>
         <div className={styles.macros}>

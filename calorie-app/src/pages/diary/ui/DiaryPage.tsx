@@ -14,9 +14,10 @@ interface DiaryPageProps {
   onScan: () => void;
   initialOffset?: number;
   onOffsetChange?: (offset: number) => void;
+  onBack?: () => void;
 }
 
-export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange }: DiaryPageProps) {
+export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }: DiaryPageProps) {
   const entries = useMealStore((s) => s.entries);
   const [showManual, setShowManual] = useState(false);
   const [defaultSlot, setDefaultSlot] = useState<MealSlot>('Lunch');
@@ -54,10 +55,28 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange }: DiaryPa
 
   return (
     <div className={styles.screen}>
+      {onBack && (
+        <button className={styles.backBtn} onClick={onBack}>
+          <ChevronLeftIcon /> Back to Insights
+        </button>
+      )}
       <header className={styles.head}>
-        <div>
+        <div className={styles.headLeft}>
           <div className={styles.eyebrow}>Food diary</div>
-          <h1 className={styles.title}>{dateLabel}</h1>
+          <div className={styles.titleRow}>
+            <button className={styles.navArrow} onClick={() => setOffset(offset - 1)} aria-label="Previous day">
+              <ChevronLeftIcon />
+            </button>
+            <h1 className={styles.title}>{dateLabel}</h1>
+            <button
+              className={styles.navArrow}
+              onClick={() => setOffset(offset + 1)}
+              disabled={offset >= 0}
+              aria-label="Next day"
+            >
+              <ChevronRightIcon />
+            </button>
+          </div>
         </div>
         <div className={styles.actions}>
           <button className={`${styles.btn} ${styles.ghost}`} onClick={() => openManual()}>
@@ -134,6 +153,24 @@ function PlusIcon() {
     <svg width={17} height={17} viewBox="0 0 24 24" fill="none"
          stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18l6-6-6-6" />
     </svg>
   );
 }

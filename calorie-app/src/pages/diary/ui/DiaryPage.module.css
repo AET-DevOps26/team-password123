@@ -1,0 +1,184 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.eyebrow {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--green-press);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 6px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -.025em;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 11px 16px;
+  transition: transform .12s, background .15s;
+  flex-shrink: 0;
+}
+
+.btn:active { transform: scale(.97); }
+
+.ghost {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.ghost:hover { background: var(--surface-2); }
+
+/* ── Day total card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.dayTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.totalMeta {
+  font-size: 12.5px;
+  color: var(--text-2);
+  margin-bottom: 4px;
+}
+
+.totalNum {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+.totalNum span {
+  font-size: 14px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.macros {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* ── Slot groups ── */
+.slotGroup {
+  margin-bottom: 26px;
+}
+
+.slotHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 11px;
+  padding: 0 2px;
+}
+
+.slotTitle {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.slotCal {
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.slotEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 16px;
+  border: 1.5px dashed var(--border);
+  border-radius: 14px;
+  color: var(--text-2);
+  font-weight: 600;
+  font-size: 13.5px;
+  transition: border-color .15s, color .15s, background .15s;
+}
+
+.slotEmpty:hover {
+  border-color: var(--green);
+  color: var(--green-press);
+  background: var(--green-tint);
+}
+
+.mealList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.addMore {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  border: 1px dashed var(--border);
+  width: 100%;
+  justify-content: center;
+  transition: border-color .15s, color .15s, background .15s;
+}
+
+.addMore:hover {
+  border-color: var(--green);
+  color: var(--green-press);
+  background: var(--green-tint);
+}
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .title { font-size: 25px; }
+
+  .head { align-items: flex-start; }
+
+  .dayTotal {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .macros { gap: 14px; }
+}

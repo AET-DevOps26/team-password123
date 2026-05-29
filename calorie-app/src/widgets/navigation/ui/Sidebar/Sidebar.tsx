@@ -8,7 +8,11 @@ const NAV = [
   { id: 'profile',   label: 'Profile',  Icon: IconUser,  active: false },
 ] as const;
 
-export function Sidebar() {
+interface SidebarProps {
+  onScan: () => void;
+}
+
+export function Sidebar({ onScan }: SidebarProps) {
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brand}>
@@ -26,7 +30,7 @@ export function Sidebar() {
         </button>
       ))}
 
-      <button className={styles.scanBtn}>
+      <button className={styles.scanBtn} onClick={onScan}>
         <IconCamera size={19} /> Scan a meal
       </button>
 

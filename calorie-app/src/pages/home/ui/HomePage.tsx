@@ -1,11 +1,17 @@
 import { CalorieRing, MacroBar, MOCK_GOAL, MOCK_TODAY, MOCK_STATS } from '../../../entities/nutrition';
-import { MealRow, MOCK_MEALS } from '../../../entities/meal';
+import { MealRow, useMealStore } from '../../../entities/meal';
 import { ScanMealButton } from '../../../features/scan-meal';
 import { StatPill } from '../../../shared/ui/StatPill/StatPill';
 import { IconFlame, IconTarget, IconTrend, IconBolt, IconChevR } from '../../../shared/ui/icons';
 import styles from './HomePage.module.css';
 
-export function HomePage() {
+interface HomePageProps {
+  onScan: () => void;
+}
+
+export function HomePage({ onScan }: HomePageProps) {
+  const entries = useMealStore((s) => s.entries);
+
   return (
     <div className={styles.screen}>
       <header className={styles.head}>
@@ -14,7 +20,7 @@ export function HomePage() {
           <h1 className={styles.title}>Good afternoon, there</h1>
         </div>
         <div className={styles.headActions}>
-          <ScanMealButton />
+          <ScanMealButton onClick={onScan} />
         </div>
       </header>
 
@@ -28,7 +34,7 @@ export function HomePage() {
           </div>
         </section>
 
-        <section className={`${styles.card} ${styles.insightCard}`}>
+        <section className={`${styles.card} ${styles.insightCard}`} onClick={onScan}>
           <div className={styles.insightIcon}><IconBolt size={20} /></div>
           <div className={styles.insightBody}>
             <div className={styles.insightTitle}>Log your dinner in one snap</div>
@@ -50,10 +56,10 @@ export function HomePage() {
       <section className={styles.mealsSection}>
         <div className={styles.sectionHead}>
           <h2 className={styles.sectionTitle}>Today's meals</h2>
-          <span className={styles.sectionMeta}>{MOCK_MEALS.length} logged</span>
+          <span className={styles.sectionMeta}>{entries.length} logged</span>
         </div>
         <div className={styles.mealsList}>
-          {MOCK_MEALS.map((meal) => <MealRow key={meal.id} meal={meal} />)}
+          {entries.map((meal) => <MealRow key={meal.id} meal={meal} />)}
         </div>
       </section>
     </div>

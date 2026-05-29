@@ -69,6 +69,13 @@
   align-items: center;
   gap: 15px;
   padding: 20px;
+  cursor: pointer;
+  transition: transform .14s, box-shadow .2s;
+}
+
+.insightCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .insightIcon {

@@ -1,0 +1,238 @@
+/* ── Photo area ── */
+.photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  background: var(--surface-2);
+}
+
+.photoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dropzone {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  border: 1.5px dashed var(--border);
+  border-radius: 20px;
+  color: var(--text-3);
+  transition: border-color .15s, background .15s, color .15s;
+  padding: 24px;
+  text-align: center;
+}
+
+.dropzone:hover,
+.dropzone.dragOver {
+  border-color: var(--green);
+  background: var(--green-tint);
+  color: var(--green-press);
+}
+
+.dropHint {
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.dropHint strong {
+  color: var(--text);
+}
+
+.dropSub {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* Scan animation */
+.scanVeil {
+  position: absolute;
+  inset: 0;
+  background: oklch(0.63 0.11 158 / .12);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scanLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 42%;
+  background: linear-gradient(transparent, oklch(0.63 0.11 158 / .32), transparent);
+  animation: scanmove 1.5s ease-in-out infinite;
+}
+
+@keyframes scanmove {
+  0%   { top: -42%; }
+  100% { top: 100%; }
+}
+
+/* Result tag overlay */
+.resultTag {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  background: rgba(28, 29, 26, .74);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  border-radius: 11px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tagName {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.tagConf {
+  font-size: 11px;
+  opacity: .85;
+  font-weight: 500;
+}
+
+/* Retake button */
+.retakeBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(28, 29, 26, .62);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 11px;
+  border-radius: 9px;
+  transition: background .15s;
+}
+
+.retakeBtn:hover {
+  background: rgba(28, 29, 26, .8);
+}
+
+/* ── Idle body ── */
+.idleBody { display: flex; flex-direction: column; }
+
+.hint {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 12px 18px;
+  transition: transform .12s, background .15s, opacity .15s;
+}
+
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .45; cursor: default; }
+
+.primary { background: var(--green); color: #fff; }
+.primary:hover:not(:disabled) { background: var(--green-press); }
+
+.ghost {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.ghost:hover { background: var(--surface-2); }
+
+.block { width: 100%; }
+.grow  { flex: 1; }
+
+/* ── Result ── */
+.result { display: flex; flex-direction: column; gap: 16px; }
+
+.resultSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+
+.kcalBlock { display: flex; flex-direction: column; }
+
+.kcalNum {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -.03em;
+  line-height: 1;
+  color: var(--green-press);
+}
+
+.kcalLabel {
+  font-size: 12.5px;
+  color: var(--text-2);
+  margin-top: 3px;
+}
+
+.macros {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Error ── */
+.error {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.errorMsg {
+  font-size: 14px;
+  color: var(--fat);
+  background: oklch(0.97 0.02 350);
+  border: 1px solid oklch(0.9 0.06 350);
+  border-radius: 12px;
+  padding: 12px 14px;
+  width: 100%;
+  line-height: 1.5;
+}
+
+/* ── Footer slot select ── */
+.slotSelect {
+  padding: 11px 13px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  flex-shrink: 0;
+}

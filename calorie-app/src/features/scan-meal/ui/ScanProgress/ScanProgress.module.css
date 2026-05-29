@@ -1,0 +1,99 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 14px;
+}
+
+.spinner {
+  width: 46px;
+  height: 46px;
+  margin-bottom: 16px;
+}
+
+.spinner span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 4px solid var(--track);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.phase {
+  font-weight: 600;
+  font-size: 15.5px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.barTrack {
+  width: 100%;
+  height: 8px;
+  background: var(--track);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 22px;
+}
+
+.barFill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 6px;
+  transition: width .2s ease;
+}
+
+.steps {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 13.5px;
+  color: var(--text-3);
+  transition: color .2s;
+}
+
+.step.active {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.step.done {
+  color: var(--text-2);
+}
+
+.dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: var(--text-3);
+}
+
+.step.active .dot {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+
+.step.done .dot {
+  background: var(--green-soft);
+  color: var(--green-press);
+  border-color: transparent;
+}

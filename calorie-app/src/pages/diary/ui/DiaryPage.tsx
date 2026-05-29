@@ -47,7 +47,8 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
     setToast(`Logged ${kcal} kcal to your diary`);
   }
 
-  const viewDate = new Date();
+  // Use the same mock anchor as InsightsPage so diary offsets align
+  const viewDate = new Date(2026, 4, 28);
   viewDate.setDate(viewDate.getDate() + offset);
   const dateLabel = offset === 0
     ? `Today, ${viewDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}`

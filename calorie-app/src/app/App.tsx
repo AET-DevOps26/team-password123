@@ -8,6 +8,7 @@ import { useUserStore } from '../entities/user';
 import { useProfileStore } from '../entities/user/model/profile';
 import { HomePage } from '../pages/home';
 import { DiaryPage } from '../pages/diary';
+import { InsightsPage } from '../pages/insights';
 import { ProfilePage } from '../pages/profile';
 import styles from './App.module.css';
 
@@ -20,6 +21,7 @@ export function App() {
   const onboardingComplete = useProfileStore((s) => s.onboardingComplete);
 
   const [page, setPage]         = useState<Page>('home');
+  const [diaryOffset, setDiaryOffset] = useState(0);
   const [showScan, setShowScan] = useState(false);
   const [toast, setToast]       = useState<string | null>(null);
 
@@ -47,9 +49,10 @@ export function App() {
 
       <main className={styles.main}>
         <div className={styles.content}>
-          {page === 'home'    && <HomePage  onScan={() => setShowScan(true)} />}
-          {page === 'diary'   && <DiaryPage onScan={() => setShowScan(true)} />}
-          {page === 'profile' && <ProfilePage onSignOut={handleSignOut} />}
+          {page === 'home'     && <HomePage  onScan={() => setShowScan(true)} />}
+          {page === 'diary'    && <DiaryPage onScan={() => setShowScan(true)} initialOffset={diaryOffset} onOffsetChange={setDiaryOffset} />}
+          {page === 'insights' && <InsightsPage onOpenDay={(offset) => { setDiaryOffset(offset); setPage('diary'); }} />}
+          {page === 'profile'  && <ProfilePage onSignOut={handleSignOut} />}
         </div>
       </main>
 

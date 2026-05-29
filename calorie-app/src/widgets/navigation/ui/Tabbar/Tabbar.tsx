@@ -29,7 +29,10 @@ export function Tabbar({ currentPage, onNavigate, onScan }: TabbarProps) {
         <button className={styles.fab} onClick={onScan}><IconCamera size={26} /></button>
       </div>
 
-      <button className={`${styles.tab} ${styles.disabled}`} disabled>
+      <button
+        className={`${styles.tab} ${currentPage === 'insights' ? styles.active : ''}`}
+        onClick={() => onNavigate('insights')}
+      >
         <IconChart size={23} /><span>Insights</span>
       </button>
 

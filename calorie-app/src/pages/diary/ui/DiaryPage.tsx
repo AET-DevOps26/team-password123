@@ -12,12 +12,20 @@ const SLOTS: MealSlot[] = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
 interface DiaryPageProps {
   onScan: () => void;
+  initialOffset?: number;
+  onOffsetChange?: (offset: number) => void;
 }
 
-export function DiaryPage({ onScan }: DiaryPageProps) {
+export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange }: DiaryPageProps) {
   const entries = useMealStore((s) => s.entries);
   const [showManual, setShowManual] = useState(false);
   const [defaultSlot, setDefaultSlot] = useState<MealSlot>('Lunch');
+  const [offset, setOffsetState] = useState(initialOffset);
+
+  function setOffset(n: number) {
+    setOffsetState(n);
+    onOffsetChange?.(n);
+  }
   const [toast, setToast] = useState<string | null>(null);
 
   const bySlot = (slot: MealSlot): MealEntry[] =>
@@ -38,10 +46,11 @@ export function DiaryPage({ onScan }: DiaryPageProps) {
     setToast(`Logged ${kcal} kcal to your diary`);
   }
 
-  const today = new Date();
-  const dateLabel = today.toLocaleDateString('en-GB', {
-    weekday: 'long', day: 'numeric', month: 'long',
-  });
+  const viewDate = new Date();
+  viewDate.setDate(viewDate.getDate() + offset);
+  const dateLabel = offset === 0
+    ? `Today, ${viewDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}`
+    : viewDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
     <div className={styles.screen}>

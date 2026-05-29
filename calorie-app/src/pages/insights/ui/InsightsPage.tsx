@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { MOCK_STATS } from '../../../entities/nutrition';
+import { getMockMealsForOffset, MOCK_MEALS } from '../../../entities/meal/model/mock';
 import { useProfileStore } from '../../../entities/user/model/profile';
 import { MOCK_MODE } from '../../../shared/config/flags';
 import styles from './InsightsPage.module.css';
@@ -51,26 +52,18 @@ const MO_LONG  = ['January','February','March','April','May','June','July','Augu
 const WD_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Seeded RNG & day-level data
+// Day-level data — derived from the same mock meals as DiaryPage
 // ─────────────────────────────────────────────────────────────────────────────
 
-function seeded(seed: number) {
-  let n = (seed + 1) >>> 0;
-  return () => {
-    n = (n + 0x6d2b79f5) >>> 0;
-    let t = Math.imul(n ^ (n >>> 15), 1 | n);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 function genDay(d: Date): Stats {
-  const r = seeded(d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate());
+  const offset = diffDays(d, TODAY);
+  // offset === 0 (today) uses MOCK_MEALS (same as DiaryPage store at offset 0)
+  const meals = offset === 0 ? MOCK_MEALS : getMockMealsForOffset(offset);
   return {
-    cal:     Math.round(1500 + r() * 900),
-    protein: Math.round(80   + r() * 80),
-    carbs:   Math.round(140  + r() * 110),
-    fat:     Math.round(45   + r() * 50),
+    cal:     meals.reduce((s, m) => s + m.calories, 0),
+    protein: meals.reduce((s, m) => s + m.protein,  0),
+    carbs:   meals.reduce((s, m) => s + m.carbs,    0),
+    fat:     meals.reduce((s, m) => s + m.fat,      0),
   };
 }
 
@@ -86,8 +79,7 @@ function dayStatus(d: Date): BarStatus {
 
 function dayStats(d: Date): Stats & { status: BarStatus } {
   const status = dayStatus(d);
-  if (status === 'today') return { cal: 1340, protein: 78, carbs: 145, fat: 42, status };
-  if (status === 'ok')    return { ...genDay(d), status };
+  if (status === 'today' || status === 'ok') return { ...genDay(d), status };
   return { cal: 0, protein: 0, carbs: 0, fat: 0, status };
 }
 

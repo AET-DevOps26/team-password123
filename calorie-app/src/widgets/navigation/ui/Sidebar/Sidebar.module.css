@@ -115,8 +115,40 @@
   flex-shrink: 0;
 }
 
-.userName { font-weight: 600; font-size: 14px; }
-.plan     { color: var(--text-2); font-size: 14px; }
+.footInfo { flex: 1; min-width: 0; }
+
+.userName {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plan {
+  color: var(--text-2);
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.signOutBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  flex-shrink: 0;
+  transition: background .15s, color .15s;
+}
+
+.signOutBtn:hover {
+  background: oklch(0.97 0.02 350);
+  color: var(--fat);
+}
 
 @media (max-width: 860px) {
   .sidebar { display: none; }

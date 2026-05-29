@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useMealStore, MealRow } from '../../../entities/meal';
+import { getMockMealsForOffset } from '../../../entities/meal/model/mock';
 import type { MealEntry } from '../../../entities/meal';
 import { MacroChip, MOCK_GOAL } from '../../../entities/nutrition';
+import { useProfileStore } from '../../../entities/user/model/profile';
 import { ScanMealButton } from '../../../features/scan-meal';
 import { ManualEntryModal } from '../../../features/manual-entry';
 import type { MealSlot } from '../../../features/manual-entry/model/useManualEntry';
 import { Toast } from '../../../widgets/notification';
+import { MOCK_MODE } from '../../../shared/config/flags';
 import styles from './DiaryPage.module.css';
 
 const SLOTS: MealSlot[] = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
@@ -18,7 +21,8 @@ interface DiaryPageProps {
 }
 
 export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }: DiaryPageProps) {
-  const entries = useMealStore((s) => s.entries);
+  const storeEntries = useMealStore((s) => s.entries);
+  const goals        = useProfileStore((s) => s.goals);
   const [showManual, setShowManual] = useState(false);
   const [defaultSlot, setDefaultSlot] = useState<MealSlot>('Lunch');
   const [offset, setOffsetState] = useState(initialOffset);
@@ -28,6 +32,11 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
     onOffsetChange?.(n);
   }
   const [toast, setToast] = useState<string | null>(null);
+
+  const mockEntries = useMemo(() => getMockMealsForOffset(offset), [offset]);
+  const entries: MealEntry[] = MOCK_MODE && offset !== 0 ? mockEntries : storeEntries;
+
+  const calGoal = MOCK_MODE ? MOCK_GOAL.calories : (goals.calories || 2000);
 
   const bySlot = (slot: MealSlot): MealEntry[] =>
     entries.filter((e) => e.slot === slot);
@@ -93,7 +102,7 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
           <div className={styles.totalMeta}>Total today</div>
           <div className={styles.totalNum}>
             {totalCal.toLocaleString()}
-            <span> / {MOCK_GOAL.calories.toLocaleString()} kcal</span>
+            <span> / {calGoal.toLocaleString()} kcal</span>
           </div>
         </div>
         <div className={styles.macros}>

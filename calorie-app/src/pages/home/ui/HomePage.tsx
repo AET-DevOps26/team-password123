@@ -1,9 +1,11 @@
 import { CalorieRing, MacroBar, MOCK_GOAL, MOCK_TODAY, MOCK_STATS } from '../../../entities/nutrition';
 import { MealRow, useMealStore } from '../../../entities/meal';
 import { useUserStore } from '../../../entities/user';
+import { useProfileStore } from '../../../entities/user/model/profile';
 import { ScanMealButton } from '../../../features/scan-meal';
 import { StatPill } from '../../../shared/ui/StatPill/StatPill';
 import { IconFlame, IconTarget, IconTrend, IconBolt, IconChevR } from '../../../shared/ui/icons';
+import { MOCK_MODE } from '../../../shared/config/flags';
 import styles from './HomePage.module.css';
 
 interface HomePageProps {
@@ -13,13 +15,32 @@ interface HomePageProps {
 export function HomePage({ onScan }: HomePageProps) {
   const entries = useMealStore((s) => s.entries);
   const user    = useUserStore((s) => s.user);
+  const goals   = useProfileStore((s) => s.goals);
   const firstName = user?.displayName?.split(' ')[0] ?? 'there';
+
+  const today = new Date();
+  const realDateLabel = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  const dateLabel   = MOCK_MODE ? MOCK_TODAY.dateLabel     : `Today, ${realDateLabel}`;
+  const consumed    = MOCK_MODE ? MOCK_TODAY.consumed       : entries.reduce((s, e) => s + e.calories, 0);
+  const protein     = MOCK_MODE ? MOCK_TODAY.protein        : entries.reduce((s, e) => s + e.protein,  0);
+  const carbs       = MOCK_MODE ? MOCK_TODAY.carbs          : entries.reduce((s, e) => s + e.carbs,    0);
+  const fat         = MOCK_MODE ? MOCK_TODAY.fat            : entries.reduce((s, e) => s + e.fat,      0);
+
+  const calGoal     = MOCK_MODE ? MOCK_GOAL.calories        : (goals.calories || 2000);
+  const proteinGoal = MOCK_MODE ? MOCK_GOAL.protein         : (goals.protein  || 120);
+  const carbsGoal   = MOCK_MODE ? MOCK_GOAL.carbs           : (goals.carbs    || 220);
+  const fatGoal     = MOCK_MODE ? MOCK_GOAL.fat             : (goals.fats     || 65);
+
+  const streak      = MOCK_MODE ? MOCK_STATS.streak         : 0;
+  const goalHit     = MOCK_MODE ? `${Math.round(MOCK_STATS.goalAdherence * 100)}%` : '—';
+  const weekAvg     = MOCK_MODE ? MOCK_STATS.weekAvg.toLocaleString()               : '—';
 
   return (
     <div className={styles.screen}>
       <header className={styles.head}>
         <div>
-          <div className={styles.eyebrow}>{MOCK_TODAY.dateLabel}</div>
+          <div className={styles.eyebrow}>{dateLabel}</div>
           <h1 className={styles.title}>Good afternoon, {firstName}</h1>
         </div>
         <div className={styles.headActions}>
@@ -29,11 +50,11 @@ export function HomePage({ onScan }: HomePageProps) {
 
       <div className={styles.grid}>
         <section className={`${styles.card} ${styles.summaryCard}`}>
-          <CalorieRing value={MOCK_TODAY.consumed} goal={MOCK_GOAL.calories} />
+          <CalorieRing value={consumed} goal={calGoal} />
           <div className={styles.macros}>
-            <MacroBar label="Protein" value={MOCK_TODAY.protein} goal={MOCK_GOAL.protein} color="var(--protein)" />
-            <MacroBar label="Carbs"   value={MOCK_TODAY.carbs}   goal={MOCK_GOAL.carbs}   color="var(--carbs)" />
-            <MacroBar label="Fat"     value={MOCK_TODAY.fat}     goal={MOCK_GOAL.fat}     color="var(--fat)" />
+            <MacroBar label="Protein" value={protein} goal={proteinGoal} color="var(--protein)" />
+            <MacroBar label="Carbs"   value={carbs}   goal={carbsGoal}   color="var(--carbs)" />
+            <MacroBar label="Fat"     value={fat}     goal={fatGoal}     color="var(--fat)" />
           </div>
         </section>
 
@@ -50,9 +71,9 @@ export function HomePage({ onScan }: HomePageProps) {
         </section>
 
         <div className={styles.stats}>
-          <StatPill icon={<IconFlame size={18} />}  label="day streak" value={MOCK_STATS.streak} />
-          <StatPill icon={<IconTarget size={18} />} label="goal hit"   value={`${Math.round(MOCK_STATS.goalAdherence * 100)}%`} />
-          <StatPill icon={<IconTrend size={18} />}  label="7-day avg"  value={MOCK_STATS.weekAvg.toLocaleString()} />
+          <StatPill icon={<IconFlame size={18} />}  label="day streak" value={streak} />
+          <StatPill icon={<IconTarget size={18} />} label="goal hit"   value={goalHit} />
+          <StatPill icon={<IconTrend size={18} />}  label="7-day avg"  value={weekAvg} />
         </div>
       </div>
 

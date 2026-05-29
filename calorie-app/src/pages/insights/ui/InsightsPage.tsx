@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { MOCK_STATS } from '../../../entities/nutrition';
 import { useProfileStore } from '../../../entities/user/model/profile';
+import { MOCK_MODE } from '../../../shared/config/flags';
 import styles from './InsightsPage.module.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -74,6 +75,7 @@ function genDay(d: Date): Stats {
 }
 
 function dayStatus(d: Date): BarStatus {
+  if (!MOCK_MODE) return 'nodata';
   const diff = diffDays(d, TODAY);
   if (diff === 0)           return 'today';
   if (diff > FUTURE_LIMIT)  return 'nodata';
@@ -566,9 +568,9 @@ export function InsightsPage({ onOpenDay }: InsightsPageProps) {
         />
         <KpiCard
           label="Logging streak"
-          value={String(MOCK_STATS.streak)}
-          unit="days"
-          delta="Keep it going 🔥"
+          value={MOCK_MODE ? String(MOCK_STATS.streak) : '—'}
+          unit={MOCK_MODE ? 'days' : ''}
+          delta={MOCK_MODE ? 'Keep it going 🔥' : 'No data'}
         />
       </div>
 

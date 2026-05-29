@@ -1,4 +1,5 @@
 import type { ApiError } from '../lib/types';
+import { OFFLINE_MODE } from '../config/flags';
 
 const BASE_URL = '/api';
 
@@ -6,7 +7,33 @@ function getToken(): string | null {
   return localStorage.getItem('token');
 }
 
+// Fake responses for OFFLINE_MODE — mirrors real backend shapes so the app
+// renders an empty-state experience without any network errors.
+function offlineResponse<T>(path: string, method: string): T {
+  if (
+    (path === '/auth/login' || path === '/auth/register') &&
+    method === 'POST'
+  ) {
+    return {
+      token: 'offline',
+      user: {
+        id: 'offline',
+        email: 'guest@local',
+        displayName: 'Guest User',
+        createdAt: new Date().toISOString(),
+      },
+    } as T;
+  }
+  // GET /meals list
+  if (path === '/meals' && method === 'GET') return [] as T;
+  return null as T;
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  if (OFFLINE_MODE) {
+    return offlineResponse<T>(path, options.method ?? 'GET');
+  }
+
   const token = getToken();
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),

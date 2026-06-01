@@ -27,7 +27,7 @@ gradle-app.setting
 # ─── React / TypeScript frontend ─────────────────────────────────────────────
 node_modules/
 dist/
-package-lock.json
+# package-lock.json is committed on purpose: reproducible `npm ci` in CI/CD.
 .next/
 .nuxt/
 .cache/

@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app.py .
 COPY config.py .
 COPY nutrition_analyzer.py .
+COPY nutrition_db.json .
 
 # Expose port
 EXPOSE 8084

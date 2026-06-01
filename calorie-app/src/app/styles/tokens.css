@@ -1,0 +1,27 @@
+:root {
+  --bg: #f4f3ef;
+  --surface: #ffffff;
+  --surface-2: #faf9f6;
+  --border: rgba(28, 29, 26, .08);
+  --border-2: rgba(28, 29, 26, .05);
+  --text: #1c1d1a;
+  --text-2: #6c6e67;
+  --text-3: #9c9e96;
+
+  --green: oklch(0.63 0.11 158);
+  --green-press: oklch(0.56 0.11 158);
+  --green-soft: oklch(0.95 0.04 158);
+  --green-tint: oklch(0.97 0.025 158);
+  --track: oklch(0.93 0.012 150);
+
+  --protein: oklch(0.64 0.13 255);
+  --carbs: oklch(0.76 0.12 70);
+  --fat: oklch(0.66 0.13 350);
+
+  --shadow: 0 1px 2px rgba(28, 29, 26, .04), 0 8px 24px rgba(28, 29, 26, .05);
+  --shadow-lg: 0 12px 40px rgba(28, 29, 26, .16);
+
+  --radius: 18px;
+  --radius-sm: 12px;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}

@@ -1,0 +1,163 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.eyebrow {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--green-press);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 6px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -.025em;
+}
+
+.headActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ── Summary grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 18px;
+  margin-bottom: 34px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.summaryCard {
+  grid-row: span 2;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 30px;
+}
+
+.macros {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.insightCard {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  cursor: pointer;
+  transition: transform .14s, box-shadow .2s;
+}
+
+.insightCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.insightIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--green-soft);
+  color: var(--green-press);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.insightBody { flex: 1; }
+
+.insightTitle {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 3px;
+}
+
+.insightText {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+.insightArrow { color: var(--text-3); flex-shrink: 0; }
+
+.stats {
+  display: flex;
+  gap: 12px;
+}
+
+/* ── Meals list ── */
+.mealsSection { margin-top: 6px; }
+
+.sectionHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+}
+
+.sectionMeta {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.mealsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .title { font-size: 25px; }
+
+  .headActions { display: none; }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .summaryCard {
+    grid-row: auto;
+    flex-direction: column;
+    gap: 22px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .macros { width: 100%; }
+
+  .stats { gap: 10px; }
+}

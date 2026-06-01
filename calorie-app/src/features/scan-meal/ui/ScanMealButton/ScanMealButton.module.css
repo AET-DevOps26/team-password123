@@ -1,0 +1,16 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--green);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 11px 17px;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px oklch(0.63 0.11 158 / .28);
+  transition: background .15s, transform .12s;
+}
+
+.btn:hover { background: var(--green-press); }
+.btn:active { transform: scale(.97); }

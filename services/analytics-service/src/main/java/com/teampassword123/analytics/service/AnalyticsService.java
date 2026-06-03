@@ -4,11 +4,15 @@ import com.teampassword123.analytics.client.MealsClient;
 import com.teampassword123.analytics.domain.NutritionGoal;
 import com.teampassword123.analytics.dto.AnalyticsResponse;
 import com.teampassword123.analytics.dto.MealSummary;
+import com.teampassword123.analytics.dto.StreakResponse;
 import com.teampassword123.analytics.exception.BadRequestException;
 import com.teampassword123.analytics.repository.NutritionGoalRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +36,28 @@ public class AnalyticsService {
     @Transactional(readOnly = true)
     public AnalyticsResponse weekly(UUID userId, String bearerToken, LocalDate weekStart) {
         return summarize(userId, bearerToken, weekStart, weekStart.plusDays(6), BigDecimal.valueOf(7));
+    }
+
+    @Transactional(readOnly = true)
+    public StreakResponse computeStreak(UUID userId, String bearerToken) {
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        // ~5 year window: data volume is tiny, and this caps extreme streaks.
+        List<MealSummary> meals = mealsClient.listForUser(bearerToken, today.minusDays(1830), today);
+
+        Set<LocalDate> loggedDays = new HashSet<>();
+        for (MealSummary meal : meals) {
+            loggedDays.add(meal.loggedAt().atZoneSameInstant(ZoneOffset.UTC).toLocalDate());
+        }
+
+        // Grace rule: don't reset an active streak just because today's meal isn't logged yet.
+        LocalDate cursor = loggedDays.contains(today) ? today : today.minusDays(1);
+
+        int streak = 0;
+        while (loggedDays.contains(cursor)) {
+            streak++;
+            cursor = cursor.minusDays(1);
+        }
+        return new StreakResponse(streak);
     }
 
     private AnalyticsResponse summarize(

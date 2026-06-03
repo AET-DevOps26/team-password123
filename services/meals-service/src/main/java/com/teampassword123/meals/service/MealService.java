@@ -3,11 +3,15 @@ package com.teampassword123.meals.service;
 import com.teampassword123.meals.config.StorageProperties;
 import com.teampassword123.meals.domain.MealItem;
 import com.teampassword123.meals.domain.MealLog;
+import com.teampassword123.meals.domain.MealType;
 import com.teampassword123.meals.domain.PhotoLog;
 import com.teampassword123.meals.domain.PhotoStatus;
 import com.teampassword123.meals.domain.SourceType;
+import com.teampassword123.meals.dto.AnalyzedMeal;
 import com.teampassword123.meals.dto.ManualMealRequest;
+import com.teampassword123.meals.dto.MealAnalysisResponse;
 import com.teampassword123.meals.dto.MealResponse;
+import com.teampassword123.meals.dto.NutritionSummary;
 import com.teampassword123.meals.dto.PhotoLogResponse;
 import com.teampassword123.meals.exception.BadRequestException;
 import com.teampassword123.meals.exception.NotFoundException;
@@ -15,6 +19,7 @@ import com.teampassword123.meals.repository.MealLogRepository;
 import com.teampassword123.meals.repository.PhotoLogRepository;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -22,6 +27,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -32,15 +39,18 @@ public class MealService {
 
     private final MealLogRepository meals;
     private final PhotoLogRepository photos;
+    private final MealAnalyzer analyzer;
     private final Path uploadDir;
 
     public MealService(
             MealLogRepository meals,
             PhotoLogRepository photos,
+            MealAnalyzer analyzer,
             StorageProperties storageProperties
     ) {
         this.meals = meals;
         this.photos = photos;
+        this.analyzer = analyzer;
         this.uploadDir = Path.of(storageProperties.getUploadDir()).toAbsolutePath().normalize();
     }
 
@@ -85,26 +95,81 @@ public class MealService {
             throw new BadRequestException("Photo file is required");
         }
 
-        String originalFilename = StringUtils.cleanPath(
-                file.getOriginalFilename() == null ? "meal-photo" : file.getOriginalFilename()
-        );
-        String storedFilename = UUID.randomUUID() + "-" + originalFilename.replaceAll("[^A-Za-z0-9._-]", "_");
-
-        try {
-            Files.createDirectories(uploadDir);
-            file.transferTo(uploadDir.resolve(storedFilename));
-        } catch (IOException exception) {
-            throw new BadRequestException("Could not store uploaded photo");
-        }
+        StoredFile stored = storePhoto(file);
 
         PhotoLog photo = new PhotoLog();
         photo.setUserId(userId);
-        photo.setOriginalFilename(originalFilename);
-        photo.setStoredFilename(storedFilename);
+        photo.setOriginalFilename(stored.originalFilename());
+        photo.setStoredFilename(stored.storedFilename());
         photo.setContentType(file.getContentType());
         photo.setStatus(PhotoStatus.AI_NOT_AVAILABLE);
         photo.setCreatedAt(OffsetDateTime.now());
         return MealMapper.toPhotoResponse(photos.save(photo));
+    }
+
+    @Transactional
+    public MealAnalysisResponse analyzePhoto(UUID userId, MultipartFile image) {
+        if (image.isEmpty()) {
+            throw new BadRequestException("Photo file is required");
+        }
+
+        byte[] bytes;
+        try {
+            bytes = image.getBytes();
+        } catch (IOException exception) {
+            throw new BadRequestException("Could not read uploaded photo");
+        }
+
+        StoredFile stored = storePhoto(image);
+        MealAnalysis analysis = analyzer.analyze(bytes, stored.originalFilename());
+
+        OffsetDateTime now = OffsetDateTime.now();
+        MealLog meal = meals.save(buildAnalyzedMeal(userId, analysis, now));
+
+        PhotoLog photo = new PhotoLog();
+        photo.setUserId(userId);
+        photo.setOriginalFilename(stored.originalFilename());
+        photo.setStoredFilename(stored.storedFilename());
+        photo.setContentType(image.getContentType());
+        photo.setStatus(PhotoStatus.ANALYZED);
+        photo.setCreatedAt(now);
+        photo.setAnalyzedAt(now);
+        photo.setLinkedMealLog(meal);
+        photos.save(photo);
+
+        String imageUrl = "/api/meals/photo/" + photo.getId() + "/raw";
+        AnalyzedMeal analyzedMeal = new AnalyzedMeal(
+                meal.getId(),
+                analysis.dishName(),
+                imageUrl,
+                new NutritionSummary(
+                        analysis.calories(),
+                        analysis.protein(),
+                        analysis.carbs(),
+                        analysis.fat()
+                ),
+                analysis.confidence(),
+                photo.getAnalyzedAt()
+        );
+        return new MealAnalysisResponse(analyzedMeal, "Analysis complete");
+    }
+
+    @Transactional(readOnly = true)
+    public StoredPhoto loadPhoto(UUID userId, UUID photoId) {
+        PhotoLog photo = photos.findByIdAndUserId(photoId, userId)
+                .orElseThrow(() -> new NotFoundException("Photo log not found"));
+
+        Path file = uploadDir.resolve(photo.getStoredFilename());
+        Resource resource;
+        try {
+            resource = new UrlResource(file.toUri());
+        } catch (MalformedURLException exception) {
+            throw new NotFoundException("Photo file not found");
+        }
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new NotFoundException("Photo file not found");
+        }
+        return new StoredPhoto(resource, photo.getContentType());
     }
 
     @Transactional
@@ -120,6 +185,62 @@ public class MealService {
         photo.setStatus(PhotoStatus.MANUALLY_COMPLETED);
         photos.save(photo);
         return MealMapper.toMealResponse(meal);
+    }
+
+    private StoredFile storePhoto(MultipartFile file) {
+        String originalFilename = StringUtils.cleanPath(
+                file.getOriginalFilename() == null ? "meal-photo" : file.getOriginalFilename()
+        );
+        String storedFilename = UUID.randomUUID() + "-" + originalFilename.replaceAll("[^A-Za-z0-9._-]", "_");
+
+        try {
+            Files.createDirectories(uploadDir);
+            file.transferTo(uploadDir.resolve(storedFilename));
+        } catch (IOException exception) {
+            throw new BadRequestException("Could not store uploaded photo");
+        }
+        return new StoredFile(originalFilename, storedFilename);
+    }
+
+    private MealLog buildAnalyzedMeal(UUID userId, MealAnalysis analysis, OffsetDateTime loggedAt) {
+        MealItem item = new MealItem();
+        item.setName(analysis.dishName());
+        item.setQuantity(BigDecimal.ONE);
+        item.setUnit("serving");
+        item.setCalories(analysis.calories());
+        item.setProteinGrams(analysis.protein());
+        item.setCarbsGrams(analysis.carbs());
+        item.setFatGrams(analysis.fat());
+        item.setFiberGrams(BigDecimal.ZERO);
+
+        MealLog meal = new MealLog();
+        meal.setUserId(userId);
+        meal.setSourceType(SourceType.PHOTO_AI);
+        meal.setMealType(pickMealType(loggedAt));
+        meal.setLoggedAt(loggedAt);
+        meal.setDishName(analysis.dishName());
+        meal.setConfidence(BigDecimal.valueOf(analysis.confidence()));
+        meal.setCalories(analysis.calories());
+        meal.setProteinGrams(analysis.protein());
+        meal.setCarbsGrams(analysis.carbs());
+        meal.setFatGrams(analysis.fat());
+        meal.setFiberGrams(BigDecimal.ZERO);
+        meal.replaceItems(List.of(item));
+        return meal;
+    }
+
+    private MealType pickMealType(OffsetDateTime loggedAt) {
+        int hour = loggedAt.getHour();
+        if (hour < 11) {
+            return MealType.BREAKFAST;
+        }
+        if (hour < 16) {
+            return MealType.LUNCH;
+        }
+        if (hour < 21) {
+            return MealType.DINNER;
+        }
+        return MealType.SNACK;
     }
 
     private MealLog findOwnedMeal(UUID userId, UUID mealId) {
@@ -162,6 +283,12 @@ public class MealService {
 
     private OffsetDateTime end(LocalDate date) {
         return date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC).minusNanos(1);
+    }
+
+    private record StoredFile(String originalFilename, String storedFilename) {
+    }
+
+    public record StoredPhoto(Resource resource, String contentType) {
     }
 
     private enum Nutrient {

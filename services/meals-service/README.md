@@ -18,6 +18,8 @@ Photo uploads currently land with status `AI_NOT_AVAILABLE` — the GenAI servic
 | PUT | `/api/meals/{id}` | Update a meal |
 | DELETE | `/api/meals/{id}` | Delete a meal |
 | POST | `/api/meals/photo` | Upload a photo (placeholder until GenAI lands) |
+| POST | `/api/meals/analyze` | Upload a photo, estimate the dish + macros, and log the meal (deterministic placeholder analyzer until GenAI lands) |
+| GET | `/api/meals/photo/{id}/raw` | Stream a stored photo image (owner only) |
 | POST | `/api/meals/photo/{id}/convert-manual` | Attach manual macros to a photo log |
 
 All endpoints require a bearer token issued by `auth-service`.

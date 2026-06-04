@@ -1,0 +1,3 @@
+ALTER TABLE meal_logs ADD COLUMN dish_name VARCHAR(160);
+ALTER TABLE meal_logs ADD COLUMN confidence NUMERIC(4, 3);
+ALTER TABLE photo_logs ADD COLUMN analyzed_at TIMESTAMP WITH TIME ZONE;

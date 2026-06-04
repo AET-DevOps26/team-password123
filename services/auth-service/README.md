@@ -13,6 +13,7 @@ Identity, registration, login, and JWT issuance for the nutrition platform.
 | POST | `/api/auth/register` | public | Creates a user and returns a JWT |
 | POST | `/api/auth/login` | public | Returns a JWT |
 | GET | `/api/users/me` | bearer | Current user's profile |
+| PUT | `/api/users/me` | bearer | Replace the current user's profile (display name + height/weight/age/sex/activity/goal) |
 | GET | `/api/users/{id}` | bearer | User lookup by id (used internally by other services if needed) |
 
 Swagger UI: <http://localhost:8081/swagger-ui.html>

@@ -56,6 +56,12 @@ public class MealLog {
     @Column(length = 500)
     private String notes;
 
+    @Column(name = "dish_name", length = 160)
+    private String dishName;
+
+    @Column(name = "confidence")
+    private BigDecimal confidence;
+
     @OneToMany(mappedBy = "mealLog", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MealItem> items = new ArrayList<>();
 
@@ -141,6 +147,22 @@ public class MealLog {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getDishName() {
+        return dishName;
+    }
+
+    public void setDishName(String dishName) {
+        this.dishName = dishName;
+    }
+
+    public BigDecimal getConfidence() {
+        return confidence;
+    }
+
+    public void setConfidence(BigDecimal confidence) {
+        this.confidence = confidence;
     }
 
     public List<MealItem> getItems() {

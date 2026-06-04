@@ -25,11 +25,19 @@ export function HomePage({ onScan }: HomePageProps) {
   const firstName  = user?.displayName?.split(' ')[0] ?? 'there';
 
   const [dailyAnalytics, setDailyAnalytics] = useState<AnalyticsResponse | null>(null);
+  const [weeklyAnalytics, setWeeklyAnalytics] = useState<AnalyticsResponse | null>(null);
+  const [streak, setStreak] = useState<number | null>(null);
 
   // Fetch today's data from API when backend is live
   useEffect(() => {
     if (MOCK_MODE) return;
     const today = new Date().toISOString().slice(0, 10);
+    const weekStart = (() => {
+      const date = new Date();
+      const day = date.getDay();
+      date.setDate(date.getDate() - (day === 0 ? 6 : day - 1));
+      return date.toISOString().slice(0, 10);
+    })();
 
     // Load today's meals into store
     mealApi.getHistory(today, today).then((raw) => {
@@ -39,6 +47,15 @@ export function HomePage({ onScan }: HomePageProps) {
     // Load daily analytics
     analyticsApi.getDaily(today).then((r) => {
       if (r) setDailyAnalytics(r);
+    }).catch(() => {});
+
+    // Load weekly analytics and streak KPI
+    analyticsApi.getWeekly(weekStart).then((r) => {
+      if (r) setWeeklyAnalytics(r);
+    }).catch(() => {});
+
+    analyticsApi.getStreak().then((r) => {
+      if (r) setStreak(r.streak);
     }).catch(() => {});
   }, [setEntries]);
 
@@ -56,9 +73,15 @@ export function HomePage({ onScan }: HomePageProps) {
   const carbsGoal   = MOCK_MODE ? MOCK_GOAL.carbs    : (goals.carbs    || 220);
   const fatGoal     = MOCK_MODE ? MOCK_GOAL.fat      : (goals.fats     || 65);
 
-  const streak  = MOCK_MODE ? MOCK_STATS.streak                              : 0;
-  const goalHit = MOCK_MODE ? `${Math.round(MOCK_STATS.goalAdherence * 100)}%` : '—';
-  const weekAvg = MOCK_MODE ? MOCK_STATS.weekAvg.toLocaleString()              : '—';
+  const streakValue = MOCK_MODE ? MOCK_STATS.streak : (streak ?? 0);
+  const goalHit = MOCK_MODE
+    ? `${Math.round(MOCK_STATS.goalAdherence * 100)}%`
+    : (dailyAnalytics
+      ? (((dailyAnalytics.calorieGoalDelta ?? 0) <= 0) ? 'On track' : 'Over goal')
+      : (entries.length > 0 ? 'Logged' : '—'));
+  const weekAvg = MOCK_MODE
+    ? MOCK_STATS.weekAvg.toLocaleString()
+    : (weeklyAnalytics ? Math.round(weeklyAnalytics.calories / 7).toLocaleString() : '—');
 
   return (
     <div className={styles.screen}>
@@ -95,7 +118,7 @@ export function HomePage({ onScan }: HomePageProps) {
         </section>
 
         <div className={styles.stats}>
-          <StatPill icon={<IconFlame size={18} />}  label="day streak" value={streak} />
+          <StatPill icon={<IconFlame size={18} />}  label="day streak" value={streakValue} />
           <StatPill icon={<IconTarget size={18} />} label="goal hit"   value={goalHit} />
           <StatPill icon={<IconTrend size={18} />}  label="7-day avg"  value={weekAvg} />
         </div>

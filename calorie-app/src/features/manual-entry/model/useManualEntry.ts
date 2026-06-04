@@ -31,7 +31,7 @@ const SLOT_TONES: Record<MealSlot, string> = {
   Snack:     '#e4d2cf',
 };
 
-export function useManualEntry(defaultSlot: MealSlot = 'Lunch') {
+export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date) {
   const [query, setQuery]   = useState('');
   const [items, setItems]   = useState<Ingredient[]>([]);
   const [slot, setSlot]     = useState<MealSlot>(defaultSlot);
@@ -56,6 +56,10 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch') {
 
   async function save(): Promise<number> {
     const now  = new Date();
+    const savedAt = loggedAt ? new Date(loggedAt) : now;
+    if (loggedAt) {
+      savedAt.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+    }
     const time = now.toTimeString().slice(0, 5);
 
     const name = items.length === 1
@@ -94,7 +98,7 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch') {
         fiberGrams:   0,
       }));
 
-      const request = entryToManualRequest(slot, name, now, itemRequests);
+      const request = entryToManualRequest(slot, name, savedAt, itemRequests);
       const response = await mealApi.saveManual(request);
       if (response) {
         addEntry(mealResponseToEntry(response));

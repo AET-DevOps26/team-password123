@@ -33,3 +33,7 @@ export interface GoalRequest {
   fatGrams: number;
   fiberGrams: number;
 }
+
+export interface StreakResponse {
+  streak: number;
+}

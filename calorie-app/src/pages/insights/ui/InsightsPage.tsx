@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { MOCK_STATS } from '../../../entities/nutrition';
 import { getMockMealsForOffset, MOCK_MEALS } from '../../../entities/meal/model/mock';
 import { mealApi } from '../../../entities/meal/api/mealApi';
+import { analyticsApi } from '../../../entities/nutrition/api/analyticsApi';
 import { useProfileStore } from '../../../entities/user/model/profile';
 import { MOCK_MODE } from '../../../shared/config/flags';
 import styles from './InsightsPage.module.css';
@@ -10,7 +11,7 @@ import styles from './InsightsPage.module.css';
 // Constants & types
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TODAY = new Date(2026, 4, 28); // Thu 28 May 2026 (mock anchor)
+const MOCK_TODAY = new Date(2026, 4, 28); // Thu 28 May 2026 (mock anchor)
 const FUTURE_LIMIT = 14;             // days ahead user can plan
 const PAST_LIMIT   = 365;            // days back with data
 
@@ -57,7 +58,7 @@ const WD_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ─────────────────────────────────────────────────────────────────────────────
 
 function genDay(d: Date): Stats {
-  const offset = diffDays(d, TODAY);
+  const offset = diffDays(d, MOCK_TODAY);
   // offset === 0 (today) uses MOCK_MEALS (same as DiaryPage store at offset 0)
   const meals = offset === 0 ? MOCK_MEALS : getMockMealsForOffset(offset);
   return {
@@ -70,11 +71,20 @@ function genDay(d: Date): Stats {
 
 function dayStatus(d: Date): BarStatus {
   if (!MOCK_MODE) return 'nodata';
-  const diff = diffDays(d, TODAY);
+  const diff = diffDays(d, MOCK_TODAY);
   if (diff === 0)           return 'today';
   if (diff > FUTURE_LIMIT)  return 'nodata';
   if (diff > 0)             return 'future';
   if (diff < -PAST_LIMIT)   return 'nodata';
+  return 'ok';
+}
+
+function realDayStatus(d: Date, today: Date): BarStatus {
+  const diff = diffDays(d, today);
+  if (diff === 0)          return 'today';
+  if (diff > FUTURE_LIMIT) return 'nodata';
+  if (diff > 0)            return 'future';
+  if (diff < -PAST_LIMIT)  return 'nodata';
   return 'ok';
 }
 
@@ -102,7 +112,7 @@ function buildWeekBars(weekStart: Date, dayStats: DayStatsFn): BarItem[] {
       status:  s.status,
       cal: s.cal, protein: s.protein, carbs: s.carbs, fat: s.fat,
       // all days navigable to diary (even no-data, to add food)
-      diaryOffset: diffDays(d, TODAY),
+      diaryOffset: diffDays(d, getInsightsBaseDate()),
     };
   });
 }
@@ -149,15 +159,16 @@ function buildMonthBars(year: number, month: number, dayStats: DayStatsFn): BarI
 }
 
 function buildYearBars(year: number, dayStats: DayStatsFn): BarItem[] {
-  const curMonthStart = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
-  const dataStart     = new Date(TODAY.getFullYear() - 1, TODAY.getMonth(), 1);
+  const today = getInsightsBaseDate();
+  const curMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const dataStart     = new Date(today.getFullYear() - 1, today.getMonth(), 1);
 
   return Array.from({ length: 12 }, (_, month) => {
     const firstDay = new Date(year, month, 1);
     const lastDay  = new Date(year, month + 1, 0);
     const isFuture = firstDay > curMonthStart;
     const isNoData = firstDay < dataStart;
-    const isCur    = year === TODAY.getFullYear() && month === TODAY.getMonth();
+    const isCur    = year === today.getFullYear() && month === today.getMonth();
 
     if (isFuture || isNoData) {
       return {
@@ -214,21 +225,23 @@ function periodLabel(range: Range, ws: Date, md: Date, yn: number): string {
 }
 
 function canPrev(range: Range, ws: Date, md: Date, yn: number): boolean {
-  if (range === 'Week')  return diffDays(weekMonday(TODAY), addDays(ws, -7)) <= PAST_LIMIT;
+  const today = getInsightsBaseDate();
+  if (range === 'Week')  return diffDays(weekMonday(today), addDays(ws, -7)) <= PAST_LIMIT;
   if (range === 'Month') {
     const prev = new Date(md.getFullYear(), md.getMonth() - 1, 1);
-    return prev >= new Date(TODAY.getFullYear() - 1, TODAY.getMonth(), 1);
+    return prev >= new Date(today.getFullYear() - 1, today.getMonth(), 1);
   }
-  return yn > TODAY.getFullYear() - 2;
+  return yn > today.getFullYear() - 2;
 }
 
 function canNext(range: Range, ws: Date, md: Date, yn: number): boolean {
-  if (range === 'Week')  return diffDays(addDays(ws, 7), weekMonday(TODAY)) <= FUTURE_LIMIT;
+  const today = getInsightsBaseDate();
+  if (range === 'Week')  return diffDays(addDays(ws, 7), weekMonday(today)) <= FUTURE_LIMIT;
   if (range === 'Month') {
     const next = new Date(md.getFullYear(), md.getMonth() + 1, 1);
-    return next <= new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+    return next <= new Date(today.getFullYear(), today.getMonth(), 1);
   }
-  return yn < TODAY.getFullYear();
+  return yn < today.getFullYear();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -434,16 +447,22 @@ function isoDate(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+function getInsightsBaseDate(): Date {
+  return MOCK_MODE ? new Date(MOCK_TODAY) : new Date();
+}
+
 export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
   const goals       = useProfileStore((s) => s.goals);
   const calGoal     = goals.calories || 2000;
   const proteinGoal = goals.protein  || 120;
+  const baseToday    = getInsightsBaseDate();
 
   const [range,     setRange]     = useState<Range>(initialState?.range ?? 'Week');
-  const [weekStart, setWeekStart] = useState<Date>(initialState?.weekStart ?? weekMonday(TODAY));
-  const [monthDate, setMonthDate] = useState<Date>(initialState?.monthDate ?? new Date(TODAY.getFullYear(), TODAY.getMonth(), 1));
-  const [yearNum,   setYearNum]   = useState<number>(initialState?.yearNum ?? TODAY.getFullYear());
+  const [weekStart, setWeekStart] = useState<Date>(initialState?.weekStart ?? weekMonday(baseToday));
+  const [monthDate, setMonthDate] = useState<Date>(initialState?.monthDate ?? new Date(baseToday.getFullYear(), baseToday.getMonth(), 1));
+  const [yearNum,   setYearNum]   = useState<number>(initialState?.yearNum ?? baseToday.getFullYear());
   const [history,   setHistory]   = useState<HistoryEntry[]>([]);
+  const [streak, setStreak]       = useState<number | null>(null);
 
   // Cache of real per-day stats fetched from API: key = YYYY-MM-DD
   const [apiDayCache, setApiDayCache] = useState<Map<string, Stats>>(new Map());
@@ -484,16 +503,24 @@ export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
     }
   }, [range, weekStart, monthDate, yearNum, fetchRange]);
 
+  useEffect(() => {
+    if (MOCK_MODE) return;
+    analyticsApi.getStreak().then((response) => {
+      if (response) setStreak(response.streak);
+    }).catch(() => {});
+  }, []);
+
   // ── dayStats function — uses API cache when !MOCK_MODE ────────
   const dayStats = useCallback((d: Date): Stats & { status: BarStatus } => {
     if (MOCK_MODE) return dayStatsMock(d);
+    const today = getInsightsBaseDate();
     const key = isoDate(d);
     const cached = apiDayCache.get(key);
-    const status = dayStatus(d);
+    const status = realDayStatus(d, today);
+    if (cached) return { ...cached, status: status === 'today' ? 'today' : 'ok' };
     if (status === 'future' || status === 'nodata') {
       return { cal: 0, protein: 0, carbs: 0, fat: 0, status };
     }
-    if (cached) return { ...cached, status: status === 'today' ? 'today' : 'ok' };
     // Data not yet loaded — show as nodata until fetch completes
     return { cal: 0, protein: 0, carbs: 0, fat: 0, status: 'nodata' };
   }, [apiDayCache]);
@@ -533,9 +560,9 @@ export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
   function switchTab(r: Range) {
     setHistory([]);
     setRange(r);
-    setWeekStart(weekMonday(TODAY));
-    setMonthDate(new Date(TODAY.getFullYear(), TODAY.getMonth(), 1));
-    setYearNum(TODAY.getFullYear());
+    setWeekStart(weekMonday(baseToday));
+    setMonthDate(new Date(baseToday.getFullYear(), baseToday.getMonth(), 1));
+    setYearNum(baseToday.getFullYear());
   }
 
   function pushHistory() {
@@ -629,9 +656,9 @@ export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
         />
         <KpiCard
           label="Logging streak"
-          value={MOCK_MODE ? String(MOCK_STATS.streak) : '—'}
-          unit={MOCK_MODE ? 'days' : ''}
-          delta={MOCK_MODE ? 'Keep it going 🔥' : 'No data'}
+          value={MOCK_MODE ? String(MOCK_STATS.streak) : String(streak ?? '—')}
+          unit={MOCK_MODE ? 'days' : (streak !== null ? 'days' : '')}
+          delta={MOCK_MODE ? 'Keep it going 🔥' : (streak !== null ? 'Current streak' : 'No data')}
         />
       </div>
 

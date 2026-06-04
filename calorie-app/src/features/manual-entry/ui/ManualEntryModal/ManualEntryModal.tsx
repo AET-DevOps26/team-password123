@@ -7,12 +7,13 @@ interface ManualEntryModalProps {
   onClose: () => void;
   onAdded: (kcal: number) => void;
   defaultSlot?: MealSlot;
+  loggedAt?: Date;
 }
 
 const SLOTS: MealSlot[] = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
-export function ManualEntryModal({ onClose, onAdded, defaultSlot }: ManualEntryModalProps) {
-  const entry = useManualEntry(defaultSlot);
+export function ManualEntryModal({ onClose, onAdded, defaultSlot, loggedAt }: ManualEntryModalProps) {
+  const entry = useManualEntry(defaultSlot, loggedAt);
 
   async function handleSave() {
     const kcal = await entry.save();

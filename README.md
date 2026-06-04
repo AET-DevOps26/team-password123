@@ -57,7 +57,18 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Postgres + all three services come up in one shot. Each service exposes its own Swagger UI:
+Postgres + all three services + the web client come up in one shot. Open the app at <http://localhost:3000>.
+
+To load demo data for the current user and the last two weeks, run:
+
+```powershell
+.
+scripts\seed-demo-data.ps1
+```
+
+After seeding, hard refresh the browser tab if the app is already open.
+
+Each backend service exposes its own Swagger UI:
 
 - Auth: <http://localhost:8081/swagger-ui.html>
 - Meals: <http://localhost:8082/swagger-ui.html>
@@ -73,6 +84,7 @@ Open the project in Xcode 15+ targeting iOS 17. Setup steps and the SwiftData mo
 
 - [x] Server side split into 3 microservices (auth, meals, analytics) with shared-secret JWT and per-schema isolation
 - [x] Root `docker-compose.yml` brings up Postgres + all 3 services in one command
+- [x] Root `docker-compose.yml` also brings up the web client in one command
 - [x] iOS prototype: local SwiftData persistence, manual + photo logging, daily progress, weekly charts
 - [ ] GenAI microservice for food recognition and nutritional inference
 - [ ] Web client (React/Angular/Vue) per the course requirements

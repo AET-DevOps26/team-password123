@@ -65,6 +65,30 @@ services:
       meals-service:
         condition: service_started
 
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      VITE_AUTH_API_URL: http://auth-service:8081
+      VITE_MEALS_API_URL: http://meals-service:8082
+      VITE_ANALYTICS_API_URL: http://analytics-service:8083
+      VITE_MOCK_MODE: "false"
+      VITE_OFFLINE_MODE: "false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./calorie-app:/app
+      - web-node-modules:/app/node_modules
+    depends_on:
+      auth-service:
+        condition: service_started
+      meals-service:
+        condition: service_started
+      analytics-service:
+        condition: service_started
+
 volumes:
   postgres-data:
   meals-uploads:
+  web-node-modules:

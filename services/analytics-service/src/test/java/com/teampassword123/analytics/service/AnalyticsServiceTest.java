@@ -14,6 +14,8 @@ import com.teampassword123.analytics.dto.MealSummary;
 import com.teampassword123.analytics.repository.NutritionGoalRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,6 +42,7 @@ class AnalyticsServiceTest {
 
     private static MealSummary meal(double cal, double protein, double carbs, double fat, double fiber) {
         return new MealSummary(
+                OffsetDateTime.of(2026, 5, 29, 12, 0, 0, 0, ZoneOffset.UTC),
                 BigDecimal.valueOf(cal),
                 BigDecimal.valueOf(protein),
                 BigDecimal.valueOf(carbs),

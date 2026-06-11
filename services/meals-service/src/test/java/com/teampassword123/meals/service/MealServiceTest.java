@@ -48,6 +48,9 @@ class MealServiceTest {
     @Mock
     private PhotoLogRepository photos;
 
+    @Mock
+    private MealAnalyzer analyzer;
+
     @TempDir
     Path uploadDir;
 
@@ -59,7 +62,7 @@ class MealServiceTest {
     void setUp() {
         StorageProperties storageProperties = new StorageProperties();
         storageProperties.setUploadDir(uploadDir.toString());
-        service = new MealService(meals, photos, storageProperties);
+        service = new MealService(meals, photos, analyzer, storageProperties);
     }
 
     private static MealItemRequest item(

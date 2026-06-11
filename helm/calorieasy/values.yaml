@@ -73,6 +73,8 @@ ingress:
   enabled: true
   className: nginx
   host: "team-password123-devops-ss26.stud.k8s.aet.cit.tum.de"  # AET wildcard: <id>-devops-ss26.stud.k8s.aet.cit.tum.de
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod   # cert-manager auto-issues a trusted TLS cert
   tls:
-    enabled: false
-    secretName: ""
+    enabled: true
+    secretName: team-password123-tls

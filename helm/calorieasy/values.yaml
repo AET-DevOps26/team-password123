@@ -6,8 +6,9 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
-# Add a pull secret name here if the GHCR packages are private, e.g. [{ name: ghcr-pull }].
-imagePullSecrets: []
+# Pull secret for the private GHCR packages (created out-of-band via kubectl).
+imagePullSecrets:
+  - name: ghcr-pull
 
 # Shared JWT secret — all services validate with it; only auth-service issues tokens.
 jwt:

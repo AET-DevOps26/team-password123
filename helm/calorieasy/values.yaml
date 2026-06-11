@@ -1,0 +1,61 @@
+# Image coordinates. Images are built/pushed to GHCR by the build-images workflow
+# as ghcr.io/<repository>/<service>:<tag>.
+image:
+  registry: ghcr.io
+  repository: aet-devops26/team-password123
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Add a pull secret name here if the GHCR packages are private, e.g. [{ name: ghcr-pull }].
+imagePullSecrets: []
+
+# Shared JWT secret — all services validate with it; only auth-service issues tokens.
+jwt:
+  secret: "change-me-in-production-0123456789abcdef0123456789abcdef"
+  expiration: "PT24H"
+
+postgres:
+  image: postgres:16-alpine
+  db: nutrition
+  user: nutrition
+  password: nutrition
+  storageClass: ""        # "" -> cluster default (csi-rbd-sc on the AET cluster)
+  storageSize: 2Gi
+  resources:
+    requests: { cpu: "100m", memory: "256Mi" }
+    limits:   { cpu: "500m", memory: "512Mi" }
+
+# Resource profile shared by the three Spring Boot services.
+java:
+  resources:
+    requests: { cpu: "150m", memory: "320Mi" }
+    limits:   { cpu: "750m", memory: "640Mi" }
+
+meals:
+  uploadsStorageClass: ""
+  uploadsStorageSize: 1Gi
+
+genai:
+  enabled: true
+  llmProvider: openai          # 'openai' routes through the OpenAI-compatible Logos gateway
+  openaiBaseUrl: ""            # AET Logos endpoint (set me)
+  openaiModel: "gpt-4o"
+  openaiApiKey: ""             # AET Logos API key (set me; stored in a Secret)
+  nutritionDataProvider: local # use the bundled nutrition_db.json (no USDA key needed)
+  usdaApiKey: ""
+  resources:
+    requests: { cpu: "100m", memory: "256Mi" }
+    limits:   { cpu: "500m", memory: "512Mi" }
+
+web:
+  resources:
+    requests: { cpu: "50m", memory: "64Mi" }
+    limits:   { cpu: "250m", memory: "128Mi" }
+
+ingress:
+  enabled: true
+  className: nginx
+  host: ""                     # REQUIRED for external access — set the AET ingress host
+  tls:
+    enabled: false
+    secretName: ""

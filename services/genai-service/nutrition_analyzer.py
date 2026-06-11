@@ -36,6 +36,7 @@ from config import (
     OLLAMA_BASE_URL,
     OLLAMA_MODEL,
     OPENAI_API_KEY,
+    OPENAI_BASE_URL,
     OPENAI_MODEL,
     USDA_FDC_API_KEY,
 )
@@ -400,6 +401,7 @@ class NutritionAnalyzer:
                 return ChatOpenAI(
                     model=OPENAI_MODEL,
                     api_key=OPENAI_API_KEY,
+                    base_url=OPENAI_BASE_URL or None,
                     temperature=0,
                     max_tokens=1024,
                 )

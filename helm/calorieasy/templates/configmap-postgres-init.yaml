@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  labels:
+    {{- include "calorieasy.labels" . | nindent 4 }}
+data:
+  01-create-schemas.sql: |
+    CREATE SCHEMA IF NOT EXISTS auth;
+    CREATE SCHEMA IF NOT EXISTS meals;
+    CREATE SCHEMA IF NOT EXISTS analytics;

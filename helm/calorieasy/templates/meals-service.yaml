@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: meals-uploads
+  labels:
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  accessModes: ["ReadWriteOnce"]
+  {{- if .Values.meals.uploadsStorageClass }}
+  storageClassName: {{ .Values.meals.uploadsStorageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.meals.uploadsStorageSize | quote }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meals-service
+  labels:
+    app: meals-service
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: meals-service
+  template:
+    metadata:
+      labels:
+        app: meals-service
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done']
+      containers:
+        - name: meals-service
+          image: {{ include "calorieasy.image" (dict "root" $ "name" "meals-service") }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8082
+          env:
+            - name: SERVER_PORT
+              value: "8082"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/{{ .Values.postgres.db }}?currentSchema=meals"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.postgres.user | quote }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: calorieasy-secrets
+                  key: POSTGRES_PASSWORD
+            - name: APP_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: calorieasy-secrets
+                  key: APP_JWT_SECRET
+            - name: APP_UPLOAD_DIR
+              value: /app/uploads
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+          startupProbe:
+            httpGet: { path: /actuator/health, port: 8082 }
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8082 }
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket: { port: 8082 }
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.java.resources | nindent 12 }}
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: meals-uploads
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: meals-service
+  labels:
+    app: meals-service
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: meals-service
+  ports:
+    - port: 8082
+      targetPort: 8082

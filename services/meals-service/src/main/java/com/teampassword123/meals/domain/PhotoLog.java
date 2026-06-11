@@ -45,6 +45,9 @@ public class PhotoLog {
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
+    @Column(name = "analyzed_at")
+    private OffsetDateTime analyzedAt;
+
     public UUID getId() {
         return id;
     }
@@ -103,5 +106,13 @@ public class PhotoLog {
 
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public OffsetDateTime getAnalyzedAt() {
+        return analyzedAt;
+    }
+
+    public void setAnalyzedAt(OffsetDateTime analyzedAt) {
+        this.analyzedAt = analyzedAt;
     }
 }

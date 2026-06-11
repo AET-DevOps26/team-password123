@@ -1,16 +1,21 @@
 package com.teampassword123.meals.controller;
 
 import com.teampassword123.meals.dto.ManualMealRequest;
+import com.teampassword123.meals.dto.MealAnalysisResponse;
 import com.teampassword123.meals.dto.MealResponse;
 import com.teampassword123.meals.dto.PhotoLogResponse;
 import com.teampassword123.meals.security.AuthenticatedUser;
 import com.teampassword123.meals.service.MealService;
+import com.teampassword123.meals.service.MealService.StoredPhoto;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -96,5 +101,28 @@ public class MealController {
             @Valid @RequestBody ManualMealRequest request
     ) {
         return mealService.convertPhotoToManual(user.id(), id, request);
+    }
+
+    @PostMapping("/analyze")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MealAnalysisResponse analyze(
+            @AuthenticationPrincipal AuthenticatedUser user,
+            @RequestPart("image") MultipartFile image
+    ) {
+        return mealService.analyzePhoto(user.id(), image);
+    }
+
+    @GetMapping("/photo/{id}/raw")
+    public ResponseEntity<Resource> photoRaw(
+            @AuthenticationPrincipal AuthenticatedUser user,
+            @PathVariable UUID id
+    ) {
+        StoredPhoto photo = mealService.loadPhoto(user.id(), id);
+        MediaType contentType = photo.contentType() == null
+                ? MediaType.APPLICATION_OCTET_STREAM
+                : MediaType.parseMediaType(photo.contentType());
+        return ResponseEntity.ok()
+                .contentType(contentType)
+                .body(photo.resource());
     }
 }

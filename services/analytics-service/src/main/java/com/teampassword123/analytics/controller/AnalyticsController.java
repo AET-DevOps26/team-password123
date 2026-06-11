@@ -1,6 +1,7 @@
 package com.teampassword123.analytics.controller;
 
 import com.teampassword123.analytics.dto.AnalyticsResponse;
+import com.teampassword123.analytics.dto.StreakResponse;
 import com.teampassword123.analytics.security.AuthenticatedUser;
 import com.teampassword123.analytics.security.JwtAuthenticationFilter;
 import com.teampassword123.analytics.service.AnalyticsService;
@@ -39,6 +40,14 @@ public class AnalyticsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStart
     ) {
         return analyticsService.weekly(user.id(), bearerToken(request), weekStart);
+    }
+
+    @GetMapping("/streak")
+    public StreakResponse streak(
+            @AuthenticationPrincipal AuthenticatedUser user,
+            HttpServletRequest request
+    ) {
+        return analyticsService.computeStreak(user.id(), bearerToken(request));
     }
 
     private String bearerToken(HttpServletRequest request) {

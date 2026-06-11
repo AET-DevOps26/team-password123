@@ -15,6 +15,7 @@ Nutrition goals and daily/weekly progress reports.
 | PUT | `/api/goals` | Upsert the user's goal |
 | GET | `/api/analytics/daily?date=YYYY-MM-DD` | Daily totals + delta vs. goal |
 | GET | `/api/analytics/weekly?weekStart=YYYY-MM-DD` | Weekly totals + delta vs. goal × 7 |
+| GET | `/api/analytics/streak` | Current consecutive-day meal logging streak |
 
 All endpoints require a bearer token issued by `auth-service`.
 

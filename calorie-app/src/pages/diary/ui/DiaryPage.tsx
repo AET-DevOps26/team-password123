@@ -16,6 +16,23 @@ import styles from './DiaryPage.module.css';
 // Anchor for date math — same as InsightsPage
 const DIARY_ANCHOR = new Date(2026, 4, 28);
 
+function getDiaryBaseDate(): Date {
+  return MOCK_MODE ? new Date(DIARY_ANCHOR) : new Date();
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function toLocalIsoDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 const SLOTS: MealSlot[] = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
 interface DiaryPageProps {
@@ -41,9 +58,7 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
 
   // Compute ISO date string for a given offset relative to the anchor
   function offsetToIsoDate(off: number): string {
-    const d = new Date(DIARY_ANCHOR);
-    d.setDate(d.getDate() + off);
-    return d.toISOString().slice(0, 10);
+    return toLocalIsoDate(addDays(getDiaryBaseDate(), off));
   }
 
   // Fetch meals from API when MOCK_MODE is off
@@ -88,16 +103,14 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
     if (!MOCK_MODE) fetchMeals(offset);
   }
 
-  const viewDate = new Date(DIARY_ANCHOR);
-  viewDate.setDate(viewDate.getDate() + offset);
+  const viewDate = addDays(getDiaryBaseDate(), offset);
   const dateLabel = offset === 0
     ? `Today, ${viewDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}`
     : viewDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
   // Week strip — 7 days of the week containing viewDate
   function getMondayOffset(baseOffset: number): number {
-    const d = new Date(DIARY_ANCHOR);
-    d.setDate(d.getDate() + baseOffset);
+    const d = addDays(getDiaryBaseDate(), baseOffset);
     const dow = d.getDay();
     return baseOffset - (dow === 0 ? 6 : dow - 1);
   }
@@ -105,8 +118,7 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
   const mondayOffset = getMondayOffset(offset);
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const dayOffset = mondayOffset + i;
-    const d = new Date(DIARY_ANCHOR);
-    d.setDate(d.getDate() + dayOffset);
+    const d = addDays(getDiaryBaseDate(), dayOffset);
     return { offset: dayOffset, dayNum: d.getDate(), label: WD_STRIPS[i], isToday: dayOffset === 0 };
   });
 
@@ -212,6 +224,7 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
           onClose={() => setShowManual(false)}
           onAdded={handleAdded}
           defaultSlot={defaultSlot}
+          loggedAt={viewDate}
         />
       )}
 

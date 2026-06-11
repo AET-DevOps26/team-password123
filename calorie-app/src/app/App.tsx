@@ -31,6 +31,7 @@ export function App() {
   function navigate(p: Page) {
     if (p !== 'diary') setFromInsights(false);
     if (p !== 'insights') setInsightsSnapshot(undefined);
+    if (p === 'diary') setDiaryOffset(0);
     setPage(p);
   }
 

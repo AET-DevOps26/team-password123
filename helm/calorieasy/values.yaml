@@ -38,10 +38,10 @@ meals:
 
 genai:
   enabled: true
-  llmProvider: openai          # 'openai' routes through the OpenAI-compatible Logos gateway
-  openaiBaseUrl: ""            # AET Logos endpoint (set me)
-  openaiModel: "gpt-4o"
-  openaiApiKey: ""             # AET Logos API key (set me; stored in a Secret)
+  llmProvider: openai          # OpenAI-compatible provider (Google Gemini via its OpenAI endpoint)
+  openaiBaseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/"
+  openaiModel: "gemini-3.1-flash-lite"   # vision-capable, has free-tier quota on the project
+  openaiApiKey: ""             # Google AI Studio key — provide via --set or the LOGOS_API_KEY secret
   nutritionDataProvider: local # use the bundled nutrition_db.json (no USDA key needed)
   usdaApiKey: ""
   resources:
@@ -72,7 +72,7 @@ traefik:
 ingress:
   enabled: true
   className: nginx
-  host: ""                     # REQUIRED for external access — set the AET ingress host
+  host: "team-password123-devops-ss26.stud.k8s.aet.cit.tum.de"  # AET wildcard: <id>-devops-ss26.stud.k8s.aet.cit.tum.de
   tls:
     enabled: false
     secretName: ""

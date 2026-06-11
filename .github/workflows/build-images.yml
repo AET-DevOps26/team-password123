@@ -1,0 +1,61 @@
+name: Build & Push Images
+
+# Builds all service images (linux/amd64) and pushes them to GHCR so the
+# Kubernetes cluster can pull them. Runs on the deploy branch and main.
+on:
+  push:
+    branches: ["deniz/helm-k8s-deploy", "main"]
+    paths:
+      - "services/**"
+      - "calorie-app/**"
+      - ".github/workflows/build-images.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: auth-service
+            context: services/auth-service
+          - name: meals-service
+            context: services/meals-service
+          - name: analytics-service
+            context: services/analytics-service
+          - name: genai-service
+            context: services/genai-service
+          - name: web
+            context: calorie-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lowercase repository owner/name
+        id: repo
+        run: echo "name=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Build & push ${{ matrix.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ steps.repo.outputs.name }}/${{ matrix.name }}:latest
+            ghcr.io/${{ steps.repo.outputs.name }}/${{ matrix.name }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

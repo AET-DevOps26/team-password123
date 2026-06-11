@@ -1,0 +1,16 @@
+Calorieasy ({{ .Release.Name }}) deployed to namespace {{ .Release.Namespace }}.
+
+Check rollout:
+  kubectl get pods -n {{ .Release.Namespace }}
+  kubectl rollout status deploy/web -n {{ .Release.Namespace }}
+
+Access without an ingress (local port-forward):
+  kubectl port-forward -n {{ .Release.Namespace }} svc/web 8080:80
+  open http://localhost:8080
+
+{{- if and .Values.ingress.enabled .Values.ingress.host }}
+External URL:
+  http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}
+{{- else }}
+Ingress is not active yet — set ingress.host to the AET cluster hostname to expose it.
+{{- end }}

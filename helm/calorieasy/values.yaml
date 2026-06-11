@@ -1,0 +1,80 @@
+# Image coordinates. Images are built/pushed to GHCR by the build-images workflow
+# as ghcr.io/<repository>/<service>:<tag>.
+image:
+  registry: ghcr.io
+  repository: aet-devops26/team-password123
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Pull secret for the private GHCR packages (created out-of-band via kubectl).
+imagePullSecrets:
+  - name: ghcr-pull
+
+# Shared JWT secret — all services validate with it; only auth-service issues tokens.
+jwt:
+  secret: "change-me-in-production-0123456789abcdef0123456789abcdef"
+  expiration: "PT24H"
+
+postgres:
+  image: postgres:16-alpine
+  db: nutrition
+  user: nutrition
+  password: nutrition
+  storageClass: ""        # "" -> cluster default (csi-rbd-sc on the AET cluster)
+  storageSize: 2Gi
+  resources:
+    requests: { cpu: "100m", memory: "256Mi" }
+    limits:   { cpu: "500m", memory: "512Mi" }
+
+# Resource profile shared by the three Spring Boot services.
+java:
+  resources:
+    requests: { cpu: "150m", memory: "320Mi" }
+    limits:   { cpu: "750m", memory: "640Mi" }
+
+meals:
+  uploadsStorageClass: ""
+  uploadsStorageSize: 1Gi
+
+genai:
+  enabled: true
+  llmProvider: openai          # OpenAI-compatible provider (Google Gemini via its OpenAI endpoint)
+  openaiBaseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/"
+  openaiModel: "gemini-3.1-flash-lite"   # vision-capable, has free-tier quota on the project
+  openaiApiKey: ""             # Google AI Studio key — provide via --set or the LOGOS_API_KEY secret
+  nutritionDataProvider: local # use the bundled nutrition_db.json (no USDA key needed)
+  usdaApiKey: ""
+  resources:
+    requests: { cpu: "100m", memory: "256Mi" }
+    limits:   { cpu: "500m", memory: "512Mi" }
+
+web:
+  replicas: 2
+  resources:
+    requests: { cpu: "50m", memory: "64Mi" }
+    limits:   { cpu: "250m", memory: "128Mi" }
+
+# Traefik runs in-namespace as the L7 load balancer / router in front of the app.
+# The AET cluster exposes no Traefik ingress class, so we ship our own via the
+# file provider — no cluster-scoped RBAC or CRDs required. It routes /api/* to the
+# backend services and / to the (multi-replica) web tier, load-balancing each.
+traefik:
+  enabled: true
+  image: traefik:v3.1
+  replicas: 1
+  service:
+    type: ClusterIP   # set NodePort (+ nodePort) or LoadBalancer to expose externally
+    nodePort: ""
+  resources:
+    requests: { cpu: "50m", memory: "64Mi" }
+    limits:   { cpu: "300m", memory: "128Mi" }
+
+ingress:
+  enabled: true
+  className: nginx
+  host: "team-password123-devops-ss26.stud.k8s.aet.cit.tum.de"  # AET wildcard: <id>-devops-ss26.stud.k8s.aet.cit.tum.de
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod   # cert-manager auto-issues a trusted TLS cert
+  tls:
+    enabled: true
+    secretName: team-password123-tls

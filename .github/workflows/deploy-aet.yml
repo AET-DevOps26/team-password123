@@ -1,0 +1,56 @@
+name: Deploy to AET cluster
+
+# Continuous deployment of the Helm chart to the AET Kubernetes cluster.
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Image tag to deploy
+        default: latest
+  push:
+    branches: [main]
+    paths:
+      - "helm/**"
+      - ".github/workflows/deploy-aet.yml"
+
+concurrency:
+  group: deploy-aet
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: aet
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write kubeconfig (base64 of stud.yaml in KUBECONFIG_B64)
+        run: |
+          mkdir -p ~/.kube
+          printf '%s' "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - uses: azure/setup-helm@v4
+
+      - name: Ensure GHCR pull secret
+        run: |
+          kubectl create secret docker-registry ghcr-pull \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password='${{ secrets.GHCR_PULL_TOKEN }}' \
+            --namespace team-password123 \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Helm upgrade
+        run: |
+          helm upgrade --install app helm/calorieasy \
+            --namespace team-password123 \
+            --set image.tag="${{ github.event.inputs.image_tag || 'latest' }}" \
+            --set image.pullPolicy=Always \
+            --set genai.openaiBaseUrl="${{ secrets.LOGOS_BASE_URL }}" \
+            --set genai.openaiModel="${{ vars.LOGOS_MODEL || 'gpt-4o' }}" \
+            --set genai.openaiApiKey="${{ secrets.LOGOS_API_KEY }}" \
+            --wait --timeout 8m
+
+      - name: Show rollout
+        run: kubectl get pods -n team-password123

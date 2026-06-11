@@ -10,9 +10,11 @@ LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama").lower()
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llava")
 
-# OpenAI configuration (cloud)
+# OpenAI configuration (cloud, or any OpenAI-compatible gateway such as AET Logos)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_MODEL = "gpt-4o"
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
+# Empty -> api.openai.com. Set to point at an OpenAI-compatible endpoint (e.g. Logos).
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "")
 
 # Google Gemini configuration (cloud)
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")

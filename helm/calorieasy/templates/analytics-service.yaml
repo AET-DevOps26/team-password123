@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-service
+  labels:
+    app: analytics-service
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: analytics-service
+  template:
+    metadata:
+      labels:
+        app: analytics-service
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done']
+      containers:
+        - name: analytics-service
+          image: {{ include "calorieasy.image" (dict "root" $ "name" "analytics-service") }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8083
+          env:
+            - name: SERVER_PORT
+              value: "8083"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/{{ .Values.postgres.db }}?currentSchema=analytics"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.postgres.user | quote }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: calorieasy-secrets
+                  key: POSTGRES_PASSWORD
+            - name: APP_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: calorieasy-secrets
+                  key: APP_JWT_SECRET
+            - name: MEALS_SERVICE_URL
+              value: http://meals-service:8082
+          startupProbe:
+            httpGet: { path: /actuator/health, port: 8083 }
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8083 }
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket: { port: 8083 }
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.java.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-service
+  labels:
+    app: analytics-service
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: analytics-service
+  ports:
+    - port: 8083
+      targetPort: 8083

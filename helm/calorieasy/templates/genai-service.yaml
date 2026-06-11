@@ -1,0 +1,76 @@
+{{- if .Values.genai.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genai-service
+  labels:
+    app: genai-service
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genai-service
+  template:
+    metadata:
+      labels:
+        app: genai-service
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: genai-service
+          image: {{ include "calorieasy.image" (dict "root" $ "name" "genai-service") }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8084
+          env:
+            - name: PORT
+              value: "8084"
+            - name: LLM_PROVIDER
+              value: {{ .Values.genai.llmProvider | quote }}
+            - name: OPENAI_BASE_URL
+              value: {{ .Values.genai.openaiBaseUrl | quote }}
+            - name: OPENAI_MODEL
+              value: {{ .Values.genai.openaiModel | quote }}
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: calorieasy-secrets
+                  key: OPENAI_API_KEY
+            - name: NUTRITION_DATA_PROVIDER
+              value: {{ .Values.genai.nutritionDataProvider | quote }}
+            - name: USDA_FDC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: calorieasy-secrets
+                  key: USDA_FDC_API_KEY
+          startupProbe:
+            tcpSocket: { port: 8084 }
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            tcpSocket: { port: 8084 }
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket: { port: 8084 }
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.genai.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: genai-service
+  labels:
+    app: genai-service
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: genai-service
+  ports:
+    - port: 8084
+      targetPort: 8084
+{{- end }}

@@ -1,0 +1,55 @@
+name: Deploy to Azure
+
+# Deploys the Docker Compose stack (prebuilt GHCR images) to an EXISTING Azure VM
+# via Ansible. The VM is provisioned out-of-band (see infra/terraform + DEPLOYMENT.md);
+# this workflow only configures + deploys.
+on:
+  # Manual-only: the Azure VM is paused to save credits. Bring the VM up, then
+  # run this workflow from the Actions tab (or `gh workflow run deploy-azure.yml`).
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-azure
+  cancel-in-progress: false
+
+jobs:
+  terraform-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Validate (no cloud credentials needed)
+        working-directory: infra/terraform
+        run: |
+          terraform fmt -check
+          terraform init -backend=false
+          terraform validate
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s' "${{ secrets.AZURE_PRIVATE_KEY }}" > ~/.ssh/id_azure
+          chmod 600 ~/.ssh/id_azure
+
+      - name: Install Ansible
+        run: pipx install --include-deps ansible
+
+      - name: Ansible deploy to ${{ vars.AZURE_PUBLIC_IP }}
+        working-directory: infra/ansible
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+        run: |
+          ansible-playbook -i "${{ vars.AZURE_PUBLIC_IP }}," playbook.yml \
+            -u "${{ vars.AZURE_USER }}" --private-key ~/.ssh/id_azure \
+            -e "ghcr_user=${{ github.actor }}" \
+            -e "ghcr_token=${{ secrets.GHCR_PULL_TOKEN }}" \
+            -e "image_tag=latest" \
+            -e "postgres_password=${{ secrets.POSTGRES_PASSWORD }}" \
+            -e "jwt_secret=${{ secrets.APP_JWT_SECRET }}" \
+            -e "openai_base_url=${{ secrets.LOGOS_BASE_URL }}" \
+            -e "openai_api_key=${{ secrets.LOGOS_API_KEY }}"

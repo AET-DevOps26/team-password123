@@ -1,0 +1,105 @@
+[
+  {
+    "image": "Chicken-and-Broccoli.jpg",
+    "provider": "ollama",
+    "calories": 831.96,
+    "protein_grams": 147.91199999999998,
+    "carbs_grams": 15.443999999999999,
+    "fat_grams": 17.352,
+    "fiber_grams": 6.084,
+    "foods": [
+      "chicken",
+      "broccoli"
+    ],
+    "confidence": 0.9,
+    "raw_llm_response": " {\"foods\": [{\"food\": \"chicken\", \"grams\": 456}, {\"food\": \"broccoli\", \"grams\": 234}], \"confidence\": 0.9} "
+  },
+  {
+    "image": "Chili-beans.jpg",
+    "provider": "ollama",
+    "calories": 156.21,
+    "protein_grams": 10.700999999999999,
+    "carbs_grams": 28.044,
+    "fat_grams": 0.615,
+    "fiber_grams": 7.872,
+    "foods": [
+      "beans"
+    ],
+    "confidence": 0.9,
+    "raw_llm_response": " {\"foods\": [{\"food\": \"beans\", \"grams\": 123}], \"confidence\": 0.9} "
+  },
+  {
+    "image": "Eggs-Bacon.jpg",
+    "provider": "ollama",
+    "calories": 530.65,
+    "protein_grams": 31.990000000000002,
+    "carbs_grams": 47.353,
+    "fat_grams": 25.53,
+    "fiber_grams": 0.0,
+    "foods": [
+      "eggs",
+      "bacon"
+    ],
+    "confidence": 0.9,
+    "raw_llm_response": " {\"foods\": [{\"food\": \"eggs\", \"grams\": 123}, {\"food\": \"bacon\", \"grams\": 456}], \"confidence\": 0.9} "
+  },
+  {
+    "image": "Hamburger.jpg",
+    "provider": "ollama",
+    "calories": 325.5,
+    "protein_grams": 39.0,
+    "carbs_grams": 0.0,
+    "fat_grams": 16.5,
+    "fiber_grams": 0.0,
+    "foods": [
+      "burger"
+    ],
+    "confidence": 0.8,
+    "raw_llm_response": " {\"foods\": [{\"food\": \"burger\", \"grams\": 150}], \"confidence\": 0.8} "
+  },
+  {
+    "image": "Italian-Chopped-Salad.jpg",
+    "provider": "ollama",
+    "calories": 364.79999999999995,
+    "protein_grams": 11.399999999999999,
+    "carbs_grams": 18.24,
+    "fat_grams": 27.36,
+    "fiber_grams": 6.84,
+    "foods": [
+      "salad"
+    ],
+    "confidence": 0.8,
+    "raw_llm_response": " {\"foods\": [{\"food\": \"salad\", \"grams\": 456}, \"confidence\": 0.8} "
+  },
+  {
+    "image": "Oatmeal-Breakfast-Bowl.jpg",
+    "provider": "ollama",
+    "calories": 161.735,
+    "protein_grams": 5.629999999999999,
+    "carbs_grams": 31.482999999999997,
+    "fat_grams": 2.256,
+    "fiber_grams": 4.9455,
+    "foods": [
+      "banana",
+      "blueberry",
+      "oatmeal",
+      "cinnamon"
+    ],
+    "confidence": 0.9,
+    "raw_llm_response": " {\"foods\": [{\"food\": \"banana\", \"grams\": 1}, {\"food\": \"blueberry\", \"grams\": 2}, {\"food\": \"oatmeal\", \"grams\": 3}, {\"food\": \"cinnamon\", \"grams\": 0.5}], \"confidence\": 0.9} "
+  },
+  {
+    "image": "pizza-slice.jpg",
+    "provider": "ollama",
+    "calories": 327.18,
+    "protein_grams": 13.53,
+    "carbs_grams": 40.589999999999996,
+    "fat_grams": 12.3,
+    "fiber_grams": 3.075,
+    "foods": [
+      "pizza slice"
+    ],
+    "confidence": 0.9,
+    "raw_llm_response": " {\"foods\": [{\"food\": \"pizza slice\", \"grams\": 123}], \"confidence\": 0.9} "
+  }
+]

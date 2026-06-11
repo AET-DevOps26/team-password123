@@ -1,68 +1,45 @@
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# claude
-.claude
-
-# ─── Java / Maven ────────────────────────────────────────────────────────────
-target/
-*.class
-*.jar
-*.war
-*.ear
-*.nar
-
-# ─── Java / Gradle ───────────────────────────────────────────────────────────
-.gradle/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
 build/
-out/
-!**/src/**/build/
-!**/src/**/out/
-gradle-app.setting
-!gradle-wrapper.jar
-!gradle-wrapper.properties
-
-# ─── React / TypeScript frontend ─────────────────────────────────────────────
-node_modules/
+develop-eggs/
 dist/
-package-lock.json
-.next/
-.nuxt/
-.cache/
-.parcel-cache/
-*.tsbuildinfo
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Environment / secrets
-.env
-.env.local
-.env.*.local
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
 
-# IDEs & editors
+# IDE
 .idea/
-!.idea/.gitignore
-*.iml
-*.iws
 .vscode/
 *.swp
 *.swo
 *~
+.DS_Store
 
-# IntelliJ IDEA — local/generated files inside .idea/
-.idea/shelf/
-.idea/workspace.xml
-.idea/queries/
-.idea/dataSources/
-.idea/dataSources.local.xml
-.idea/httpRequests/
-
-# ─── Service-specific ────────────────────────────────────────────────────────
-# meals-service uploaded files
-services/meals-service/uploads/
-
-# Logs
+# Environment
+.env
+.env.local
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+
+# OS
+Thumbs.db

@@ -52,16 +52,27 @@ See [`docs/sys-architecture.png`](docs/sys-architecture.png) and [`docs/usecase-
 
 ## Quick start
 
+**IMPORTANT: Ollama Requirement**
+
+The GenAI service requires Ollama to run locally on your machine. Before starting docker-compose:
+
+1. [Install Ollama](https://ollama.ai) for your OS
+2. Run `ollama pull llava` to download the vision model (~4.7GB)
+3. Start Ollama in the background (it will listen on `http://localhost:11434`)
+
+Then:
+
 ```bash
 cp .env.example .env
 docker compose up --build
 ```
 
-Postgres + all three services come up in one shot. Each service exposes its own Swagger UI:
+Postgres + all services (including genai-service) come up in one shot. Each service exposes its own Swagger UI:
 
 - Auth: <http://localhost:8081/swagger-ui.html>
 - Meals: <http://localhost:8082/swagger-ui.html>
 - Analytics: <http://localhost:8083/swagger-ui.html>
+- GenAI: <http://localhost:8084/docs> (FastAPI Swagger)
 
 Per-service details are in [`services/README.md`](services/README.md) and the individual service READMEs.
 
@@ -74,7 +85,7 @@ Open the project in Xcode 15+ targeting iOS 17. Setup steps and the SwiftData mo
 - [x] Server side split into 3 microservices (auth, meals, analytics) with shared-secret JWT and per-schema isolation
 - [x] Root `docker-compose.yml` brings up Postgres + all 3 services in one command
 - [x] iOS prototype: local SwiftData persistence, manual + photo logging, daily progress, weekly charts
-- [ ] GenAI microservice for food recognition and nutritional inference
+- [x] GenAI microservice for food recognition and nutritional inference (Python + FastAPI + Ollama/OpenAI)
 - [ ] Web client (React/Angular/Vue) per the course requirements
 - [ ] GitHub Actions CI/CD
 - [ ] Kubernetes manifests / Helm charts (Rancher + Azure)

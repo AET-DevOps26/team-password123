@@ -35,6 +35,9 @@ java:
 meals:
   uploadsStorageClass: ""
   uploadsStorageSize: 1Gi
+  # In-cluster GenAI service URL. When set (and genai.enabled), meals-service
+  # routes photo analysis to the vision LLM instead of the heuristic placeholder.
+  genaiUrl: "http://genai-service:8084"
 
 genai:
   enabled: true

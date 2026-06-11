@@ -121,26 +121,27 @@ export function useScanMeal(): ScanState & ScanActions {
       return;
     }
 
-    // Real backend path: upload photo, then handle AI status
+    // Real backend path: send the photo to the GenAI vision model.
     try {
-      const log = await mealApi.uploadPhoto(file);
-      setPhotoLog(log);
-
-      if (log.status === 'AI_NOT_AVAILABLE') {
-        // Pre-fill form name from file name (best-effort)
-        const nameHint = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
-        setManualForm({ ...EMPTY_FORM, name: nameHint });
-        setStage('manual_required');
+      const response = await mealApi.analyzePhoto(file);
+      if (response?.meal) {
+        setResult(response.meal);
+        setStage('result');
       } else {
-        // AI completed (future capability) — treat as manual_required for now
-        setManualForm(EMPTY_FORM);
-        setStage('manual_required');
+        // OFFLINE_MODE (no AI result) — fall back to manual entry.
+        fallbackToManual(file);
       }
-    } catch (err) {
-      const msg = (err as { message?: string }).message ?? 'Failed to upload the photo. Please try again.';
-      setErrorMessage(msg);
-      setStage('error');
+    } catch {
+      // AI unavailable (service down, quota exhausted, …) — degrade gracefully
+      // to manual entry rather than dead-ending the user.
+      fallbackToManual(file);
     }
+  }
+
+  function fallbackToManual(f: File) {
+    const nameHint = f.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+    setManualForm({ ...EMPTY_FORM, name: nameHint });
+    setStage('manual_required');
   }
 
   function patchManualForm(patch: Partial<ManualForm>) {
@@ -151,8 +152,10 @@ export function useScanMeal(): ScanState & ScanActions {
     const now  = new Date();
     const time = now.toTimeString().slice(0, 5);
 
-    if (MOCK_MODE && result) {
-      // Legacy MOCK_MODE path
+    if (result) {
+      // A `result` means the meal is already recognized: the MOCK path produced it
+      // locally, and the real GenAI path already persisted it via /meals/analyze.
+      // Either way, just reflect it in the local store — no second save.
       const entry: MealEntry = {
         id:       `scan-${Date.now()}`,
         slot,

@@ -1,0 +1,83 @@
+name: Deploy to Azure
+
+# Provisions an Azure VM with Terraform and deploys the Docker Compose stack with
+# Ansible (pulling the prebuilt GHCR images).
+#
+# NOTE: For repeated CI runs, enable the azurerm remote backend in
+# infra/terraform/versions.tf so Terraform state persists between runs. With local
+# state, only the first apply is correct — run provisioning locally otherwise.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "docker-compose.prod.yml"
+      - "infra/terraform/**"
+      - "infra/ansible/**"
+      - ".github/workflows/deploy-azure.yml"
+
+concurrency:
+  group: deploy-azure
+  cancel-in-progress: false
+
+jobs:
+  terraform-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Validate (no cloud credentials needed)
+        working-directory: infra/terraform
+        run: |
+          terraform fmt -check
+          terraform init -backend=false
+          terraform validate
+
+  provision-and-deploy:
+    needs: terraform-validate
+    runs-on: ubuntu-latest
+    environment: azure
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform apply
+        working-directory: infra/terraform
+        run: |
+          terraform init
+          terraform apply -auto-approve \
+            -var "ssh_public_key=${{ secrets.AZURE_SSH_PUBLIC_KEY }}"
+
+      - name: Capture VM public IP
+        id: tf
+        working-directory: infra/terraform
+        run: echo "ip=$(terraform output -raw public_ip)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s' "${{ secrets.AZURE_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Install Ansible
+        run: pipx install --include-deps ansible
+
+      - name: Ansible deploy
+        working-directory: infra/ansible
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+        run: |
+          ansible-playbook -i "${{ steps.tf.outputs.ip }}," playbook.yml \
+            -u azureuser --private-key ~/.ssh/id_rsa \
+            -e "ghcr_user=${{ github.actor }}" \
+            -e "ghcr_token=${{ secrets.GHCR_PULL_TOKEN }}" \
+            -e "image_tag=latest" \
+            -e "postgres_password=${{ secrets.POSTGRES_PASSWORD }}" \
+            -e "jwt_secret=${{ secrets.APP_JWT_SECRET }}" \
+            -e "openai_base_url=${{ secrets.LOGOS_BASE_URL }}" \
+            -e "openai_api_key=${{ secrets.LOGOS_API_KEY }}"

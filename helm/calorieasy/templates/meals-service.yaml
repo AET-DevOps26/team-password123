@@ -65,6 +65,10 @@ spec:
                   key: APP_JWT_SECRET
             - name: APP_UPLOAD_DIR
               value: /app/uploads
+            {{- if .Values.genai.enabled }}
+            - name: APP_GENAI_BASE_URL
+              value: {{ .Values.meals.genaiUrl | quote }}
+            {{- end }}
           volumeMounts:
             - name: uploads
               mountPath: /app/uploads

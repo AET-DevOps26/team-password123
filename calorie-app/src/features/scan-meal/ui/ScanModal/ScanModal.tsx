@@ -182,7 +182,7 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
       {scan.stage === 'manual_required' && (
         <div className={styles.idleBody}>
           <p className={styles.hint}>
-            AI analysis is not available yet — enter the nutrition info for this meal.
+            We couldn't read this photo automatically — enter the nutrition info below.
           </p>
           <div className={styles.manualFields}>
             <label className={styles.fieldLabel}>

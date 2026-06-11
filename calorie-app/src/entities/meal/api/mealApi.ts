@@ -31,8 +31,8 @@ export const mealApi = {
     apiClient.post<MealResponse>(`/meals/photo/${photoId}/convert-manual`, request),
 
   /**
-   * @deprecated No AI analysis endpoint on the current backend.
-   * Kept so OFFLINE_MODE can intercept it; real flow uses uploadPhoto + convertPhotoToMeal.
+   * POST /meals/analyze — send the photo to the GenAI vision model. The backend
+   * analyzes, persists the meal, and returns the recognized dish + macros.
    */
   analyzePhoto: (imageFile: File): Promise<MealAnalysisResponse> => {
     const formData = new FormData();

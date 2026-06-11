@@ -10,6 +10,19 @@ ENV/
 build/
 develop-eggs/
 dist/
+# package-lock.json is committed on purpose: reproducible `npm ci` in CI/CD.
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# IDEs & editors
 downloads/
 eggs/
 .eggs/

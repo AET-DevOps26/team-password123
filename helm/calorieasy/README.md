@@ -30,14 +30,18 @@ helm upgrade --install app . --namespace team-password123
 
 ## Access
 
-No ingress host is wired by default. Reach the app via port-forward:
+Traefik runs in-namespace as the load balancer / entrypoint. It routes `/` to the
+multi-replica web tier and `/api/*` to the backend services, load-balancing each.
+Reach the app via port-forward to the Traefik service:
 
 ```bash
-kubectl port-forward -n team-password123 svc/web 8080:80
+kubectl port-forward -n team-password123 svc/traefik 8080:80
 # open http://localhost:8080
 ```
 
-For external access, set `ingress.host` to the AET ingress hostname:
+For external access, expose Traefik via `traefik.service.type=NodePort` (or
+LoadBalancer), or point the cluster ingress at the `traefik` service and set
+`ingress.host`:
 
 ```bash
 helm upgrade --install app . --namespace team-password123 \

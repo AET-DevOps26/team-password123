@@ -49,9 +49,25 @@ genai:
     limits:   { cpu: "500m", memory: "512Mi" }
 
 web:
+  replicas: 2
   resources:
     requests: { cpu: "50m", memory: "64Mi" }
     limits:   { cpu: "250m", memory: "128Mi" }
+
+# Traefik runs in-namespace as the L7 load balancer / router in front of the app.
+# The AET cluster exposes no Traefik ingress class, so we ship our own via the
+# file provider — no cluster-scoped RBAC or CRDs required. It routes /api/* to the
+# backend services and / to the (multi-replica) web tier, load-balancing each.
+traefik:
+  enabled: true
+  image: traefik:v3.1
+  replicas: 1
+  service:
+    type: ClusterIP   # set NodePort (+ nodePort) or LoadBalancer to expose externally
+    nodePort: ""
+  resources:
+    requests: { cpu: "50m", memory: "64Mi" }
+    limits:   { cpu: "300m", memory: "128Mi" }
 
 ingress:
   enabled: true

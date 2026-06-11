@@ -4,14 +4,9 @@ name: Deploy to Azure
 # via Ansible. The VM is provisioned out-of-band (see infra/terraform + DEPLOYMENT.md);
 # this workflow only configures + deploys.
 on:
+  # Manual-only: the Azure VM is paused to save credits. Bring the VM up, then
+  # run this workflow from the Actions tab (or `gh workflow run deploy-azure.yml`).
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "docker-compose.prod.yml"
-      - "infra/ansible/**"
-      - "infra/terraform/**"
-      - ".github/workflows/deploy-azure.yml"
 
 concurrency:
   group: deploy-azure

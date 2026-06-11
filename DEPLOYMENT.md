@@ -67,23 +67,18 @@ ansible-playbook -i "<vm-ip>," playbook.yml -u azureuser \
 
 The app is then reachable at `http://<vm-ip>/`.
 
-**CI:** `deploy-azure.yml` validates Terraform on every relevant push, and
-(on dispatch / push to `main`) provisions + deploys. Enable the azurerm remote
-backend in `infra/terraform/versions.tf` before relying on repeated CI applies.
+**CI:** `deploy-azure.yml` validates Terraform on every relevant push and deploys
+the stack to the **existing** VM via Ansible (on dispatch / push to `main`). The VM
+is provisioned out-of-band (Terraform above, run once); CI only configures + deploys.
 
-Secrets:
+Secrets / vars:
 
-| Name | Purpose |
-|------|---------|
-| `ARM_CLIENT_ID` / `ARM_CLIENT_SECRET` / `ARM_SUBSCRIPTION_ID` / `ARM_TENANT_ID` | Azure service principal |
-| `AZURE_SSH_PUBLIC_KEY` / `AZURE_SSH_PRIVATE_KEY` | VM SSH keypair |
-| `GHCR_PULL_TOKEN` | VM `docker login ghcr.io` to pull images |
-| `POSTGRES_PASSWORD` / `APP_JWT_SECRET` | app secrets |
-| `LOGOS_BASE_URL` / `LOGOS_API_KEY` | genai → Logos |
-
-Create the service principal with:
-
-```bash
-az ad sp create-for-rbac --name calorieasy-cd \
-  --role Contributor --scopes /subscriptions/<sub-id>
-```
+| Name | Kind | Purpose |
+|------|------|---------|
+| `AZURE_PUBLIC_IP` | var | VM public IP |
+| `AZURE_USER` | var | SSH user on the VM |
+| `AZURE_PRIVATE_KEY` | secret | SSH private key for the VM |
+| `POSTGRES_PASSWORD` | secret | postgres password (**required**) |
+| `APP_JWT_SECRET` | secret | shared JWT secret (**required**) |
+| `GHCR_PULL_TOKEN` | secret | VM `docker login ghcr.io` (only if images are private) |
+| `LOGOS_BASE_URL` / `LOGOS_API_KEY` | secret | genai → Logos (optional) |

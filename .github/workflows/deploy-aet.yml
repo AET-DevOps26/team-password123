@@ -1,17 +1,22 @@
 name: Deploy to AET cluster
 
 # Continuous deployment of the Helm chart to the AET Kubernetes cluster.
+#
+# Ordering: this runs AFTER "Build & Push Images" succeeds (via workflow_run), so
+# the freshly built images exist before we deploy. It deploys by the built commit
+# SHA (not the moving `latest` tag) — an immutable tag changes the Deployment
+# template on every release, which guarantees a rollout instead of leaving pods
+# pinned to a stale `latest`.
 on:
+  workflow_run:
+    workflows: ["Build & Push Images"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       image_tag:
-        description: Image tag to deploy
+        description: Image tag to deploy (default latest)
         default: latest
-  push:
-    branches: [main]
-    paths:
-      - "helm/**"
-      - ".github/workflows/deploy-aet.yml"
 
 concurrency:
   group: deploy-aet
@@ -21,8 +26,24 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: aet
+    # Only deploy when the triggering build succeeded (or on a manual dispatch).
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
+      - name: Resolve deploy ref + image tag
+        id: ctx
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "ref=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+            echo "tag=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+            echo "tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Check out the chart at the SAME commit that was built, so chart + images match.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.ctx.outputs.ref }}
 
       - name: Write kubeconfig (base64 of stud.yaml in KUBECONFIG_B64)
         run: |
@@ -41,12 +62,11 @@ jobs:
             --namespace team-password123 \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Helm upgrade
+      - name: Helm upgrade (image tag ${{ steps.ctx.outputs.tag }})
         run: |
           helm upgrade --install app helm/calorieasy \
             --namespace team-password123 \
-            --set image.tag="${{ github.event.inputs.image_tag || 'latest' }}" \
-            --set image.pullPolicy=Always \
+            --set image.tag="${{ steps.ctx.outputs.tag }}" \
             --set genai.openaiBaseUrl="${{ secrets.LOGOS_BASE_URL }}" \
             --set genai.openaiModel="${{ vars.LOGOS_MODEL || 'gpt-4o' }}" \
             --set genai.openaiApiKey="${{ secrets.LOGOS_API_KEY }}" \

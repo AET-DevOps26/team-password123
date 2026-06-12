@@ -8,6 +8,7 @@ on:
     paths:
       - "services/**"
       - "calorie-app/**"
+      - "helm/**"
       - ".github/workflows/build-images.yml"
   workflow_dispatch:
 

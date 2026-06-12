@@ -56,3 +56,15 @@ htmlcov/
 
 # OS
 Thumbs.db
+
+# Node
+node_modules/
+
+# Java / Maven
+target/
+*.class
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/

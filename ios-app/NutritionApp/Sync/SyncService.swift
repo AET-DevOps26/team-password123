@@ -42,7 +42,9 @@ final class SyncService {
 
     private func pullGoals() async {
         guard let profile = currentProfile() else { return }
-        guard let maybe = try? await api.goals(), let dto = maybe else { return }
+        // `try?` flattens the already-optional return, so this is a single unwrap:
+        // nil = request failed OR 204 (no goals yet) — either way, leave onboarding as-is.
+        guard let dto = try? await api.goals() else { return }
         DTOMapper.apply(dto, to: profile)
         // Server-side goals exist → this account has already onboarded.
         profile.onboardingComplete = true

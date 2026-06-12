@@ -7,6 +7,7 @@ struct TodayView: View {
     @Query(sort: \WaterLog.timestamp, order: .reverse) private var allWater: [WaterLog]
 
     @Environment(\.modelContext) private var context
+    @Environment(SyncService.self) private var sync
     @State private var showingLogSheet = false
     @State private var editingLog: FoodLog?
 
@@ -223,13 +224,11 @@ struct TodayView: View {
     }
 
     private func addWater(_ amount: Int) {
-        context.insert(WaterLog(timestamp: .now, amountML: amount))
-        try? context.save()
+        sync.addWater(WaterLog(timestamp: .now, amountML: amount))
     }
 
     private func delete(_ log: FoodLog) {
-        context.delete(log)
-        try? context.save()
+        sync.deleteMeal(log)
     }
 
     private func quickAdd(_ log: FoodLog) {
@@ -245,7 +244,6 @@ struct TodayView: View {
             carbsGrams: log.carbsGrams,
             fatsGrams: log.fatsGrams
         )
-        context.insert(copy)
-        try? context.save()
+        sync.addMeal(copy)
     }
 }

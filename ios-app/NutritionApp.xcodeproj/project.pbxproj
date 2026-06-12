@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		73C06451D28BB17FAD37369F /* Backend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5236C9A5D7F76F4F6626040B /* Backend.swift */; };
+		1D4F3219B5E92C32D7056749 /* DTOs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 838BC91608FC1B6AFF78EC9F /* DTOs.swift */; };
+		E4217CD673637F6EEC4246F3 /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = 677755C016CFB4DEB00B3FD5 /* Session.swift */; };
+		5E4D635B5601024C4C23D3A9 /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A851621B294755239A254CE3 /* SyncService.swift */; };
+		7F417CDEB29323CF253D7CE8 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71DD3F80E329B8D8B05C939B /* AuthView.swift */; };
 		04C1BFAF539DB4064CB2B5EF /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D64B53C77E07F0E64FA7EB03 /* WidgetSnapshot.swift */; };
 		0D1ECED0E6588CB98B39C8A6 /* MealRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0753D0E88F680BDD1BF5CD5 /* MealRow.swift */; };
 		161EF657C6E45FECE16EAD08 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09CED11CE23B480D912E6ED /* RootTabView.swift */; };
@@ -60,6 +65,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5236C9A5D7F76F4F6626040B /* Backend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Backend.swift; sourceTree = "<group>"; };
+		838BC91608FC1B6AFF78EC9F /* DTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOs.swift; sourceTree = "<group>"; };
+		677755C016CFB4DEB00B3FD5 /* Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Session.swift; sourceTree = "<group>"; };
+		A851621B294755239A254CE3 /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
+		71DD3F80E329B8D8B05C939B /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		022399A48CCFA1E809252591 /* NutritionWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionWidget.swift; sourceTree = "<group>"; };
 		091ECD459F6D373AC5B0B88B /* FoodLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLog.swift; sourceTree = "<group>"; };
 		09667794BEE400391EBD78A9 /* NutritionAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionAppApp.swift; sourceTree = "<group>"; };
@@ -90,9 +100,43 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		C5E32BC31B73F0E49D268018 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				5236C9A5D7F76F4F6626040B /* Backend.swift */,
+				838BC91608FC1B6AFF78EC9F /* DTOs.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		6F868F3A1719C829B3D26EEF /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				677755C016CFB4DEB00B3FD5 /* Session.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		26BB1E06EBD20989E80A45AF /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				A851621B294755239A254CE3 /* SyncService.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		6BC196851014859BFD4F1ED7 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				71DD3F80E329B8D8B05C939B /* AuthView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
 		0072CC031AFDB2B289F699E4 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				6BC196851014859BFD4F1ED7 /* Auth */,
 				C09CED11CE23B480D912E6ED /* RootTabView.swift */,
 				118F551B2B393C37A7D3B8B7 /* Analytics */,
 				5C7D1F998A6A19CAF903CCBA /* History */,
@@ -199,6 +243,9 @@
 		A5F169B7C41119C7E0F02DE9 /* NutritionApp */ = {
 			isa = PBXGroup;
 			children = (
+				26BB1E06EBD20989E80A45AF /* Sync */,
+				6F868F3A1719C829B3D26EEF /* Auth */,
+				C5E32BC31B73F0E49D268018 /* Networking */,
 				09667794BEE400391EBD78A9 /* NutritionAppApp.swift */,
 				875DD4EECE8F732A18F0D8BC /* Components */,
 				3944AAAE7ECFAB029BDFD1F4 /* Models */,
@@ -318,6 +365,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				73C06451D28BB17FAD37369F /* Backend.swift in Sources */,
+				1D4F3219B5E92C32D7056749 /* DTOs.swift in Sources */,
+				E4217CD673637F6EEC4246F3 /* Session.swift in Sources */,
+				5E4D635B5601024C4C23D3A9 /* SyncService.swift in Sources */,
+				7F417CDEB29323CF253D7CE8 /* AuthView.swift in Sources */,
 				C238F4D622CDBD8ACB0F8983 /* AnalyticsView.swift in Sources */,
 				F160EE7E57655C6886A78B83 /* CSVExporter.swift in Sources */,
 				C8A6E2D40FA366FAF2978151 /* DateRange.swift in Sources */,

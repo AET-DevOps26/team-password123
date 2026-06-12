@@ -30,7 +30,11 @@ cd helm/calorieasy
 helm upgrade --install app . --namespace team-password123
 ```
 
-**CI:** `deploy-aet.yml` runs on push to `main` (paths `helm/**`) or manual dispatch.
+**CI:** `deploy-aet.yml` runs automatically **after** `build-images.yml` ("Build &
+Push Images") succeeds on `main` (via `workflow_run`), or on manual dispatch. It
+deploys by the built **commit SHA** (immutable tag) so every release guarantees a
+rollout instead of leaving pods on a stale `latest`. Build runs first, deploy second —
+no race.
 
 Secrets / vars (repo → Settings → Secrets and variables → Actions):
 

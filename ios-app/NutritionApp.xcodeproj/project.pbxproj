@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		137DBDECEB46DBC4D404D901 /* LiveIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ECF14956D0A10705DDB0005 /* LiveIntegrationTests.swift */; };
 		73C06451D28BB17FAD37369F /* Backend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5236C9A5D7F76F4F6626040B /* Backend.swift */; };
 		1D4F3219B5E92C32D7056749 /* DTOs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 838BC91608FC1B6AFF78EC9F /* DTOs.swift */; };
 		E4217CD673637F6EEC4246F3 /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = 677755C016CFB4DEB00B3FD5 /* Session.swift */; };
@@ -41,6 +42,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		28FAEEEAD1D3AD9DB4FC3D5E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E4937E754592E7B18BB86921 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BCAF5B6E08C426DDF7EF5863;
+			remoteInfo = NutritionApp;
+		};
 		472C57F3234165FA35CB9E93 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E4937E754592E7B18BB86921 /* Project object */;
@@ -65,6 +73,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2ECF14956D0A10705DDB0005 /* LiveIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveIntegrationTests.swift; sourceTree = "<group>"; };
+		859F4D9E17145B903347831B /* NutritionAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NutritionAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5236C9A5D7F76F4F6626040B /* Backend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Backend.swift; sourceTree = "<group>"; };
 		838BC91608FC1B6AFF78EC9F /* DTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOs.swift; sourceTree = "<group>"; };
 		677755C016CFB4DEB00B3FD5 /* Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Session.swift; sourceTree = "<group>"; };
@@ -100,6 +110,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		20C109E4FCE0D71228E66AF5 /* NutritionAppTests */ = {
+			isa = PBXGroup;
+			children = (
+				2ECF14956D0A10705DDB0005 /* LiveIntegrationTests.swift */,
+			);
+			path = NutritionAppTests;
+			sourceTree = "<group>";
+		};
 		C5E32BC31B73F0E49D268018 /* Networking */ = {
 			isa = PBXGroup;
 			children = (
@@ -189,6 +207,7 @@
 		3BD1C62B0332CD974D0392FE /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				859F4D9E17145B903347831B /* NutritionAppTests.xctest */,
 				E7149981F43B6EAD35AE9FE7 /* NutritionApp.app */,
 				D13AFB8312222500F7B316B3 /* NutritionAppWidget.appex */,
 			);
@@ -266,6 +285,7 @@
 		C69D4E6D4FB1D0FFA40B7062 = {
 			isa = PBXGroup;
 			children = (
+				20C109E4FCE0D71228E66AF5 /* NutritionAppTests */,
 				A5F169B7C41119C7E0F02DE9 /* NutritionApp */,
 				CDD7A90EDEBAC82037602508 /* NutritionAppWidget */,
 				A32530350A0189F458CC7B68 /* SharedKit */,
@@ -285,6 +305,22 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		B20EBAF0C3CB3F1107CCEEF6 /* NutritionAppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DDAE2A91EBFDF465A9C06EF8 /* Build configuration list for PBXNativeTarget "NutritionAppTests" */;
+			buildPhases = (
+				0E262FD50F1123C061D0273B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				49E6EC4FBF878D12924E8B52 /* PBXTargetDependency */,
+			);
+			name = NutritionAppTests;
+			productName = NutritionAppTests;
+			productReference = 859F4D9E17145B903347831B /* NutritionAppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		63433371EA63FC5DB7BBD702 /* NutritionAppWidget */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C65FA6B932186CCEFF26D944 /* Build configuration list for PBXNativeTarget "NutritionAppWidget" */;
@@ -330,6 +366,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					B20EBAF0C3CB3F1107CCEEF6 = {
+						TestTargetID = BCAF5B6E08C426DDF7EF5863;
+					};
 					63433371EA63FC5DB7BBD702 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Manual;
@@ -354,6 +393,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				B20EBAF0C3CB3F1107CCEEF6 /* NutritionAppTests */,
 				BCAF5B6E08C426DDF7EF5863 /* NutritionApp */,
 				63433371EA63FC5DB7BBD702 /* NutritionAppWidget */,
 			);
@@ -361,6 +401,14 @@
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0E262FD50F1123C061D0273B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				137DBDECEB46DBC4D404D901 /* LiveIntegrationTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BD46E83E5AAA1BE5B3643DBE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -408,6 +456,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		49E6EC4FBF878D12924E8B52 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BCAF5B6E08C426DDF7EF5863 /* NutritionApp */;
+			targetProxy = 28FAEEEAD1D3AD9DB4FC3D5E /* PBXContainerItemProxy */;
+		};
 		E149BFCE7FBAD6D5CD528A4E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 63433371EA63FC5DB7BBD702 /* NutritionAppWidget */;
@@ -416,6 +469,44 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		6EB1E863FA765C197AB760EF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.password123.NutritionAppTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NutritionApp.app/NutritionApp";
+			};
+			name = Debug;
+		};
+		6FC7CF8244D0DA9065A6A222 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.password123.NutritionAppTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NutritionApp.app/NutritionApp";
+			};
+			name = Release;
+		};
 		3FB66241BED4FE73D999D223 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -638,6 +729,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		DDAE2A91EBFDF465A9C06EF8 /* Build configuration list for PBXNativeTarget "NutritionAppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EB1E863FA765C197AB760EF /* Debug */,
+				6FC7CF8244D0DA9065A6A222 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		AFEE763A1F757CC9EAAA5424 /* Build configuration list for PBXProject "NutritionApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

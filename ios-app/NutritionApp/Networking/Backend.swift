@@ -26,8 +26,19 @@ enum AppConfig {
 enum KeychainStore {
     private static let service = "com.password123.NutritionApp"
 
+    // In-memory mirror so auth keeps working within a session even when the
+    // Keychain is unavailable (e.g. an unsigned simulator/test host that lacks
+    // the keychain-access entitlement). The Keychain still provides persistence
+    // across launches; the cache is just read first.
+    private static let lock = NSLock()
+    private static var cache: [String: String] = [:]
+
     static func set(_ value: String?, for key: String) {
-        delete(key)
+        lock.lock()
+        cache[key] = value
+        lock.unlock()
+
+        keychainDelete(key)
         guard let value, let data = value.data(using: .utf8) else { return }
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -40,6 +51,11 @@ enum KeychainStore {
     }
 
     static func get(_ key: String) -> String? {
+        lock.lock()
+        let cached = cache[key]
+        lock.unlock()
+        if let cached { return cached }
+
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -49,11 +65,22 @@ enum KeychainStore {
         ]
         var item: CFTypeRef?
         guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
-              let data = item as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
+              let data = item as? Data,
+              let value = String(data: data, encoding: .utf8) else { return nil }
+        lock.lock()
+        cache[key] = value
+        lock.unlock()
+        return value
     }
 
     static func delete(_ key: String) {
+        lock.lock()
+        cache[key] = nil
+        lock.unlock()
+        keychainDelete(key)
+    }
+
+    private static func keychainDelete(_ key: String) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -95,7 +122,15 @@ struct APIClient {
 
     static let tokenKey = "accessToken"
 
-    private let session: URLSession = .shared
+    // The backend is a public HTTPS ingress, so connect directly and ignore the
+    // system proxy. A misconfigured corporate WPAD/PAC (common on dev machines and
+    // inherited by the iOS Simulator) otherwise misroutes requests — empty proxy
+    // dictionary disables proxy resolution for this session.
+    private let session: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.connectionProxyDictionary = [:]
+        return URLSession(configuration: config)
+    }()
 
     private var encoder: JSONEncoder {
         let e = JSONEncoder()
@@ -182,7 +217,12 @@ struct APIClient {
     ) async throws -> Response? {
         guard !AppConfig.offline else { throw APIError.offline }
 
-        var request = URLRequest(url: AppConfig.baseURL.appendingPathComponent(path))
+        // Build via string join, not appendingPathComponent — the latter percent-encodes
+        // "?" and breaks paths that carry a query string (e.g. /api/meals?from=&to=).
+        guard let url = URL(string: AppConfig.baseURL.absoluteString + "/" + path) else {
+            throw APIError.invalidResponse
+        }
+        var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if authorized { attachAuth(&request) }

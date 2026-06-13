@@ -212,3 +212,12 @@ export async function mockGoals(page: Page, goals: unknown = null) {
       : route.fulfill(json(goals));
   });
 }
+
+// PUT /goals — echo the saved goals back as a GoalResponse.
+export async function mockSaveGoals(page: Page) {
+  await page.route(isGoalsEndpoint, (route) => {
+    if (route.request().method() !== 'PUT') return route.fallback();
+    const body = route.request().postDataJSON();
+    return route.fulfill(json({ id: 'g1', updatedAt: new Date().toISOString(), ...body }));
+  });
+}

@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import type { MealResponse, ManualMealRequest } from '../../src/entities/meal/api/backendTypes';
 
 export interface AuthResponseData {
   tokenType: string;
@@ -35,6 +36,8 @@ function json(body: unknown, status = 200) {
 const isApiRequest = (url: URL) => url.pathname.startsWith('/api/');
 const isAuthEndpoint = (url: URL) => /^\/api\/auth\/(login|register)$/.test(url.pathname);
 const isGoalsEndpoint = (url: URL) => url.pathname === '/api/goals';
+const isMealsEndpoint = (url: URL) => url.pathname === '/api/meals';
+const isManualMealEndpoint = (url: URL) => url.pathname === '/api/meals/manual';
 
 // Catch-all for /api/*. Must be installed BEFORE endpoint-specific mocks:
 // Playwright matches routes in reverse registration order, so later,
@@ -55,6 +58,84 @@ export async function mockAuthSuccess(page: Page, overrides: Partial<AuthRespons
 
 export async function mockAuthError(page: Page, status: number, message: string) {
   await page.route(isAuthEndpoint, (route) => route.fulfill(json({ message }, status)));
+}
+
+export function buildMeal(overrides: Partial<MealResponse> = {}): MealResponse {
+  return {
+    id: 'meal-1',
+    mealType: 'LUNCH',
+    loggedAt: '2026-06-10T12:00:00',
+    sourceType: 'MANUAL',
+    calories: 500,
+    proteinGrams: 30,
+    carbsGrams: 50,
+    fatGrams: 20,
+    fiberGrams: 0,
+    notes: 'Chicken salad',
+    items: [],
+    ...overrides,
+  };
+}
+
+// GET /meals?from=DATE&to=DATE → meals keyed by the `from` date
+// (the diary always requests a single day, from === to).
+export async function mockMeals(page: Page, mealsByDate: Record<string, MealResponse[]>) {
+  await page.route(isMealsEndpoint, (route) => {
+    if (route.request().method() !== 'GET') return route.fallback();
+    const from = new URL(route.request().url()).searchParams.get('from') ?? '';
+    return route.fulfill(json(mealsByDate[from] ?? []));
+  });
+}
+
+// Stateful meals mock mirroring the real backend round-trip:
+//   GET  /meals?from=DATE  → the current per-day store
+//   POST /meals/manual     → appends a MANUAL meal (totals summed from items)
+//                            and echoes it back
+// so the diary's post-save refetch surfaces the freshly logged entry.
+// Keyed by the date portion of loggedAt; the day clock is frozen to noon in
+// the specs, so the local `from` date and the ISO loggedAt date agree.
+export async function mockMealsStore(
+  page: Page,
+  initial: Record<string, MealResponse[]> = {},
+) {
+  const store: Record<string, MealResponse[]> = {};
+  for (const [date, meals] of Object.entries(initial)) store[date] = [...meals];
+  let seq = 0;
+
+  await page.route(isMealsEndpoint, (route) => {
+    if (route.request().method() !== 'GET') return route.fallback();
+    const from = new URL(route.request().url()).searchParams.get('from') ?? '';
+    return route.fulfill(json(store[from] ?? []));
+  });
+
+  await page.route(isManualMealEndpoint, (route) => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    const req = route.request().postDataJSON() as ManualMealRequest;
+    const totals = req.items.reduce(
+      (acc, it) => ({
+        calories: acc.calories + it.calories,
+        proteinGrams: acc.proteinGrams + it.proteinGrams,
+        carbsGrams: acc.carbsGrams + it.carbsGrams,
+        fatGrams: acc.fatGrams + it.fatGrams,
+        fiberGrams: acc.fiberGrams + it.fiberGrams,
+      }),
+      { calories: 0, proteinGrams: 0, carbsGrams: 0, fatGrams: 0, fiberGrams: 0 },
+    );
+    const meal: MealResponse = {
+      id: `srv-${++seq}`,
+      mealType: req.mealType,
+      loggedAt: req.loggedAt,
+      sourceType: 'MANUAL',
+      ...totals,
+      notes: req.notes,
+      items: req.items.map((it, i) => ({ id: `srv-${seq}-i${i}`, ...it })),
+    };
+    const date = req.loggedAt.slice(0, 10);
+    (store[date] ??= []).push(meal);
+    return route.fulfill(json(meal, 201));
+  });
+
+  return store;
 }
 
 // GET /goals: 204 when the user has no saved goals (the backend contract),

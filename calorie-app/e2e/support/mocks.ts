@@ -40,6 +40,7 @@ const isGoalsEndpoint = (url: URL) => url.pathname === '/api/goals';
 const isMealsEndpoint = (url: URL) => url.pathname === '/api/meals';
 const isManualMealEndpoint = (url: URL) => url.pathname === '/api/meals/manual';
 const isAnalyzeEndpoint = (url: URL) => url.pathname === '/api/meals/analyze';
+const isStreakEndpoint = (url: URL) => url.pathname === '/api/analytics/streak';
 
 // Catch-all for /api/*. Must be installed BEFORE endpoint-specific mocks:
 // Playwright matches routes in reverse registration order, so later,
@@ -173,6 +174,31 @@ export async function mockPhotoAnalysisError(page: Page, status = 503, message =
   await page.route(isAnalyzeEndpoint, (route) => {
     if (route.request().method() !== 'POST') return route.fallback();
     return route.fulfill(json({ message }, status));
+  });
+}
+
+// GET /meals?from=X&to=Y over a multi-day range (used by InsightsPage, which
+// fetches a whole week/month/year). Returns every meal whose date key falls in
+// [from, to] — ISO date strings compare lexicographically, so plain >=/<= works.
+export async function mockMealsRange(page: Page, mealsByDate: Record<string, MealResponse[]>) {
+  await page.route(isMealsEndpoint, (route) => {
+    if (route.request().method() !== 'GET') return route.fallback();
+    const params = new URL(route.request().url()).searchParams;
+    const from = params.get('from') ?? '';
+    const to   = params.get('to') ?? '';
+    const result: MealResponse[] = [];
+    for (const [date, meals] of Object.entries(mealsByDate)) {
+      if (date >= from && date <= to) result.push(...meals);
+    }
+    return route.fulfill(json(result));
+  });
+}
+
+// GET /analytics/streak → the logging-streak count.
+export async function mockStreak(page: Page, streak: number) {
+  await page.route(isStreakEndpoint, (route) => {
+    if (route.request().method() !== 'GET') return route.fallback();
+    return route.fulfill(json({ streak }));
   });
 }
 

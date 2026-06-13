@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 import type { MealResponse, ManualMealRequest } from '../../src/entities/meal/api/backendTypes';
+import type { MealAnalysisResponse } from '../../src/entities/meal/model/types';
 
 export interface AuthResponseData {
   tokenType: string;
@@ -38,6 +39,7 @@ const isAuthEndpoint = (url: URL) => /^\/api\/auth\/(login|register)$/.test(url.
 const isGoalsEndpoint = (url: URL) => url.pathname === '/api/goals';
 const isMealsEndpoint = (url: URL) => url.pathname === '/api/meals';
 const isManualMealEndpoint = (url: URL) => url.pathname === '/api/meals/manual';
+const isAnalyzeEndpoint = (url: URL) => url.pathname === '/api/meals/analyze';
 
 // Catch-all for /api/*. Must be installed BEFORE endpoint-specific mocks:
 // Playwright matches routes in reverse registration order, so later,
@@ -136,6 +138,42 @@ export async function mockMealsStore(
   });
 
   return store;
+}
+
+export function buildAnalysis(
+  meal: Partial<MealAnalysisResponse['meal']> = {},
+): MealAnalysisResponse {
+  return {
+    message: 'ok',
+    meal: {
+      id: 1,
+      userId: 42,
+      dishName: 'Grilled salmon',
+      imageUrl: '',
+      nutrition: { calories: 420, protein: 35, fat: 26, carbs: 12 },
+      confidence: 0.87,
+      analyzedAt: '2026-06-10T12:00:00',
+      ...meal,
+    },
+  };
+}
+
+// POST /meals/analyze — the GenAI vision model recognized the dish.
+export async function mockPhotoAnalysis(page: Page, meal: Partial<MealAnalysisResponse['meal']> = {}) {
+  const response = buildAnalysis(meal);
+  await page.route(isAnalyzeEndpoint, (route) => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    return route.fulfill(json(response));
+  });
+  return response;
+}
+
+// POST /meals/analyze fails — the app degrades to the manual-entry stage.
+export async function mockPhotoAnalysisError(page: Page, status = 503, message = 'AI service unavailable') {
+  await page.route(isAnalyzeEndpoint, (route) => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    return route.fulfill(json({ message }, status));
+  });
 }
 
 // GET /goals: 204 when the user has no saved goals (the backend contract),

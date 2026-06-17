@@ -1,3 +1,3 @@
 | Person | Date Range | Tasks Completed |
 |---|---|---|
-| E.g. Arnav | E.g. 04/05/26 - 08/05/26 | E.g.:<br><ul><li>Created a basic Dockerfile that runs the minimal features of the website.</li><li>Created a Grafana dashboard to visualize CPU and Memory usage for the staging environment, helping the team identify a memory leak.</li><li>Scripted a Bash utility to automate the cleanup of orphaned Docker volumes, saving 15GB of disk space on staging servers.</li></ul> |
+| Melisa | 11/05/26 - 15/05/26 | <ul><li>Reviewed the microservices refactoring PR and gave feedback on the service structure and shared patterns (JWT verification, exception handling).</li><li>Started planning the GenAI service — evaluating Ollama, OpenAI, and Gemini as vision providers and LangChain as the orchestration layer.</li></ul> |

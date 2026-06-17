@@ -1,3 +1,3 @@
 | Person | Date Range | Tasks Completed |
 |---|---|---|
-| E.g. Arnav | E.g. 04/05/26 - 08/05/26 | E.g.:<br><ul><li>Created a basic Dockerfile that runs the minimal features of the website.</li><li>Created a Grafana dashboard to visualize CPU and Memory usage for the staging environment, helping the team identify a memory leak.</li><li>Scripted a Bash utility to automate the cleanup of orphaned Docker volumes, saving 15GB of disk space on staging servers.</li></ul> |
+| Melisa | 15/06/26 - 19/06/26 | <ul><li>Reviewed and helped merge the integration tests PR, ran the full test suite locally to confirm everything was passing.</li><li>Identified the missing genai pytest CI gap and planned the fix for the following week.</li></ul> |

@@ -1,120 +1,110 @@
-# Nutrition Tracker — Team password123
+# Calorieasy — Team password123
 
-A nutrition and health companion that takes the friction out of food logging. Snap a photo of your meal, get calories and macros back, and review long-term trends in an analytics dashboard.
-
-GenAI is the engine, not a bolted-on feature: a multi-modal LLM identifies foods from images, estimates portion sizes, and reasons about home-cooked meals that don't have a clean database match.
+A nutrition and health companion that removes the friction from food logging. Snap a photo of a meal, get calories and macros back instantly via GenAI, and track long-term trends in an analytics dashboard.
 
 ## Repository layout
 
 | Path | What's there |
 |------|--------------|
+| [`calorie-app/`](calorie-app) | React + TypeScript web client (Vite, Feature-Sliced Design). Port 3000. |
 | [`services/auth-service/`](services/auth-service) | Identity, registration, login, JWT issuance. Port 8081, schema `auth`. |
-| [`services/meals-service/`](services/meals-service) | Manual meal logging and photo placeholders. Port 8082, schema `meals`. |
+| [`services/meals-service/`](services/meals-service) | Manual meal logging + photo scan with GenAI analysis. Port 8082, schema `meals`. |
 | [`services/analytics-service/`](services/analytics-service) | Goals and daily/weekly aggregations. Port 8083, schema `analytics`. |
-| [`ios-app/`](ios-app) | SwiftUI + SwiftData iOS client. Local-only prototype; networking layer will plug into the services. |
-| [`docs/`](docs) | Problem statement, system architecture, and UML diagrams. |
-| [`infra/postgres/`](infra/postgres) | Postgres init scripts (creates the per-service schemas). |
-| [`api-service/`](api-service) | Legacy monolith — kept for reference until the new split is fully verified end-to-end. |
-
-A Python + LangChain GenAI microservice is planned but not yet in the repo. Photo uploads currently land with `AI_NOT_AVAILABLE` status and can be converted into manual logs.
+| [`services/genai-service/`](services/genai-service) | Python FastAPI vision service (Gemini in prod, Ollama local). Port 8084. |
+| [`ios-app/`](ios-app) | SwiftUI + SwiftData iOS prototype (offline, networking planned). |
+| [`helm/calorieasy/`](helm/calorieasy) | Kubernetes Helm chart for AET cluster deployment. |
+| [`infra/`](infra) | Terraform (Azure VM) + Ansible (Docker Compose deploy). |
+| [`docs/`](docs) | Problem statement, system architecture, API reference, sprint plan. |
 
 ## Architecture
 
 ```
-┌──────────────┐    JWT/REST    ┌─────────────────┐
-│  iOS client  │ ─────────────▶ │  auth-service   │  issues JWT
-│  (SwiftUI)   │                │  :8081          │
-└──────────────┘                └────────┬────────┘
-       │                                 │
-       │ JWT/REST                        ▼
-       │                        ┌─────────────────┐
-       ├──────────────────────▶ │  meals-service  │
-       │                        │  :8082          │
-       │                        └────────┬────────┘
-       │                                 │  REST (token forwarded)
-       │                                 ▼
-       │                        ┌─────────────────┐    ┌─────────────────┐
-       └──────────────────────▶ │ analytics-svc   │    │  GenAI service  │
-                                │  :8083          │    │  (Python, TBD)  │
-                                └────────┬────────┘    └─────────────────┘
-                                         │
-                                         ▼
-                                ┌─────────────────────────────┐
-                                │   PostgreSQL                │
-                                │   schemas: auth, meals,     │
-                                │   analytics                 │
-                                └─────────────────────────────┘
+┌─────────────────┐   JWT/REST   ┌──────────────────┐
+│  React web app  │─────────────▶│  auth-service    │  issues JWT
+│  :3000          │              │  :8081           │
+└─────────────────┘              └──────────────────┘
+        │                                 │
+        │ JWT/REST                        │
+        ▼                                 ▼
+┌─────────────────┐              ┌──────────────────┐
+│  iOS SwiftUI    │              │  meals-service   │──▶ genai-service :8084
+│  (offline now)  │              │  :8082           │    (Gemini vision AI)
+└─────────────────┘              └────────┬─────────┘
+                                          │ REST (token forwarded)
+                                          ▼
+                                 ┌──────────────────┐
+                                 │analytics-service │
+                                 │  :8083           │
+                                 └────────┬─────────┘
+                                          │
+                                          ▼
+                                 ┌──────────────────────────┐
+                                 │  PostgreSQL 16            │
+                                 │  schemas: auth / meals /  │
+                                 │  analytics                │
+                                 └──────────────────────────┘
 ```
 
-All three services validate JWTs using the same `APP_JWT_SECRET`. Only `auth-service` issues them. Each service owns its DB schema; cross-context reads happen via REST, not shared tables.
+All three Java services validate JWTs using the same `APP_JWT_SECRET`. Only `auth-service` issues them. Each service owns its DB schema; cross-service reads go via REST.
 
-See [`docs/sys-architecture.png`](docs/sys-architecture.png) and [`docs/usecase-diagram.png`](docs/usecase-diagram.png) for the full diagrams.
+## Quick start (local)
 
-## Quick start
-
-**IMPORTANT: Ollama Requirement**
-
-The GenAI service requires Ollama to run locally on your machine. Before starting docker-compose:
-
-1. [Install Ollama](https://ollama.ai) for your OS
-2. Run `ollama pull llava` to download the vision model (~4.7GB)
-3. Start Ollama in the background (it will listen on `http://localhost:11434`)
-
-Then:
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) and [Ollama](https://ollama.ai) installed.
 
 ```bash
+# 1. Pull the vision model for local GenAI (first time only, ~4.7 GB)
+ollama pull llava
+
+# 2. Copy env template and start everything
 cp .env.example .env
 docker compose up --build
 ```
 
-Postgres + all three services + the web client come up in one shot. Open the app at <http://localhost:3000>.
+App opens at **http://localhost:3000**. All five services + Postgres come up in one command.
 
-To load demo data for the current user and the last two weeks, run:
-
+To pre-populate demo data for the last two weeks:
 ```powershell
-.
-scripts\seed-demo-data.ps1
+.\scripts\seed-demo-data.ps1
 ```
 
-After seeding, hard refresh the browser tab if the app is already open.
+### Swagger UI (local)
 
-Each backend service exposes its own Swagger UI:
-Postgres + all services (including genai-service) come up in one shot. Each service exposes its own Swagger UI:
+| Service | URL |
+|---------|-----|
+| Auth | http://localhost:8081/swagger-ui.html |
+| Meals | http://localhost:8082/swagger-ui.html |
+| Analytics | http://localhost:8083/swagger-ui.html |
+| GenAI | http://localhost:8084/docs |
 
-- Auth: <http://localhost:8081/swagger-ui.html>
-- Meals: <http://localhost:8082/swagger-ui.html>
-- Analytics: <http://localhost:8083/swagger-ui.html>
-- GenAI: <http://localhost:8084/docs> (FastAPI Swagger)
+### Production (AET Kubernetes)
 
-Per-service details are in [`services/README.md`](services/README.md) and the individual service READMEs.
+Live at **https://team-password123-devops-ss26.stud.k8s.aet.cit.tum.de**
 
-### iOS app
+Deployed automatically on every push to `main` via Helm. GenAI uses Google Gemini in production (no Ollama required).
 
-Open the project in Xcode 15+ targeting iOS 17. Setup steps and the SwiftData model are documented in [`ios-app/README.md`](ios-app/README.md). The app runs fully offline today — no API or backend required to try it.
+See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the full deployment guide.
 
 ## Status
 
-- [x] Server side split into 3 microservices (auth, meals, analytics) with shared-secret JWT and per-schema isolation
-- [x] Root `docker-compose.yml` brings up Postgres + all 3 services in one command
-- [x] Root `docker-compose.yml` also brings up the web client in one command
-- [x] iOS prototype: local SwiftData persistence, manual + photo logging, daily progress, weekly charts
-- [x] GenAI microservice for food recognition and nutritional inference (Python + FastAPI + Ollama/OpenAI)
-- [ ] Web client (React/Angular/Vue) per the course requirements
-- [ ] GitHub Actions CI/CD
-- [ ] Kubernetes manifests / Helm charts (Rancher + Azure)
-- [ ] Prometheus + Grafana with exported dashboards and alert rules
+- [x] Three Spring Boot microservices (auth, meals, analytics) with schema-per-service isolation
+- [x] Python FastAPI GenAI service (Ollama local / Gemini cloud)
+- [x] React web client — all pages (diary, scan, insights, profile, onboarding)
+- [x] iOS SwiftUI prototype (offline, SwiftData)
+- [x] Docker Compose (dev + prod) — one-command local setup
+- [x] GitHub Actions CI — build + test all services, Vitest, Playwright e2e, genai pytest
+- [x] GHCR image build & push (5 images, immutable SHA tags)
+- [x] Helm chart + Kubernetes deployment (AET cluster, Traefik, TLS via cert-manager)
+- [x] Terraform (Azure VM) + Ansible IaC
+- [ ] Prometheus + Grafana observability
 - [ ] iOS networking layer wired to the services
-- [ ] Retire the legacy `api-service/` monolith
-
-## Intended users
-
-- Health-conscious individuals who abandon traditional trackers due to data-entry fatigue
-- Athletes monitoring specific macronutrient targets
-- Anyone managing weight who wants to see caloric trends over weeks and months
 
 ## Documentation
 
-- [Problem statement](docs/Problem%20Statement.md)
-- [System architecture](docs/System%20Architecture.md)
-- Services overview: [`services/README.md`](services/README.md)
-- Backlog: [Miro board](https://miro.com/app/board/uXjVHdWuFjk=/)
+| Document | Description |
+|----------|-------------|
+| [API Reference](docs/API%20Reference.md) | Full endpoint docs — request/response bodies for all services |
+| [System Architecture](docs/System%20Architecture.md) | Architecture diagram and service descriptions |
+| [Sprint Plan](docs/sprint-plan.md) | Sprint history and upcoming work |
+| [Problem Statement](docs/Problem%20Statement.md) | Product vision and user scenarios |
+| [Deployment Guide](DEPLOYMENT.md) | K8s + Azure VM deployment instructions |
+| [services/README.md](services/README.md) | Cross-cutting backend patterns (JWT, DB, inter-service calls) |

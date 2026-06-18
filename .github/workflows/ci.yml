@@ -74,6 +74,33 @@ jobs:
       - name: Unit tests
         run: npm test
 
+  genai:
+    name: GenAI service (pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/genai-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: services/genai-service/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Unit tests only — smoke and image-expectation tests require a live
+      # service and are skipped in CI.
+      - name: Run unit tests
+        run: pytest tests/test_unit.py tests/test_nutrition_lookup.py -v
+        env:
+          LLM_PROVIDER: ollama
+          NUTRITION_DATA_PROVIDER: local
+
   e2e:
     name: Frontend e2e (Playwright)
     runs-on: ubuntu-latest

@@ -28,9 +28,14 @@ final class MealMapper {
     }
 
     static MealResponse toMealResponse(MealLog meal) {
+        return toMealResponse(meal, null);
+    }
+
+    static MealResponse toMealResponse(MealLog meal, PhotoLog photo) {
         List<MealItemResponse> items = meal.getItems().stream()
                 .map(MealMapper::toItemResponse)
                 .toList();
+        String photoUrl = photo == null ? null : photoRawUrl(photo.getId());
         return new MealResponse(
                 meal.getId(),
                 meal.getMealType(),
@@ -42,8 +47,13 @@ final class MealMapper {
                 meal.getFatGrams(),
                 meal.getFiberGrams(),
                 meal.getNotes(),
+                photoUrl,
                 items
         );
+    }
+
+    static String photoRawUrl(java.util.UUID photoId) {
+        return "/api/meals/photo/" + photoId + "/raw";
     }
 
     static MealItemResponse toItemResponse(MealItem item) {

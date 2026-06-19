@@ -91,6 +91,27 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return text ? (JSON.parse(text) as T) : (null as T);
 }
 
+/**
+ * Fetch a protected binary resource (e.g. a meal photo) with the auth header and
+ * return an object URL ready for an <img src>. Returns null in OFFLINE_MODE or on
+ * any error, so callers can fall back to a placeholder. The caller owns the
+ * returned URL and must URL.revokeObjectURL it when done.
+ */
+export async function fetchBlobUrl(url: string): Promise<string | null> {
+  if (OFFLINE_MODE) return null;
+
+  const token = getToken();
+  try {
+    const response = await fetch(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!response.ok) return null;
+    return URL.createObjectURL(await response.blob());
+  } catch {
+    return null;
+  }
+}
+
 export const apiClient = {
   get:    <T>(path: string)                => request<T>(path),
   post:   <T>(path: string, body?: unknown) => request<T>(path, { method: 'POST',   body: body instanceof FormData ? body : JSON.stringify(body) }),

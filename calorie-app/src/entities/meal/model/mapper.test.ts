@@ -28,6 +28,7 @@ function makeResponse(overrides: Partial<MealResponse> = {}): MealResponse {
     fatGrams: 20,
     fiberGrams: 5,
     notes: null,
+    photoUrl: null,
     items: [],
     ...overrides,
   };
@@ -57,6 +58,12 @@ describe('mealResponseToEntry', () => {
       fat: 19,
       tone: TONE.Lunch,
     });
+  });
+
+  it('maps a linked photoUrl to imageUrl, and null to undefined', () => {
+    const url = '/api/meals/photo/p-1/raw';
+    expect(mealResponseToEntry(makeResponse({ photoUrl: url })).imageUrl).toBe(url);
+    expect(mealResponseToEntry(makeResponse({ photoUrl: null })).imageUrl).toBeUndefined();
   });
 
   it('maps each backend mealType to the correct UI slot + tone', () => {

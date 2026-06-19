@@ -38,6 +38,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class MealServiceTest {
@@ -293,6 +294,7 @@ class MealServiceTest {
     void convertPhotoToManual_whenUnlinked_createsPhotoManualMealAndMarksCompleted() {
         UUID photoId = UUID.randomUUID();
         PhotoLog photo = new PhotoLog();
+        ReflectionTestUtils.setField(photo, "id", photoId);
         photo.setStatus(PhotoStatus.AI_NOT_AVAILABLE);
         when(photos.findByIdAndUserId(photoId, userId)).thenReturn(Optional.of(photo));
         when(meals.save(any(MealLog.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -302,6 +304,7 @@ class MealServiceTest {
 
         assertThat(response.sourceType()).isEqualTo(SourceType.PHOTO_MANUAL);
         assertThat(response.calories()).isEqualByComparingTo("150");
+        assertThat(response.photoUrl()).isEqualTo("/api/meals/photo/" + photoId + "/raw");
 
         assertThat(photo.getStatus()).isEqualTo(PhotoStatus.MANUALLY_COMPLETED);
         assertThat(photo.getLinkedMealLog()).isNotNull();

@@ -83,6 +83,25 @@ export function useAuthForm() {
         createdAt:   response.expiresAt,
       });
 
+      // Hydrate the local profile from the backend (non-blocking). A filled
+      // profile (age set) means the user already onboarded — or was seeded — so
+      // we mark onboarding complete and skip the wizard. Never downgrades:
+      // missing fields are left at their local defaults.
+      authApi.me().then((me) => {
+        if (me && me.age != null) {
+          patchProfile({
+            displayName: me.displayName,
+            ...(me.heightCm      != null ? { heightCm: me.heightCm }            : {}),
+            ...(me.weightKg      != null ? { weightKg: Number(me.weightKg) }    : {}),
+            age: me.age,
+            ...(me.sex           ? { sex: me.sex }              : {}),
+            ...(me.activityLevel ? { activity: me.activityLevel } : {}),
+            ...(me.goal          ? { goal: me.goal }            : {}),
+            onboardingComplete: true,
+          });
+        }
+      }).catch(() => { /* keep local defaults */ });
+
       // Load server-side goals (non-blocking — ignore errors)
       goalsApi.get().then((g) => {
         if (g) {

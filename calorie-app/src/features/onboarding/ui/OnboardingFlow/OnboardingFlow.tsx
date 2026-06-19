@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useProfileStore, calculateGoals } from '../../../../entities/user/model/profile';
 import type { Sex, ActivityLevel, GoalKind } from '../../../../entities/user/model/profile';
+import { authApi } from '../../../auth/api/authApi';
+import { goalsApi } from '../../../../entities/nutrition/api/goalsApi';
 import styles from './OnboardingFlow.module.css';
 
 const TOTAL_STEPS = 4;
@@ -30,8 +32,11 @@ export function OnboardingFlow({ defaultName = 'Me' }: Props) {
   const suggestedGoals = calculateGoals(weightKg, heightCm, age, sex, activity, goal);
 
   function finish() {
+    const displayName = name.trim() || 'Me';
+
+    // Apply locally first so the UI advances instantly.
     profile.patch({
-      displayName: name.trim() || 'Me',
+      displayName,
       sex,
       age,
       heightCm,
@@ -41,6 +46,20 @@ export function OnboardingFlow({ defaultName = 'Me' }: Props) {
       goals: { ...suggestedGoals },
       onboardingComplete: true,
     });
+
+    // Persist to the backend (non-blocking — keep local state on error) so the
+    // profile + goals survive a fresh login / different browser.
+    authApi.update({
+      displayName, heightCm, weightKg, age, sex, activityLevel: activity, goal,
+    }).catch(() => { /* keep local-only */ });
+
+    goalsApi.save({
+      dailyCalories: suggestedGoals.calories,
+      proteinGrams:  suggestedGoals.protein,
+      carbsGrams:    suggestedGoals.carbs,
+      fatGrams:      suggestedGoals.fats,
+      fiberGrams:    0,
+    }).catch(() => { /* keep local-only */ });
   }
 
   return (

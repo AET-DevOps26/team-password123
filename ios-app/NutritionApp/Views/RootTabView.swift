@@ -4,6 +4,8 @@ import SwiftData
 struct RootTabView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(Session.self) private var session
+    @Environment(SyncService.self) private var sync
 
     @Query(sort: \UserProfile.createdAt) private var profiles: [UserProfile]
     @Query private var allLogs: [FoodLog]
@@ -12,6 +14,16 @@ struct RootTabView: View {
     private var profile: UserProfile? { profiles.first }
 
     var body: some View {
+        Group {
+            if session.isAuthenticated {
+                mainTabs
+            } else {
+                AuthView()
+            }
+        }
+    }
+
+    private var mainTabs: some View {
         TabView {
             TodayView()
                 .tabItem { Label("Today", systemImage: "sun.max") }
@@ -33,7 +45,10 @@ struct RootTabView: View {
                 OnboardingView(profile: profile)
             }
         }
-        .task { refreshSnapshot() }
+        .task {
+            await sync.sync()
+            refreshSnapshot()
+        }
         .onChange(of: allLogs.count) { _, _ in refreshSnapshot() }
         .onChange(of: allWater.count) { _, _ in refreshSnapshot() }
         .onChange(of: profile?.dailyCalorieGoal) { _, _ in refreshSnapshot() }

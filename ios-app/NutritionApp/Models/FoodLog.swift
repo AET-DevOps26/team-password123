@@ -37,6 +37,8 @@ enum MealCategory: String, CaseIterable, Identifiable {
 @Model
 final class FoodLog {
     @Attribute(.unique) var id: UUID
+    /// Backend meal id once this entry has been pushed; nil while only local.
+    var serverId: String?
     var timestamp: Date
     var name: String
     var notes: String?

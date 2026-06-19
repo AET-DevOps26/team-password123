@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useProfileStore } from '../../../entities/user/model/profile';
 import { useUserStore } from '../../../entities/user';
 import { goalsApi } from '../../../entities/nutrition/api/goalsApi';
-import { MOCK_MODE } from '../../../shared/config/flags';
 import styles from './ProfilePage.module.css';
 
 interface Props {
@@ -21,7 +20,6 @@ export function ProfilePage({ onSignOut }: Props) {
   }
 
   async function saveGoals() {
-    if (MOCK_MODE) return;
     setSaving(true);
     try {
       await goalsApi.save({
@@ -61,17 +59,15 @@ export function ProfilePage({ onSignOut }: Props) {
 
       {/* ── Daily goals ── */}
       <Section label="Daily goals">
-        {!MOCK_MODE && (
-          <div className={styles.saveRow}>
-            <button
-              className={`${styles.saveBtn} ${saved ? styles.saveBtnDone : ''}`}
-              onClick={saveGoals}
-              disabled={saving}
-            >
-              {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save goals'}
-            </button>
-          </div>
-        )}
+        <div className={styles.saveRow}>
+          <button
+            className={`${styles.saveBtn} ${saved ? styles.saveBtnDone : ''}`}
+            onClick={saveGoals}
+            disabled={saving}
+          >
+            {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save goals'}
+          </button>
+        </div>
         <StepperRow
           label="Calories"
           dot={null}

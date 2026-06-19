@@ -3,7 +3,6 @@ import { authApi } from '../api/authApi';
 import { useUserStore } from '../../../entities/user';
 import { useProfileStore } from '../../../entities/user/model/profile';
 import { goalsApi } from '../../../entities/nutrition/api/goalsApi';
-import { MOCK_MODE } from '../../../shared/config/flags';
 
 export type AuthMode = 'login' | 'register';
 
@@ -85,21 +84,19 @@ export function useAuthForm() {
       });
 
       // Load server-side goals (non-blocking — ignore errors)
-      if (!MOCK_MODE) {
-        goalsApi.get().then((g) => {
-          if (g) {
-            patchProfile({
-              goals: {
-                calories: Math.round(Number(g.dailyCalories)),
-                protein:  Math.round(Number(g.proteinGrams)),
-                carbs:    Math.round(Number(g.carbsGrams)),
-                fats:     Math.round(Number(g.fatGrams)),
-                water:    useProfileStore.getState().goals.water,
-              },
-            });
-          }
-        }).catch(() => { /* keep local defaults */ });
-      }
+      goalsApi.get().then((g) => {
+        if (g) {
+          patchProfile({
+            goals: {
+              calories: Math.round(Number(g.dailyCalories)),
+              protein:  Math.round(Number(g.proteinGrams)),
+              carbs:    Math.round(Number(g.carbsGrams)),
+              fats:     Math.round(Number(g.fatGrams)),
+              water:    useProfileStore.getState().goals.water,
+            },
+          });
+        }
+      }).catch(() => { /* keep local defaults */ });
     } catch (err) {
       const msg = (err as { message?: string }).message ?? 'Something went wrong. Please try again.';
       setApiError(msg);

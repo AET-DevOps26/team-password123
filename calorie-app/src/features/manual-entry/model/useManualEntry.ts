@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { useMealStore } from '../../../entities/meal';
-import type { MealEntry } from '../../../entities/meal';
 import { mealApi } from '../../../entities/meal/api/mealApi';
 import { mealResponseToEntry, entryToManualRequest } from '../../../entities/meal/model/mapper';
-import { MOCK_MODE } from '../../../shared/config/flags';
 
 export type MealSlot = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
 
@@ -23,13 +21,6 @@ const SUGGESTIONS: Ingredient[] = [
   { name: 'Olive oil',      amount: '1 tbsp',    calories: 119 },
   { name: 'Egg',            amount: '1 large',   calories: 78  },
 ];
-
-const SLOT_TONES: Record<MealSlot, string> = {
-  Breakfast: '#e8d9c4',
-  Lunch:     '#cfe0c9',
-  Dinner:    '#d4d9e8',
-  Snack:     '#e4d2cf',
-};
 
 export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date) {
   const [query, setQuery]   = useState('');
@@ -60,30 +51,10 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
     if (loggedAt) {
       savedAt.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
     }
-    const time = now.toTimeString().slice(0, 5);
-
     const name = items.length === 1
       ? items[0].name
       : `${items[0]?.name ?? 'Mixed meal'} & more`;
 
-    if (MOCK_MODE) {
-      // Local-only path: build a MealEntry and push to store
-      const entry: MealEntry = {
-        id:       `manual-${Date.now()}`,
-        slot,
-        time,
-        name,
-        calories: totalCalories,
-        protein:  Math.round(totalCalories * 0.05),
-        carbs:    Math.round(totalCalories * 0.125),
-        fat:      Math.round(totalCalories * 0.033),
-        tone:     SLOT_TONES[slot],
-      };
-      addEntry(entry);
-      return totalCalories;
-    }
-
-    // Real API path
     setSaving(true);
     try {
       const itemRequests = items.map((ing) => ({
@@ -100,19 +71,7 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
 
       const request = entryToManualRequest(slot, name, savedAt, itemRequests);
       const response = await mealApi.saveManual(request);
-      if (response) {
-        addEntry(mealResponseToEntry(response));
-      } else {
-        // OFFLINE_MODE returns null — fall back to local entry
-        addEntry({
-          id: `manual-${Date.now()}`, slot, time, name,
-          calories: totalCalories,
-          protein:  Math.round(totalCalories * 0.05),
-          carbs:    Math.round(totalCalories * 0.125),
-          fat:      Math.round(totalCalories * 0.033),
-          tone:     SLOT_TONES[slot],
-        });
-      }
+      if (response) addEntry(mealResponseToEntry(response));
     } finally {
       setSaving(false);
     }

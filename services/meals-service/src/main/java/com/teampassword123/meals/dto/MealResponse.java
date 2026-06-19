@@ -18,6 +18,7 @@ public record MealResponse(
         BigDecimal fatGrams,
         BigDecimal fiberGrams,
         String notes,
+        String photoUrl,
         List<MealItemResponse> items
 ) {
 }

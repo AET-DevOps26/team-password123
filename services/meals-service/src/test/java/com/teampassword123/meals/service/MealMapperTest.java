@@ -130,9 +130,31 @@ class MealMapperTest {
         assertThat(response.fatGrams()).isEqualByComparingTo("13");
         assertThat(response.fiberGrams()).isEqualByComparingTo("5");
         assertThat(response.notes()).isEqualTo("post-workout");
+        assertThat(response.photoUrl()).isNull();
         assertThat(response.items()).hasSize(1);
         assertThat(response.items().get(0).name()).isEqualTo("Eggs");
         assertThat(response.items().get(0).unit()).isEqualTo("pcs");
+    }
+
+    @Test
+    void toMealResponse_withLinkedPhoto_buildsPhotoRawUrl() {
+        java.util.UUID photoId = java.util.UUID.randomUUID();
+        PhotoLog photo = new PhotoLog();
+        ReflectionTestUtils.setField(photo, "id", photoId);
+
+        MealLog meal = new MealLog();
+        meal.setMealType(MealType.DINNER);
+        meal.setLoggedAt(OffsetDateTime.now(ZoneOffset.UTC));
+        meal.setSourceType(SourceType.PHOTO_MANUAL);
+        meal.setCalories(BigDecimal.ZERO);
+        meal.setProteinGrams(BigDecimal.ZERO);
+        meal.setCarbsGrams(BigDecimal.ZERO);
+        meal.setFatGrams(BigDecimal.ZERO);
+        meal.setFiberGrams(BigDecimal.ZERO);
+
+        MealResponse response = MealMapper.toMealResponse(meal, photo);
+
+        assertThat(response.photoUrl()).isEqualTo("/api/meals/photo/" + photoId + "/raw");
     }
 
     @Test

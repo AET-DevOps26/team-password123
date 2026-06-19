@@ -26,4 +26,7 @@ export interface MealEntry {
   carbs: number;
   fat: number;
   tone: string;
+  /** The user's meal photo. Either a backend `/api/meals/photo/:id/raw` path
+   *  (fetched with auth) or a local data:/blob: URL for just-scanned meals. */
+  imageUrl?: string;
 }

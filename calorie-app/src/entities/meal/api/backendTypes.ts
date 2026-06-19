@@ -27,6 +27,7 @@ export interface MealResponse {
   fatGrams: number;
   fiberGrams: number;
   notes: string | null;
+  photoUrl: string | null;    // `/api/meals/photo/:id/raw` when a photo is linked
   items: MealItemResponse[];
 }
 

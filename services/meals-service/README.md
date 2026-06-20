@@ -6,7 +6,7 @@ Manual meal logging and photo-log placeholders.
 - **DB schema**: `meals` (tables: `meal_logs`, `meal_items`, `photo_logs`)
 - **Auth**: validates JWTs issued by `auth-service` using the shared `APP_JWT_SECRET`. Does not own users.
 
-Photo uploads currently land with status `AI_NOT_AVAILABLE` — the GenAI service is not yet wired in. They can be converted to manual meals via `POST /api/meals/photo/{id}/convert-manual`.
+Photo uploads via `POST /api/meals/analyze` are routed to the genai-service vision endpoint (configured by `GENAI_SERVICE_URL`). In production, the genai-service uses Google Gemini via its OpenAI-compatible endpoint. Photo logs without analysis can be converted to manual meals via `POST /api/meals/photo/{id}/convert-manual`.
 
 ## Endpoints
 

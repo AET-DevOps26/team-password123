@@ -26,7 +26,9 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -65,22 +67,32 @@ public class MealService {
         if (from.isAfter(to)) {
             throw new BadRequestException("from must be on or before to");
         }
-        return meals.findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(userId, start(from), end(to))
+        List<MealLog> mealLogs =
+                meals.findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(userId, start(from), end(to));
+
+        // Resolve every linked photo in one query, then map without per-meal lookups.
+        Map<UUID, PhotoLog> photosByMeal = photos
+                .findByLinkedMealLogIdIn(mealLogs.stream().map(MealLog::getId).toList())
                 .stream()
-                .map(MealMapper::toMealResponse)
+                .collect(Collectors.toMap(p -> p.getLinkedMealLog().getId(), p -> p, (a, b) -> a));
+
+        return mealLogs.stream()
+                .map(meal -> MealMapper.toMealResponse(meal, photosByMeal.get(meal.getId())))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public MealResponse get(UUID userId, UUID mealId) {
-        return MealMapper.toMealResponse(findOwnedMeal(userId, mealId));
+        MealLog meal = findOwnedMeal(userId, mealId);
+        return MealMapper.toMealResponse(meal, photos.findByLinkedMealLogId(mealId).orElse(null));
     }
 
     @Transactional
     public MealResponse update(UUID userId, UUID mealId, ManualMealRequest request) {
         MealLog meal = findOwnedMeal(userId, mealId);
         applyMealRequest(meal, request);
-        return MealMapper.toMealResponse(meals.save(meal));
+        meals.save(meal);
+        return MealMapper.toMealResponse(meal, photos.findByLinkedMealLogId(mealId).orElse(null));
     }
 
     @Transactional
@@ -137,7 +149,7 @@ public class MealService {
         photo.setLinkedMealLog(meal);
         photos.save(photo);
 
-        String imageUrl = "/api/meals/photo/" + photo.getId() + "/raw";
+        String imageUrl = MealMapper.photoRawUrl(photo.getId());
         AnalyzedMeal analyzedMeal = new AnalyzedMeal(
                 meal.getId(),
                 analysis.dishName(),
@@ -184,7 +196,7 @@ public class MealService {
         photo.setLinkedMealLog(meal);
         photo.setStatus(PhotoStatus.MANUALLY_COMPLETED);
         photos.save(photo);
-        return MealMapper.toMealResponse(meal);
+        return MealMapper.toMealResponse(meal, photo);
     }
 
     private StoredFile storePhoto(MultipartFile file) {

@@ -4,6 +4,7 @@ import SwiftData
 struct HistoryView: View {
     @Query(sort: \FoodLog.timestamp, order: .reverse) private var allLogs: [FoodLog]
     @Environment(\.modelContext) private var context
+    @Environment(SyncService.self) private var sync
 
     @State private var query: String = ""
     @State private var categoryFilter: MealCategory? = nil
@@ -95,8 +96,7 @@ struct HistoryView: View {
     }
 
     private func delete(_ log: FoodLog) {
-        context.delete(log)
-        try? context.save()
+        sync.deleteMeal(log)
     }
 }
 

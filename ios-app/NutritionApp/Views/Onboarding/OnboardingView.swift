@@ -3,6 +3,7 @@ import SwiftData
 
 struct OnboardingView: View {
     @Environment(\.modelContext) private var context
+    @Environment(SyncService.self) private var sync
     @Bindable var profile: UserProfile
 
     @State private var step: Int = 0
@@ -195,5 +196,7 @@ struct OnboardingView: View {
         profile.fatsGoalGrams = calc.fatsGrams
         profile.onboardingComplete = true
         try? context.save()
+        // Push the new profile + goals to the backend.
+        Task { await sync.saveProfile() }
     }
 }

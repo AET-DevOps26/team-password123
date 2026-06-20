@@ -51,6 +51,16 @@ const SLOT_TONES: Record<MealSlot, string> = {
 
 const EMPTY_FORM: ManualForm = { name: '', calories: '', protein: '', carbs: '', fat: '' };
 
+/** Read a File into a data: URL so the scanned photo renders instantly in the diary. */
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 export function useScanMeal(): ScanState & ScanActions {
   const [stage,       setStage]       = useState<ScanStage>('idle');
   const [file,        setFileState]   = useState<File | null>(null);
@@ -151,6 +161,9 @@ export function useScanMeal(): ScanState & ScanActions {
   async function addToDiary() {
     const now  = new Date();
     const time = now.toTimeString().slice(0, 5);
+    // The user's own photo, as a data URL — shown immediately in the diary thumbnail.
+    // A read failure is non-fatal: the photo is cosmetic and must never block logging.
+    const imageUrl = file ? await fileToDataUrl(file).catch(() => undefined) : undefined;
 
     if (result) {
       // A `result` means the meal is already recognized: the MOCK path produced it
@@ -166,6 +179,7 @@ export function useScanMeal(): ScanState & ScanActions {
         carbs:    result.nutrition.carbs,
         fat:      result.nutrition.fat,
         tone:     SLOT_TONES[slot],
+        imageUrl,
       };
       addEntry(entry);
       return;
@@ -190,14 +204,16 @@ export function useScanMeal(): ScanState & ScanActions {
       }
 
       if (response) {
-        addEntry(mealResponseToEntry(response));
+        // Show the user's local photo instantly; on reload the same image is served
+        // from the backend via the entry's mapped photoUrl.
+        addEntry({ ...mealResponseToEntry(response), imageUrl });
       } else {
         // OFFLINE_MODE
-        addEntry({ id: `scan-${Date.now()}`, slot, time, name, calories: cal, protein: prot, carbs: carb, fat, tone: SLOT_TONES[slot] });
+        addEntry({ id: `scan-${Date.now()}`, slot, time, name, calories: cal, protein: prot, carbs: carb, fat, tone: SLOT_TONES[slot], imageUrl });
       }
     } catch {
       // Save failed — still add locally so user doesn't lose the entry
-      addEntry({ id: `scan-${Date.now()}`, slot, time, name, calories: cal, protein: prot, carbs: carb, fat, tone: SLOT_TONES[slot] });
+      addEntry({ id: `scan-${Date.now()}`, slot, time, name, calories: cal, protein: prot, carbs: carb, fat, tone: SLOT_TONES[slot], imageUrl });
     }
   }
 

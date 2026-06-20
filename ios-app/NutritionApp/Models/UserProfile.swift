@@ -63,6 +63,8 @@ enum GoalKind: String, CaseIterable, Identifiable {
 
 @Model
 final class UserProfile {
+    /// Backend user id once linked to an account; nil for a purely local profile.
+    var serverId: String?
     var displayName: String
     var email: String?
     var dailyCalorieGoal: Int

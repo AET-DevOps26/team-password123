@@ -11,6 +11,7 @@ struct MealEditorView: View {
 
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+    @Environment(SyncService.self) private var sync
 
     let mode: Mode
 
@@ -32,6 +33,12 @@ struct MealEditorView: View {
     // Photo
     @State private var pickerItem: PhotosPickerItem?
     @State private var imageData: Data?
+
+    // GenAI photo analysis
+    @State private var aiServerId: String?
+    @State private var aiConfidence: Double?
+    @State private var analyzing = false
+    @State private var aiError: String?
 
     private var isPhotoMode: Bool {
         switch mode {
@@ -107,9 +114,9 @@ struct MealEditorView: View {
                 }
             }
 
-            if isPhotoMode && !useIngredients {
+            if let aiConfidence {
                 Section {
-                    Text("GenAI nutrition recognition is coming soon. For now, enter macros manually — they'll be auto-filled once the AI service is wired up.")
+                    Label("AI estimate · \(Int(aiConfidence * 100))% match", systemImage: "sparkles")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -207,7 +214,42 @@ struct MealEditorView: View {
                 Label(imageData == nil ? "Choose photo" : "Replace photo",
                       systemImage: "photo.on.rectangle")
             }
+            if imageData != nil {
+                Button {
+                    Task { await analyze() }
+                } label: {
+                    if analyzing {
+                        ProgressView()
+                    } else {
+                        Label("Analyze with AI", systemImage: "sparkles")
+                    }
+                }
+                .disabled(analyzing)
+            }
+            if let aiError {
+                Text(aiError).font(.footnote).foregroundStyle(.red)
+            }
         }
+    }
+
+    private func analyze() async {
+        guard let imageData else { return }
+        analyzing = true
+        aiError = nil
+        do {
+            let meal = try await sync.analyzePhoto(imageData)
+            name = meal.dishName
+            calories = Int(meal.nutrition.calories.rounded())
+            protein = meal.nutrition.protein
+            carbs = meal.nutrition.carbs
+            fats = meal.nutrition.fat
+            useIngredients = false
+            aiServerId = meal.id
+            aiConfidence = meal.confidence
+        } catch {
+            aiError = "Couldn't analyze the photo — enter the details manually."
+        }
+        analyzing = false
     }
 
     private func macroStepper(label: String, value: Binding<Double>, tint: Color) -> some View {
@@ -286,7 +328,8 @@ struct MealEditorView: View {
                 calories: finalCal,
                 proteinGrams: finalP,
                 carbsGrams: finalC,
-                fatsGrams: finalF
+                fatsGrams: finalF,
+                confidenceScore: aiConfidence
             )
             if useIngredients {
                 log.ingredients = ingredientDrafts.enumerated().map { idx, d in
@@ -300,7 +343,10 @@ struct MealEditorView: View {
                     )
                 }
             }
-            context.insert(log)
+            // The AI flow already persisted this meal; link its id so addMeal
+            // inserts locally without creating a duplicate on the backend.
+            log.serverId = aiServerId
+            sync.addMeal(log)
 
         case .edit(let log):
             log.name = trimmedName
@@ -328,9 +374,9 @@ struct MealEditorView: View {
             } else {
                 log.ingredients = nil
             }
+            sync.updateMeal(log)
         }
 
-        try? context.save()
         dismiss()
     }
 }

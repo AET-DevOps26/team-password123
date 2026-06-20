@@ -4,18 +4,24 @@ import SwiftData
 @main
 struct NutritionAppApp: App {
     let container: ModelContainer
+    @State private var session = Session()
+    @State private var sync: SyncService
 
     init() {
+        let container: ModelContainer
         do {
             container = try ModelContainer(
                 for: UserProfile.self,
                 FoodLog.self,
                 Ingredient.self,
-                WaterLog.self
+                WaterLog.self,
+                MealTombstone.self
             )
         } catch {
             fatalError("Failed to set up SwiftData container: \(error)")
         }
+        self.container = container
+        _sync = State(initialValue: SyncService(container: container))
         Self.seedProfileIfNeeded(container: container)
         if ProcessInfo.processInfo.arguments.contains("--seed-sample-data") {
             Self.seedSampleData(container: container)
@@ -28,6 +34,8 @@ struct NutritionAppApp: App {
     var body: some Scene {
         WindowGroup {
             RootTabView()
+                .environment(session)
+                .environment(sync)
         }
         .modelContainer(container)
     }

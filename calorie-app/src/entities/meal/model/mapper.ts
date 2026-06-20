@@ -41,6 +41,7 @@ export function mealResponseToEntry(r: MealResponse): MealEntry {
     carbs:    Math.round(r.carbsGrams),
     fat:      Math.round(r.fatGrams),
     tone:     SLOT_TONES[slot],
+    imageUrl: r.photoUrl ?? undefined,
   };
 }
 

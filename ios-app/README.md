@@ -1,17 +1,28 @@
 # Nutrition iOS App
 
-SwiftUI + SwiftData prototype of the nutrition/health-tracking client. Local-only for now: no backend, no GenAI. The data model is shaped so the API layer can be added later without a rewrite.
+SwiftUI + SwiftData client for the nutrition/health-tracking app, wired to the same
+Spring Boot microservices + GenAI service as the web client. SwiftData is kept as an
+**offline cache**: views read it via `@Query`, mutations go through `SyncService`,
+which writes locally (optimistic) and pushes/pulls the backend.
 
 ## Status
 
-- Local SwiftData persistence for `UserProfile` and `FoodLog`
+- Email/password **auth** (`Session` + Keychain JWT), login/register gate before the app
+- **Backend sync** of meals, profile, and goals via `auth` / `meals` / `analytics` services
+- **GenAI photo analysis** — "Analyze with AI" in the meal editor calls `POST /api/meals/analyze`
 - Manual meal logging with calories + macros
-- Photo log entries (image stored locally; macros entered manually until GenAI is wired up)
-- Daily progress vs goals
-- Weekly analytics (Swift Charts)
-- Profile / goal editing
+- Daily progress vs goals, weekly analytics (Swift Charts), logging streak
+- Profile / goal editing (synced); water logging stays local (no backend endpoint)
+- Offline-first: works without network, queues changes, reconciles on next `sync()`
 
-Deferred to a later phase: auth, REST calls to the Spring Boot API, Python GenAI integration.
+### Networking layer
+- `Networking/Backend.swift` — `AppConfig`, `KeychainStore`, `APIClient` (async/await)
+- `Networking/DTOs.swift` — Codable mirrors of the Spring DTOs + typed endpoints
+- `Auth/Session.swift` — observable auth state
+- `Sync/SyncService.swift` — DTO↔SwiftData mappers, pull/push, offline queue
+
+Point at a different backend with the `API_BASE_URL` env var (default: the AET ingress).
+Run with `--offline` for a no-network guest session.
 
 ## Requirements
 

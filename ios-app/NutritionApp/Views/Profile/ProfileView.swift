@@ -3,6 +3,8 @@ import SwiftData
 
 struct ProfileView: View {
     @Environment(\.modelContext) private var context
+    @Environment(SyncService.self) private var sync
+    @Environment(Session.self) private var session
     @Query(sort: \UserProfile.createdAt) private var profiles: [UserProfile]
     @Query private var allLogs: [FoodLog]
 
@@ -99,7 +101,7 @@ struct ProfileView: View {
 
                 Section("About") {
                     LabeledContent("Logs stored", value: "\(allLogs.count)")
-                    LabeledContent("Storage", value: "Local (SwiftData)")
+                    LabeledContent("Storage", value: "Backend + local cache")
                     LabeledContent("Version", value: "0.2.0")
                 }
 
@@ -110,8 +112,22 @@ struct ProfileView: View {
                         Text("Delete all logs")
                     }
                 }
+
+                Section("Account") {
+                    if let email = session.email {
+                        LabeledContent("Signed in as", value: email)
+                    }
+                    Button(role: .destructive) {
+                        session.signOut()
+                    } label: {
+                        Label("Sign out", systemImage: "rectangle.portrait.and.arrow.right")
+                    }
+                }
             }
             .navigationTitle("Profile")
+            .onDisappear {
+                Task { await sync.saveProfile() }
+            }
             .confirmationDialog(
                 "Delete all food logs?",
                 isPresented: $showingResetConfirm,
@@ -241,8 +257,7 @@ struct ProfileView: View {
     }
 
     private func deleteAllLogs() {
-        for log in allLogs { context.delete(log) }
-        try? context.save()
+        for log in allLogs { sync.deleteMeal(log) }
     }
 
     private func exportCSV() {

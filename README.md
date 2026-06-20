@@ -1,8 +1,6 @@
-# Calorieasy
+# Calorieasy — Team password123
 
-Calorieasy is a photo-based nutrition and calorie tracker built as a university DevOps course project (org **AET-DevOps26**, repo **team-password123**). The core flow: snap a photo of a meal, a GenAI service identifies the foods and portions and estimates calories + macros, and the web and iOS clients show a daily diary plus weekly/monthly analytics. The backend is a set of Spring Boot microservices (auth, meals, analytics) plus a Python FastAPI GenAI service, all behind a single PostgreSQL instance with per-service schemas.
-
-## What it does
+A nutrition and health companion that removes the friction from food logging, built as a university DevOps course project (org **AET-DevOps26**, repo **team-password123**). Snap a photo of a meal, get calories and macros back instantly via GenAI, and track long-term trends in an analytics dashboard.
 
 - **Photo → nutrition.** Upload a meal photo; the GenAI service (vision LLM) returns identified foods, calories, and macros (protein/carbs/fat/fiber) with a confidence score.
 - **Manual logging.** Add meals and macros by hand; edit and delete entries.
@@ -12,21 +10,17 @@ Calorieasy is a photo-based nutrition and calorie tracker built as a university 
 - **Auth.** Email/password registration and login with JWT; one shared signing secret validated by every service.
 - **iOS prototype.** A local-only SwiftUI + SwiftData app (manual logging, water tracking, Swift Charts analytics, and a home-screen widget).
 
-## Repository layout
-
-| Path | What it is |
-|------|------------|
-| [`calorie-app/`](calorie-app/) | React 18 + TypeScript web client (Vite, Zustand, CSS Modules, Feature-Sliced Design) |
-| [`services/auth-service/`](services/auth-service/) | Spring Boot identity service: registration, login, JWT issuance, user profiles (`:8081`, schema `auth`) |
-| [`services/meals-service/`](services/meals-service/) | Spring Boot meals service: manual logging, photo upload, AI analysis (`:8082`, schema `meals`) |
-| [`services/analytics-service/`](services/analytics-service/) | Spring Boot analytics service: goals + daily/weekly aggregates + streak (`:8083`, schema `analytics`) |
-| [`services/genai-service/`](services/genai-service/) | Python FastAPI GenAI service: meal image → calories/macros (`:8084`) |
-| [`ios-app/`](ios-app/) | SwiftUI + SwiftData iOS client (local-only prototype) |
-| [`infra/`](infra/) | Postgres init SQL, Terraform (Azure VM), Ansible |
-| [`helm/calorieasy/`](helm/calorieasy/) | Helm chart for the AET Kubernetes cluster |
-| [`docs/`](docs/) | Problem statement, system architecture, and UML diagrams |
-| [`.github/workflows/`](.github/workflows/) | CI + image build + AET k8s deploy + manual Azure deploy |
-| [`docker-compose.yml`](docker-compose.yml) / [`docker-compose.prod.yml`](docker-compose.prod.yml) | Dev (build locally) / prod (pull GHCR images) stacks |
+| Path | What's there |
+|------|--------------|
+| [`calorie-app/`](calorie-app) | React + TypeScript web client (Vite, Feature-Sliced Design). Port 3000. |
+| [`services/auth-service/`](services/auth-service) | Identity, registration, login, JWT issuance. Port 8081, schema `auth`. |
+| [`services/meals-service/`](services/meals-service) | Manual meal logging + photo scan with GenAI analysis. Port 8082, schema `meals`. |
+| [`services/analytics-service/`](services/analytics-service) | Goals and daily/weekly aggregations. Port 8083, schema `analytics`. |
+| [`services/genai-service/`](services/genai-service) | Python FastAPI vision service (Gemini in prod, Ollama local). Port 8084. |
+| [`ios-app/`](ios-app) | SwiftUI + SwiftData iOS prototype (offline, networking planned). |
+| [`helm/calorieasy/`](helm/calorieasy) | Kubernetes Helm chart for AET cluster deployment. |
+| [`infra/`](infra) | Terraform (Azure VM) + Ansible (Docker Compose deploy). |
+| [`docs/`](docs) | Problem statement, system architecture, API reference, sprint plan. |
 
 ## Architecture
 
@@ -95,66 +89,19 @@ Brings up Postgres + the three Spring services + the GenAI service + the web cli
 
 ### Run
 ```bash
+# 1. Pull the vision model for local GenAI (first time only, ~4.7 GB)
+ollama pull llava
+
+# 2. Copy env template and start everything
 cp .env.example .env
 docker compose up --build
 ```
 
-Topology once up:
+App opens at **http://localhost:3000**. All five services + Postgres come up in one command.
 
-| Service | URL |
-|---------|-----|
-| Web client (Vite dev) | http://localhost:3000 |
-| auth-service | http://localhost:8081 (Swagger: `/swagger-ui.html`) |
-| meals-service | http://localhost:8082 (Swagger: `/swagger-ui.html`) |
-| analytics-service | http://localhost:8083 (Swagger: `/swagger-ui.html`) |
-| genai-service | http://localhost:8084 (Swagger: `/docs`) |
-| PostgreSQL | localhost:5432 (DB `nutrition`) |
-
-### Seed demo data (optional)
-With the dev stack running:
-```bash
-pwsh scripts/seed-demo-data.ps1
-```
-Inserts a demo user plus 14 days of meals and goals directly into the Postgres tables (Windows PowerShell oriented; assumes `docker compose exec postgres`).
-
-## Local development (per component)
-
-### Web client — `calorie-app/`
-```bash
-cd calorie-app
-npm install
-npm run dev        # Vite dev server on http://localhost:3000 (host 0.0.0.0)
-npm run build      # tsc && vite build → dist/
-npm run preview    # serve the built output
-```
-For backend-free local dev, create `calorie-app/.env.local` with `VITE_MOCK_MODE=true` (it is gitignored and **not** committed). The client calls the backend under the `/api` prefix; the Vite dev proxy routes per service: `/api/auth` & `/api/users` → `:8081`, `/api/meals` → `:8082`, `/api/analytics` & `/api/goals` → `:8083`.
-
-> `react-router-dom` is a declared dependency but unused — routing is a local `useState` page union in `App.tsx`.
-
-### Spring services — `services/{auth,meals,analytics}-service/`
-Each service is an independent Maven module (no Maven wrapper; use a system `mvn`). They need Postgres reachable with their schema, and `APP_JWT_SECRET` must match across services.
-```bash
-cd services/auth-service        # or meals-service / analytics-service
-mvn test                        # run unit tests
-mvn package                     # build the jar
-mvn spring-boot:run             # run locally (auth :8081, meals :8082, analytics :8083)
-```
-Single-service Docker build:
-```bash
-docker build -t auth-service services/auth-service
-docker run -p 8081:8081 auth-service
-```
-
-### GenAI service — `services/genai-service/`
-```bash
-cd services/genai-service
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-ollama pull llava                       # default provider; Ollama on :11434
-uvicorn app:app --reload --port 8084    # Swagger at http://localhost:8084/docs
-
-# smoke-test a running instance:
-curl -X POST http://localhost:8084/api/analyze -F "file=@/path/to/meal.jpg"
+To pre-populate demo data for the last two weeks:
+```powershell
+.\scripts\seed-demo-data.ps1
 ```
 Provider is selected with `LLM_PROVIDER` (`ollama` | `openai` | `google`); see [Configuration](#configuration).
 
@@ -211,6 +158,22 @@ JWT subject is the user's email; the user id is a custom `userId` claim. The aut
 | `GET` | `/api/analytics/streak` | Consecutive-days logging streak (~5-year window) |
 | `GET` | `/api/goals` | Current user's goal, or `204` if none set |
 | `PUT` | `/api/goals` | Upsert nutrition goal (`GoalRequest`; includes `fiberGrams`) |
+### Swagger UI (local)
+
+| Service | URL |
+|---------|-----|
+| Auth | http://localhost:8081/swagger-ui.html |
+| Meals | http://localhost:8082/swagger-ui.html |
+| Analytics | http://localhost:8083/swagger-ui.html |
+| GenAI | http://localhost:8084/docs |
+
+### Production (AET Kubernetes)
+
+Live at **https://team-password123-devops-ss26.stud.k8s.aet.cit.tum.de**
+
+Deployed automatically on every push to `main` via Helm. GenAI uses Google Gemini in production (no Ollama required).
+
+See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the full deployment guide.
 
 Goal deltas are `actual − target`; with no goal set, target is treated as 0. If `meals-service` is down, analytics returns `502`.
 
@@ -330,11 +293,25 @@ ansible-playbook -i inventory.ini playbook.yml \
 The prod Compose stack ([`docker-compose.prod.yml`](docker-compose.prod.yml)) pulls prebuilt GHCR images and serves the web client via nginx on `:80` (Postgres is not published externally). See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the full operator runbook, secrets, and variables.
 
 > **Security note:** default secrets (`APP_JWT_SECRET`, `POSTGRES_PASSWORD`, Helm `jwt.secret`/`postgres.password`) are placeholders and must be overridden for any real deployment. The prod Compose stack enforces this via required (`:?`) variables.
+- [x] Three Spring Boot microservices (auth, meals, analytics) with schema-per-service isolation
+- [x] Python FastAPI GenAI service (Ollama local / Gemini cloud)
+- [x] React web client — all pages (diary, scan, insights, profile, onboarding)
+- [x] iOS SwiftUI prototype (offline, SwiftData)
+- [x] Docker Compose (dev + prod) — one-command local setup
+- [x] GitHub Actions CI — build + test all services, Vitest, Playwright e2e, genai pytest
+- [x] GHCR image build & push (5 images, immutable SHA tags)
+- [x] Helm chart + Kubernetes deployment (AET cluster, Traefik, TLS via cert-manager)
+- [x] Terraform (Azure VM) + Ansible IaC
+- [ ] Prometheus + Grafana observability
+- [ ] iOS networking layer wired to the services
 
 ## Docs
 
-Product and design material lives in [`docs/`](docs/):
-- [`Problem Statement.md`](docs/Problem%20Statement.md) — product vision and functional scenarios.
-- [`System Architecture.md`](docs/System%20Architecture.md) — initial system structure (predates the three-service split).
-- UML diagrams: `usecase-diagram.png`, `sys-architecture.png`, `object-diagram.png`.
-</content>
+| Document | Description |
+|----------|-------------|
+| [API Reference](docs/API%20Reference.md) | Full endpoint docs — request/response bodies for all services |
+| [System Architecture](docs/System%20Architecture.md) | Architecture diagram and service descriptions |
+| [Sprint Plan](docs/sprint-plan.md) | Sprint history and upcoming work |
+| [Problem Statement](docs/Problem%20Statement.md) | Product vision and user scenarios |
+| [Deployment Guide](DEPLOYMENT.md) | K8s + Azure VM deployment instructions |
+| [services/README.md](services/README.md) | Cross-cutting backend patterns (JWT, DB, inter-service calls) |

@@ -1,3 +1,3 @@
 | Person | Date Range | Tasks Completed |
 |---|---|---|
-| E.g. Arnav | E.g. 04/05/26 - 08/05/26 | E.g.:<br><ul><li>Created a basic Dockerfile that runs the minimal features of the website.</li><li>Created a Grafana dashboard to visualize CPU and Memory usage for the staging environment, helping the team identify a memory leak.</li><li>Scripted a Bash utility to automate the cleanup of orphaned Docker volumes, saving 15GB of disk space on staging servers.</li></ul> |
+| Deniz | 01/06/26 - 05/06/26 | <ul><li>Reviewed and merged the CI and backend endpoints PRs, and did minor repository cleanup (.gitignore, Mac artefacts).</li><li>Investigated a CI trigger issue and pushed a fix for the workflow concurrency logic.</li></ul> |

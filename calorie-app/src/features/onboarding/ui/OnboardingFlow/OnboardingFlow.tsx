@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useProfileStore, calculateGoals } from '../../../../entities/user/model/profile';
 import type { Sex, ActivityLevel, GoalKind } from '../../../../entities/user/model/profile';
+import { authApi } from '../../../auth/api/authApi';
+import { goalsApi } from '../../../../entities/nutrition/api/goalsApi';
 import styles from './OnboardingFlow.module.css';
 
 const TOTAL_STEPS = 4;
@@ -30,8 +32,11 @@ export function OnboardingFlow({ defaultName = 'Me' }: Props) {
   const suggestedGoals = calculateGoals(weightKg, heightCm, age, sex, activity, goal);
 
   function finish() {
+    const displayName = name.trim() || 'Me';
+
+    // Apply locally first so the UI advances instantly.
     profile.patch({
-      displayName: name.trim() || 'Me',
+      displayName,
       sex,
       age,
       heightCm,
@@ -40,6 +45,25 @@ export function OnboardingFlow({ defaultName = 'Me' }: Props) {
       goal,
       goals: { ...suggestedGoals },
       onboardingComplete: true,
+    });
+
+    // Persist to the backend (non-blocking — keep local state on error) so the
+    // profile + goals survive a fresh login / different browser. Surface the
+    // error in dev so a rejected validation (e.g. a bad enum) isn't silent.
+    authApi.update({
+      displayName, heightCm, weightKg, age, sex, activityLevel: activity, goal,
+    }).catch((err) => {
+      if (import.meta.env.DEV) console.warn('Failed to persist profile to backend:', err);
+    });
+
+    goalsApi.save({
+      dailyCalories: suggestedGoals.calories,
+      proteinGrams:  suggestedGoals.protein,
+      carbsGrams:    suggestedGoals.carbs,
+      fatGrams:      suggestedGoals.fats,
+      fiberGrams:    0,
+    }).catch((err) => {
+      if (import.meta.env.DEV) console.warn('Failed to persist goals to backend:', err);
     });
   }
 

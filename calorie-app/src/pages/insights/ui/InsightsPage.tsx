@@ -1,17 +1,13 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { MOCK_STATS } from '../../../entities/nutrition';
-import { getMockMealsForOffset, MOCK_MEALS } from '../../../entities/meal/model/mock';
 import { mealApi } from '../../../entities/meal/api/mealApi';
 import { analyticsApi } from '../../../entities/nutrition/api/analyticsApi';
 import { useProfileStore } from '../../../entities/user/model/profile';
-import { MOCK_MODE } from '../../../shared/config/flags';
 import styles from './InsightsPage.module.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants & types
 // ─────────────────────────────────────────────────────────────────────────────
 
-const MOCK_TODAY = new Date(2026, 4, 28); // Thu 28 May 2026 (mock anchor)
 const FUTURE_LIMIT = 14;             // days ahead user can plan
 const PAST_LIMIT   = 365;            // days back with data
 
@@ -54,30 +50,8 @@ const MO_LONG  = ['January','February','March','April','May','June','July','Augu
 const WD_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Day-level data — derived from the same mock meals as DiaryPage
+// Day-level data
 // ─────────────────────────────────────────────────────────────────────────────
-
-function genDay(d: Date): Stats {
-  const offset = diffDays(d, MOCK_TODAY);
-  // offset === 0 (today) uses MOCK_MEALS (same as DiaryPage store at offset 0)
-  const meals = offset === 0 ? MOCK_MEALS : getMockMealsForOffset(offset);
-  return {
-    cal:     meals.reduce((s, m) => s + m.calories, 0),
-    protein: meals.reduce((s, m) => s + m.protein,  0),
-    carbs:   meals.reduce((s, m) => s + m.carbs,    0),
-    fat:     meals.reduce((s, m) => s + m.fat,      0),
-  };
-}
-
-function dayStatus(d: Date): BarStatus {
-  if (!MOCK_MODE) return 'nodata';
-  const diff = diffDays(d, MOCK_TODAY);
-  if (diff === 0)           return 'today';
-  if (diff > FUTURE_LIMIT)  return 'nodata';
-  if (diff > 0)             return 'future';
-  if (diff < -PAST_LIMIT)   return 'nodata';
-  return 'ok';
-}
 
 function realDayStatus(d: Date, today: Date): BarStatus {
   const diff = diffDays(d, today);
@@ -86,13 +60,6 @@ function realDayStatus(d: Date, today: Date): BarStatus {
   if (diff > 0)            return 'future';
   if (diff < -PAST_LIMIT)  return 'nodata';
   return 'ok';
-}
-
-// dayStats is overridden inside the component when !MOCK_MODE to use apiDayCache
-function dayStatsMock(d: Date): Stats & { status: BarStatus } {
-  const status = dayStatus(d);
-  if (status === 'today' || status === 'ok') return { ...genDay(d), status };
-  return { cal: 0, protein: 0, carbs: 0, fat: 0, status };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -448,7 +415,7 @@ function isoDate(d: Date): string {
 }
 
 function getInsightsBaseDate(): Date {
-  return MOCK_MODE ? new Date(MOCK_TODAY) : new Date();
+  return new Date();
 }
 
 export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
@@ -469,7 +436,6 @@ export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
 
   // Fetch a date range from the API and merge into cache
   const fetchRange = useCallback(async (from: Date, to: Date) => {
-    if (MOCK_MODE) return;
     try {
       const raw = await mealApi.getHistory(isoDate(from), isoDate(to));
       if (!raw) return;
@@ -488,9 +454,8 @@ export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
     } catch { /* keep cached data */ }
   }, []);
 
-  // Fetch when visible range changes (real API path only)
+  // Fetch when visible range changes
   useEffect(() => {
-    if (MOCK_MODE) return;
     if (range === 'Week') {
       fetchRange(weekStart, addDays(weekStart, 6));
     } else if (range === 'Month') {
@@ -504,15 +469,13 @@ export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
   }, [range, weekStart, monthDate, yearNum, fetchRange]);
 
   useEffect(() => {
-    if (MOCK_MODE) return;
     analyticsApi.getStreak().then((response) => {
       if (response) setStreak(response.streak);
     }).catch(() => {});
   }, []);
 
-  // ── dayStats function — uses API cache when !MOCK_MODE ────────
+  // ── dayStats function — uses API cache ────────
   const dayStats = useCallback((d: Date): Stats & { status: BarStatus } => {
-    if (MOCK_MODE) return dayStatsMock(d);
     const today = getInsightsBaseDate();
     const key = isoDate(d);
     const cached = apiDayCache.get(key);
@@ -656,9 +619,9 @@ export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
         />
         <KpiCard
           label="Logging streak"
-          value={MOCK_MODE ? String(MOCK_STATS.streak) : String(streak ?? '—')}
-          unit={MOCK_MODE ? 'days' : (streak !== null ? 'days' : '')}
-          delta={MOCK_MODE ? 'Keep it going 🔥' : (streak !== null ? 'Current streak' : 'No data')}
+          value={String(streak ?? '—')}
+          unit={streak !== null ? 'days' : ''}
+          delta={streak !== null ? 'Current streak' : 'No data'}
         />
       </div>
 

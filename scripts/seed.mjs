@@ -6,28 +6,36 @@
 // are up; then log in at http://localhost:3000 with the seed credentials and
 // the whole app works against the real backend (everything except AI scan).
 //
+// By default the seed user's existing meals are deleted first, so re-running
+// yields a clean, deterministic dataset (old data is removed, not appended to).
+//
 // Usage:
-//   node scripts/seed.mjs                 # seed last 10 days for dev@local
+//   node scripts/seed.mjs                 # clear + seed last 10 days for dev@local.com
 //   SEED_DAYS=14 node scripts/seed.mjs    # override window
-//   node scripts/seed.mjs --force         # re-create meals even if some exist
+//   node scripts/seed.mjs --keep          # append without clearing existing meals
 //
 // Endpoints used (all already implemented):
-//   POST /api/auth/register | /api/auth/login   (:8081)
-//   PUT  /api/users/me                          (:8081)
-//   PUT  /api/goals                             (:8083)
-//   GET  /api/meals?from=&to=                   (:8082)
-//   POST /api/meals/manual                      (:8082)
+//   POST   /api/auth/register | /api/auth/login   (:8081)
+//   PUT    /api/users/me                          (:8081)
+//   PUT    /api/goals                             (:8083)
+//   GET    /api/meals?from=&to=                   (:8082)
+//   POST   /api/meals/manual                      (:8082)
+//   DELETE /api/meals/:id                         (:8082)
 
 const cfg = {
   authUrl:      process.env.SEED_AUTH_URL      ?? 'http://localhost:8081',
   mealsUrl:     process.env.SEED_MEALS_URL     ?? 'http://localhost:8082',
   analyticsUrl: process.env.SEED_ANALYTICS_URL ?? 'http://localhost:8083',
-  email:        process.env.SEED_EMAIL         ?? 'dev@local',
+  email:        process.env.SEED_EMAIL         ?? 'dev@local.com',
   password:     process.env.SEED_PASSWORD      ?? 'password123',
   displayName:  process.env.SEED_NAME          ?? 'Dev User',
   days:         Number(process.env.SEED_DAYS   ?? '10'),
-  force:        process.argv.includes('--force'),
+  keep:         process.argv.includes('--keep'),
 };
+
+// How far back to look when clearing the seed user's existing meals — wider than
+// any seed window and the insights history range, so reseeds start fully clean.
+const CLEAR_LOOKBACK_DAYS = 400;
 
 // Demo user physical profile → mirrors what onboarding would produce.
 const PROFILE = {
@@ -48,7 +56,10 @@ const GOALS = {
   fiberGrams:    30,
 };
 
-// ─── Meal pools (ported verbatim from calorie-app src/entities/meal/model/mock.ts) ───
+// ─── Meal pools ──────────────────────────────────────────────────────────────
+// Ported from the frontend's former mock data (the deleted
+// calorie-app/src/entities/meal/model/mock.ts) so the seeded history mirrors
+// what the app used to render locally.
 // PoolEntry: { time, name, calories, protein, carbs, fat }. Fiber is estimated
 // from carbs since the original mock had no fiber data.
 
@@ -109,8 +120,8 @@ const SLOTS = [
   { type: 'SNACK',     pool: SNACK_POOL,     skip: 0.35 },
 ];
 
-// Seeded RNG (xorshift32) — identical to the frontend mock, so the seeded
-// history matches what MOCK_MODE used to render for the same calendar date.
+// Seeded RNG (xorshift32) — identical to the frontend's former mock, so the
+// seeded history is deterministic and consistent for the same calendar date.
 function seeded(seed) {
   let n = (seed + 1) >>> 0;
   return () => {
@@ -135,7 +146,16 @@ async function api(method, url, { token, body } = {}) {
     throw new Error(`Cannot reach ${url} — are the services running? (${err.message})`);
   }
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      // Non-JSON body (e.g. a plain-text Spring 500) — keep it readable so the
+      // caller's error message wins instead of an opaque SyntaxError crash.
+      data = { message: text };
+    }
+  }
   return { ok: res.ok, status: res.status, data };
 }
 
@@ -143,7 +163,12 @@ function isoDate(d) {
   return d.toISOString().slice(0, 10);
 }
 
-// Build an ISO timestamp for `day` at the pool entry's HH:MM (local time).
+// Build an ISO timestamp for `day` at the pool entry's HH:MM.
+// Note: setHours sets the LOCAL wall-clock time, while toISOString emits UTC.
+// On machines with a large UTC offset a meal logged near midnight can therefore
+// land on the adjacent UTC calendar day. That's acceptable for a dev-only seed
+// (the backend stores OffsetDateTime and the UI renders the wall-clock time);
+// switch to an explicit fixed offset here if exact UTC dates ever matter.
 function loggedAtFor(day, time) {
   const [h, m] = time.split(':').map(Number);
   const d = new Date(day);
@@ -175,6 +200,27 @@ function mealsForDay(day) {
     });
   }
   return meals;
+}
+
+// Delete every meal owned by the seed user within a wide window. The backend
+// scopes deletes to the authenticated user, so this only ever touches the seed
+// account. Returns the number of meals removed.
+async function clearMeals(token) {
+  const today = new Date();
+  const lookback = Math.max(CLEAR_LOOKBACK_DAYS, cfg.days + 2);
+  const from = new Date(today); from.setDate(from.getDate() - lookback);
+  const to   = new Date(today); to.setDate(to.getDate() + 1);
+  const existing = await api('GET',
+    `${cfg.mealsUrl}/api/meals?from=${isoDate(from)}&to=${isoDate(to)}`, { token });
+  if (!existing.ok || !Array.isArray(existing.data)) return 0;
+
+  let deleted = 0;
+  for (const meal of existing.data) {
+    const res = await api('DELETE', `${cfg.mealsUrl}/api/meals/${meal.id}`, { token });
+    if (!res.ok) throw new Error(`DELETE /meals/${meal.id} failed (${res.status}): ${JSON.stringify(res.data)}`);
+    deleted++;
+  }
+  return deleted;
 }
 
 // ─── Seed flow ───────────────────────────────────────────────────────────────
@@ -209,15 +255,14 @@ async function main() {
   if (!goals.ok) throw new Error(`PUT /goals failed (${goals.status}): ${JSON.stringify(goals.data)}`);
   console.log('• goals set');
 
-  // 4. Meals. Skip if the window already has data (unless --force).
+  // 4. Meals. Clear the seed user's existing meals first (unless --keep) so a
+  //    re-run produces a clean, deterministic dataset instead of duplicates.
   const today = new Date();
-  const from = new Date(today); from.setDate(from.getDate() - (cfg.days - 1));
-  const existing = await api('GET',
-    `${cfg.mealsUrl}/api/meals?from=${isoDate(from)}&to=${isoDate(today)}`, { token });
-  if (existing.ok && Array.isArray(existing.data) && existing.data.length > 0 && !cfg.force) {
-    console.log(`• ${existing.data.length} meals already in range — skipping (use --force to add anyway)`);
-    console.log('\nDone. Open http://localhost:3000 and log in with', cfg.email, '/', cfg.password);
-    return;
+  if (cfg.keep) {
+    console.log('• --keep: leaving existing meals in place');
+  } else {
+    const cleared = await clearMeals(token);
+    console.log(`• cleared ${cleared} existing meal(s)`);
   }
 
   let count = 0;

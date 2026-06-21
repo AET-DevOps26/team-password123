@@ -6,8 +6,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-# Production defaults apply: MOCK_MODE/OFFLINE_MODE are off because
-# .env.local is excluded via .dockerignore, so the build hits the real backend.
+# The SPA always talks to the real backend; .env.local is excluded via
+# .dockerignore so local dev overrides never leak into the image.
 RUN npm run build
 
 # ── Serve via nginx, reverse-proxying /api/* to the backend services ──

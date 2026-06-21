@@ -1,7 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Dedicated port so tests never collide with a manually started dev server
-// (which may be running with VITE_MOCK_MODE=true from .env.local).
+// Dedicated port so tests never collide with a manually started dev server.
 const PORT = 4173;
 
 export default defineConfig({
@@ -24,11 +23,5 @@ export default defineConfig({
     command: `npm run dev -- --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
-    // Process env overrides .env.local, so tests always run against the
-    // real API code paths regardless of local developer flags.
-    env: {
-      VITE_MOCK_MODE: 'false',
-      VITE_OFFLINE_MODE: 'false',
-    },
   },
 });

@@ -71,7 +71,14 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
 
       const request = entryToManualRequest(slot, name, savedAt, itemRequests);
       const response = await mealApi.saveManual(request);
-      if (response) addEntry(mealResponseToEntry(response));
+      if (response) {
+        addEntry(mealResponseToEntry(response));
+      } else if (import.meta.env.DEV) {
+        // A 2xx with no body shouldn't happen for this endpoint — flag it in dev
+        // so a silently dropped entry is noticeable. (Network/5xx errors throw
+        // and propagate to the caller.)
+        console.warn('POST /meals/manual returned no body — entry not added');
+      }
     } finally {
       setSaving(false);
     }

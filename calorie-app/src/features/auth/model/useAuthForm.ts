@@ -102,7 +102,10 @@ export function useAuthForm() {
         }
       }).catch(() => { /* keep local defaults */ });
 
-      // Load server-side goals (non-blocking — ignore errors)
+      // Load server-side goals (non-blocking — ignore errors). This runs in
+      // parallel with me() above but only patches `goals`, never
+      // `onboardingComplete`, so the two resolving in any order is safe (the
+      // onboarding gate depends solely on the value me() sets).
       goalsApi.get().then((g) => {
         if (g) {
           patchProfile({

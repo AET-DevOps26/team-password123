@@ -48,10 +48,13 @@ export function OnboardingFlow({ defaultName = 'Me' }: Props) {
     });
 
     // Persist to the backend (non-blocking — keep local state on error) so the
-    // profile + goals survive a fresh login / different browser.
+    // profile + goals survive a fresh login / different browser. Surface the
+    // error in dev so a rejected validation (e.g. a bad enum) isn't silent.
     authApi.update({
       displayName, heightCm, weightKg, age, sex, activityLevel: activity, goal,
-    }).catch(() => { /* keep local-only */ });
+    }).catch((err) => {
+      if (import.meta.env.DEV) console.warn('Failed to persist profile to backend:', err);
+    });
 
     goalsApi.save({
       dailyCalories: suggestedGoals.calories,
@@ -59,7 +62,9 @@ export function OnboardingFlow({ defaultName = 'Me' }: Props) {
       carbsGrams:    suggestedGoals.carbs,
       fatGrams:      suggestedGoals.fats,
       fiberGrams:    0,
-    }).catch(() => { /* keep local-only */ });
+    }).catch((err) => {
+      if (import.meta.env.DEV) console.warn('Failed to persist goals to backend:', err);
+    });
   }
 
   return (

@@ -24,9 +24,6 @@ export function AuthPage() {
             <li><span className={styles.tick}><CheckIcon /></span>AI estimates calories &amp; macros instantly</li>
             <li><span className={styles.tick}><CheckIcon /></span>Watch your trends across weeks and months</li>
           </ul>
-          <div className={styles.appShot}>
-            <span className={styles.appShotCap}>app preview</span>
-          </div>
         </div>
       </aside>
 

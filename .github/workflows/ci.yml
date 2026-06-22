@@ -100,10 +100,9 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      # Playwright's webServer boots `npm run dev` on port 4173 with
-      # VITE_MOCK_MODE=false, so tests exercise the real API code paths
-      # (all /api/* calls are intercepted by route mocks). CI mode adds
-      # 2 retries and emits an HTML report.
+      # Playwright's webServer boots `npm run dev` on port 4173; tests exercise
+      # the real API code paths with all /api/* calls intercepted by route
+      # mocks. CI mode adds 2 retries and emits an HTML report.
       - name: Run e2e tests
         run: npm run test:e2e
 

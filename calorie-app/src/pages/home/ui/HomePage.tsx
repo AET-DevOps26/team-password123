@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CalorieRing, MacroBar, MOCK_GOAL, MOCK_TODAY, MOCK_STATS } from '../../../entities/nutrition';
+import { CalorieRing, MacroBar } from '../../../entities/nutrition';
 import { MealRow, useMealStore } from '../../../entities/meal';
 import { mealApi } from '../../../entities/meal/api/mealApi';
 import { mealResponseToEntry } from '../../../entities/meal/model/mapper';
@@ -9,7 +9,6 @@ import { useProfileStore } from '../../../entities/user/model/profile';
 import { ScanMealButton } from '../../../features/scan-meal';
 import { StatPill } from '../../../shared/ui/StatPill/StatPill';
 import { IconFlame, IconTarget, IconTrend, IconBolt, IconChevR } from '../../../shared/ui/icons';
-import { MOCK_MODE } from '../../../shared/config/flags';
 import styles from './HomePage.module.css';
 
 interface HomePageProps {
@@ -29,7 +28,6 @@ export function HomePage({ onScan }: HomePageProps) {
 
   // Fetch today's data from API when backend is live
   useEffect(() => {
-    if (MOCK_MODE) return;
     const today = new Date().toISOString().slice(0, 10);
     const weekStart = (() => {
       const date = new Date();
@@ -63,26 +61,22 @@ export function HomePage({ onScan }: HomePageProps) {
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const realDateLabel = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
-  const dateLabel   = MOCK_MODE ? MOCK_TODAY.dateLabel : `Today, ${realDateLabel}`;
-  const consumed    = MOCK_MODE ? MOCK_TODAY.consumed  : (dailyAnalytics ? Math.round(dailyAnalytics.calories)     : entries.reduce((s, e) => s + e.calories, 0));
-  const protein     = MOCK_MODE ? MOCK_TODAY.protein   : (dailyAnalytics ? Math.round(dailyAnalytics.proteinGrams) : entries.reduce((s, e) => s + e.protein,  0));
-  const carbs       = MOCK_MODE ? MOCK_TODAY.carbs     : (dailyAnalytics ? Math.round(dailyAnalytics.carbsGrams)   : entries.reduce((s, e) => s + e.carbs,    0));
-  const fat         = MOCK_MODE ? MOCK_TODAY.fat       : (dailyAnalytics ? Math.round(dailyAnalytics.fatGrams)     : entries.reduce((s, e) => s + e.fat,      0));
+  const dateLabel   = `Today, ${realDateLabel}`;
+  const consumed    = dailyAnalytics ? Math.round(dailyAnalytics.calories)     : entries.reduce((s, e) => s + e.calories, 0);
+  const protein     = dailyAnalytics ? Math.round(dailyAnalytics.proteinGrams) : entries.reduce((s, e) => s + e.protein,  0);
+  const carbs       = dailyAnalytics ? Math.round(dailyAnalytics.carbsGrams)   : entries.reduce((s, e) => s + e.carbs,    0);
+  const fat         = dailyAnalytics ? Math.round(dailyAnalytics.fatGrams)     : entries.reduce((s, e) => s + e.fat,      0);
 
-  const calGoal     = MOCK_MODE ? MOCK_GOAL.calories : (goals.calories || 2000);
-  const proteinGoal = MOCK_MODE ? MOCK_GOAL.protein  : (goals.protein  || 120);
-  const carbsGoal   = MOCK_MODE ? MOCK_GOAL.carbs    : (goals.carbs    || 220);
-  const fatGoal     = MOCK_MODE ? MOCK_GOAL.fat      : (goals.fats     || 65);
+  const calGoal     = goals.calories || 2000;
+  const proteinGoal = goals.protein  || 120;
+  const carbsGoal   = goals.carbs    || 220;
+  const fatGoal     = goals.fats     || 65;
 
-  const streakValue = MOCK_MODE ? MOCK_STATS.streak : (streak ?? 0);
-  const goalHit = MOCK_MODE
-    ? `${Math.round(MOCK_STATS.goalAdherence * 100)}%`
-    : (dailyAnalytics
-      ? (((dailyAnalytics.calorieGoalDelta ?? 0) <= 0) ? 'On track' : 'Over goal')
-      : (entries.length > 0 ? 'Logged' : '—'));
-  const weekAvg = MOCK_MODE
-    ? MOCK_STATS.weekAvg.toLocaleString()
-    : (weeklyAnalytics ? Math.round(weeklyAnalytics.calories / 7).toLocaleString() : '—');
+  const streakValue = streak ?? 0;
+  const goalHit = dailyAnalytics
+    ? (((dailyAnalytics.calorieGoalDelta ?? 0) <= 0) ? 'On track' : 'Over goal')
+    : (entries.length > 0 ? 'Logged' : '—');
+  const weekAvg = weeklyAnalytics ? Math.round(weeklyAnalytics.calories / 7).toLocaleString() : '—';
 
   return (
     <div className={styles.screen}>

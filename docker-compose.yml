@@ -79,8 +79,6 @@ services:
       VITE_AUTH_API_URL: http://auth-service:8081
       VITE_MEALS_API_URL: http://meals-service:8082
       VITE_ANALYTICS_API_URL: http://analytics-service:8083
-      VITE_MOCK_MODE: "false"
-      VITE_OFFLINE_MODE: "false"
     ports:
       - "3000:3000"
     volumes:

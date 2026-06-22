@@ -1,23 +1,18 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useMealStore, MealRow } from '../../../entities/meal';
-import { getMockMealsForOffset } from '../../../entities/meal/model/mock';
 import { mealApi } from '../../../entities/meal/api/mealApi';
 import { mealResponseToEntry } from '../../../entities/meal/model/mapper';
 import type { MealEntry } from '../../../entities/meal';
-import { MacroChip, MOCK_GOAL } from '../../../entities/nutrition';
+import { MacroChip } from '../../../entities/nutrition';
 import { useProfileStore } from '../../../entities/user/model/profile';
 import { ScanMealButton } from '../../../features/scan-meal';
 import { ManualEntryModal } from '../../../features/manual-entry';
 import type { MealSlot } from '../../../features/manual-entry/model/useManualEntry';
 import { Toast } from '../../../widgets/notification';
-import { MOCK_MODE } from '../../../shared/config/flags';
 import styles from './DiaryPage.module.css';
 
-// Anchor for date math — same as InsightsPage
-const DIARY_ANCHOR = new Date(2026, 4, 28);
-
 function getDiaryBaseDate(): Date {
-  return MOCK_MODE ? new Date(DIARY_ANCHOR) : new Date();
+  return new Date();
 }
 
 function addDays(date: Date, days: number): Date {
@@ -61,9 +56,8 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
     return toLocalIsoDate(addDays(getDiaryBaseDate(), off));
   }
 
-  // Fetch meals from API when MOCK_MODE is off
+  // Fetch meals from the API for the visible day
   const fetchMeals = useCallback(async (off: number) => {
-    if (MOCK_MODE) return;
     try {
       const date = offsetToIsoDate(off);
       const raw  = await mealApi.getHistory(date, date);
@@ -75,13 +69,9 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
 
   useEffect(() => { fetchMeals(offset); }, [offset, fetchMeals]);
 
-  // Determine which entries to show
-  const mockEntries = useMemo(() => getMockMealsForOffset(offset), [offset]);
-  const entries: MealEntry[] = MOCK_MODE
-    ? (offset !== 0 ? mockEntries : storeEntries)
-    : (apiEntries ?? storeEntries);
+  const entries: MealEntry[] = apiEntries ?? storeEntries;
 
-  const calGoal = MOCK_MODE ? MOCK_GOAL.calories : (goals.calories || 2000);
+  const calGoal = goals.calories || 2000;
 
   const bySlot = (slot: MealSlot): MealEntry[] =>
     entries.filter((e) => e.slot === slot);
@@ -99,8 +89,8 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
   function handleAdded(kcal: number) {
     setShowManual(false);
     setToast(`Logged ${kcal} kcal to your diary`);
-    // Re-fetch the day so the new entry appears (real API path)
-    if (!MOCK_MODE) fetchMeals(offset);
+    // Re-fetch the day so the new entry appears
+    fetchMeals(offset);
   }
 
   const viewDate = addDays(getDiaryBaseDate(), offset);

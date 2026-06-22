@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 import type { MealEntry } from './types';
-import { MOCK_MEALS } from './mock';
-import { MOCK_MODE } from '../../../shared/config/flags';
 
 interface MealStore {
   entries: MealEntry[];
@@ -11,7 +9,7 @@ interface MealStore {
 }
 
 export const useMealStore = create<MealStore>((set) => ({
-  entries: MOCK_MODE ? MOCK_MEALS : [],
+  entries: [],
 
   addEntry:    (entry)   => set((s) => ({ entries: [entry, ...s.entries] })),
   setEntries:  (entries) => set({ entries }),

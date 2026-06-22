@@ -79,6 +79,41 @@ Design docs live in [`docs/`](docs/): [`Problem Statement.md`](docs/Problem%20St
 
 ## Quick start (Docker Compose)
 
+### Run locally without AI (seeded demo data)
+
+The fastest way to try the full web app. This skips the GenAI service entirely
+(no Ollama needed) — every feature works except photo recognition, which falls
+back to manual entry. Demo data is loaded into the real database via the seed
+script, so the app runs against the real backend.
+
+Requires Docker and Node.js 18+.
+
+```bash
+# From the repo root:
+cp .env.example .env
+
+# 1. Start everything except the GenAI service (postgres + the 3 services + web):
+docker compose up --build postgres auth-service meals-service analytics-service web
+
+# 2. Once the services are up, seed one demo user + ~10 days of meals:
+node scripts/seed.mjs          # or: make seed
+```
+
+Then open <http://localhost:3000> and log in with:
+
+- **Email:** `dev@local.com`
+- **Password:** `password123`
+
+The profile, daily goals, diary history, insights, and logging streak are all
+populated from the seeded data. The "Scan meal" button works too — without the
+AI service it just routes to the manual nutrition form.
+
+Seed options: re-running clears the seed user's existing meals first, so you
+always get a clean dataset (pass `--keep` to append instead). Override with
+`SEED_DAYS`, `SEED_EMAIL`, `SEED_PASSWORD`. See [`scripts/seed.mjs`](scripts/seed.mjs).
+
+### Full stack with GenAI
+
 Brings up Postgres + the three Spring services + the GenAI service + the web client (Vite dev server) on one machine.
 
 ### Prerequisites
@@ -99,10 +134,12 @@ docker compose up --build
 
 App opens at **http://localhost:3000**. All five services + Postgres come up in one command.
 
-To pre-populate demo data for the last two weeks:
-```powershell
-.\scripts\seed-demo-data.ps1
+To pre-populate demo data (one user + ~10 days of meals), run the seed script once the services are up:
+```bash
+node scripts/seed.mjs          # or: make seed
 ```
+After seeding, hard refresh the browser tab if the app is already open, then log in with `dev@local.com` / `password123`.
+
 Provider is selected with `LLM_PROVIDER` (`ollama` | `openai` | `google`); see [Configuration](#configuration).
 
 ### iOS app — `ios-app/`

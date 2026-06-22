@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { useMealStore } from '../../../entities/meal';
-import type { MealEntry } from '../../../entities/meal';
 import { mealApi } from '../../../entities/meal/api/mealApi';
 import { mealResponseToEntry, entryToManualRequest } from '../../../entities/meal/model/mapper';
 import { fileToDataUrl } from '../../../shared/lib/fileToDataUrl';
-import { MOCK_MODE } from '../../../shared/config/flags';
 
 export type MealSlot = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
 
@@ -24,13 +22,6 @@ const SUGGESTIONS: Ingredient[] = [
   { name: 'Olive oil',      amount: '1 tbsp',    calories: 119 },
   { name: 'Egg',            amount: '1 large',   calories: 78  },
 ];
-
-const SLOT_TONES: Record<MealSlot, string> = {
-  Breakfast: '#e8d9c4',
-  Lunch:     '#cfe0c9',
-  Dinner:    '#d4d9e8',
-  Snack:     '#e4d2cf',
-};
 
 export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date) {
   const [query, setQuery]   = useState('');
@@ -62,8 +53,6 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
     if (loggedAt) {
       savedAt.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
     }
-    const time = now.toTimeString().slice(0, 5);
-
     const name = items.length === 1
       ? items[0].name
       : `${items[0]?.name ?? 'Mixed meal'} & more`;
@@ -72,25 +61,6 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
     // on reload the same image is served from the backend via the mapped photoUrl.
     const imageUrl = photoFile ? await fileToDataUrl(photoFile).catch(() => undefined) : undefined;
 
-    if (MOCK_MODE) {
-      // Local-only path: build a MealEntry and push to store
-      const entry: MealEntry = {
-        id:       `manual-${Date.now()}`,
-        slot,
-        time,
-        name,
-        calories: totalCalories,
-        protein:  Math.round(totalCalories * 0.05),
-        carbs:    Math.round(totalCalories * 0.125),
-        fat:      Math.round(totalCalories * 0.033),
-        tone:     SLOT_TONES[slot],
-        imageUrl,
-      };
-      addEntry(entry);
-      return totalCalories;
-    }
-
-    // Real API path
     setSaving(true);
     try {
       const itemRequests = items.map((ing) => ({
@@ -107,12 +77,12 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
 
       const request = entryToManualRequest(slot, name, savedAt, itemRequests);
 
-      // With a photo: upload it, then link the nutrition via convert-manual so
-      // the photo persists. Without one: a plain manual save.
+      // With a photo: upload it, then link the nutrition via convert-manual so the
+      // photo persists. Without one: a plain manual save.
       let response = null;
       if (photoFile) {
         const photo = await mealApi.uploadPhoto(photoFile).catch(() => null);
-        response = photo?.id && photo.id !== 'offline-photo'
+        response = photo?.id
           ? await mealApi.convertPhotoToMeal(photo.id, request)
           : await mealApi.saveManual(request);
       } else {
@@ -121,17 +91,11 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
 
       if (response) {
         addEntry({ ...mealResponseToEntry(response), imageUrl });
-      } else {
-        // OFFLINE_MODE returns null — fall back to local entry
-        addEntry({
-          id: `manual-${Date.now()}`, slot, time, name,
-          calories: totalCalories,
-          protein:  Math.round(totalCalories * 0.05),
-          carbs:    Math.round(totalCalories * 0.125),
-          fat:      Math.round(totalCalories * 0.033),
-          tone:     SLOT_TONES[slot],
-          imageUrl,
-        });
+      } else if (import.meta.env.DEV) {
+        // A 2xx with no body shouldn't happen for this endpoint — flag it in dev
+        // so a silently dropped entry is noticeable. (Network/5xx errors throw
+        // and propagate to the caller.)
+        console.warn('POST /meals/manual returned no body — entry not added');
       }
     } finally {
       setSaving(false);

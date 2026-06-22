@@ -1,10 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { mealApi, useMealStore } from '../../../entities/meal';
 import { mealResponseToEntry, entryToManualRequest, singleItemFromMacros } from '../../../entities/meal/model/mapper';
 import type { Meal, MealEntry } from '../../../entities/meal';
 import type { PhotoLogResponse } from '../../../entities/meal/api/backendTypes';
-import { fileToDataUrl } from '../../../shared/lib/fileToDataUrl';
-import { MOCK_MODE } from '../../../shared/config/flags';
 
 export type ScanStage = 'idle' | 'scanning' | 'result' | 'manual_required' | 'error';
 
@@ -39,10 +37,6 @@ export interface ScanActions {
   retry: () => void;
 }
 
-const PROGRESS_TICK_MS  = 180;
-const PROGRESS_STEP_MIN = 3;
-const PROGRESS_STEP_MAX = 12;
-
 const SLOT_TONES: Record<MealSlot, string> = {
   Breakfast: '#e8d9c4',
   Lunch:     '#cfe0c9',
@@ -51,6 +45,16 @@ const SLOT_TONES: Record<MealSlot, string> = {
 };
 
 const EMPTY_FORM: ManualForm = { name: '', calories: '', protein: '', carbs: '', fat: '' };
+
+/** Read a File into a data: URL so the scanned photo renders instantly in the diary. */
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
 
 export function useScanMeal(): ScanState & ScanActions {
   const [stage,       setStage]       = useState<ScanStage>('idle');
@@ -63,18 +67,6 @@ export function useScanMeal(): ScanState & ScanActions {
   const [slot,        setSlot]        = useState<MealSlot>('Lunch');
 
   const addEntry = useMealStore((s) => s.addEntry);
-
-  // Progress-animation sync refs (used only in MOCK_MODE / deprecated analyze path)
-  const pendingResult = useRef<Meal | null>(null);
-  const progressDone  = useRef(false);
-  const apiDone       = useRef(false);
-
-  function advanceIfBothDone() {
-    if (progressDone.current && apiDone.current && pendingResult.current) {
-      setResult(pendingResult.current);
-      setStage('result');
-    }
-  }
 
   function setFile(f: File) {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -92,66 +84,28 @@ export function useScanMeal(): ScanState & ScanActions {
     if (!file) return;
     setStage('scanning');
     setErrorMessage(null);
-    pendingResult.current  = null;
-    progressDone.current   = false;
-    apiDone.current        = false;
 
-    if (MOCK_MODE) {
-      // Legacy path: call deprecated /meals/analyze with progress animation
-      let pct = 6;
-      const interval = setInterval(() => {
-        pct += PROGRESS_STEP_MIN + Math.random() * (PROGRESS_STEP_MAX - PROGRESS_STEP_MIN);
-        if (pct >= 100) {
-          pct = 100;
-          clearInterval(interval);
-          setTimeout(() => { progressDone.current = true; advanceIfBothDone(); }, 520);
-        }
-      }, PROGRESS_TICK_MS);
-
-      try {
-        const response = await mealApi.analyzePhoto(file);
-        pendingResult.current = response.meal;
-        apiDone.current = true;
-        advanceIfBothDone();
-      } catch (err) {
-        clearInterval(interval);
-        const msg = (err as { message?: string }).message ?? 'Failed to analyse the photo. Please try again.';
-        setErrorMessage(msg);
-        setStage('error');
-      }
-      return;
-    }
-
-    // Real backend path: send the photo to the GenAI vision model.
+    // Send the photo to the GenAI vision model.
     try {
       const response = await mealApi.analyzePhoto(file);
       if (response?.meal) {
         setResult(response.meal);
         setStage('result');
       } else {
-        // OFFLINE_MODE (no AI result) — fall back to manual entry.
-        await fallbackToManual(file);
+        // No AI result — fall back to manual entry.
+        fallbackToManual(file);
       }
     } catch {
       // AI unavailable (service down, quota exhausted, …) — degrade gracefully
       // to manual entry rather than dead-ending the user.
-      await fallbackToManual(file);
+      fallbackToManual(file);
     }
   }
 
-  async function fallbackToManual(f: File) {
+  function fallbackToManual(f: File) {
     const nameHint = f.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
     setManualForm({ ...EMPTY_FORM, name: nameHint });
     setStage('manual_required');
-    // Persist the captured photo now so addToDiary links it via convert-manual
-    // and it survives a reload. Non-fatal: on failure the meal still saves
-    // (without a linked photo) through the plain-manual path.
-    try {
-      const photo = await mealApi.uploadPhoto(f);
-      if (photo) setPhotoLog(photo);
-    } catch {
-      // upload failed — leave photoLog null; the meal saves photo-less
-    }
   }
 
   function patchManualForm(patch: Partial<ManualForm>) {
@@ -166,9 +120,8 @@ export function useScanMeal(): ScanState & ScanActions {
     const imageUrl = file ? await fileToDataUrl(file).catch(() => undefined) : undefined;
 
     if (result) {
-      // A `result` means the meal is already recognized: the MOCK path produced it
-      // locally, and the real GenAI path already persisted it via /meals/analyze.
-      // Either way, just reflect it in the local store — no second save.
+      // A `result` means the GenAI path already recognized and persisted the meal
+      // via /meals/analyze. Just reflect it in the local store — no second save.
       const entry: MealEntry = {
         id:       `scan-${Date.now()}`,
         slot,
@@ -196,20 +149,14 @@ export function useScanMeal(): ScanState & ScanActions {
     const request = entryToManualRequest(slot, name, now, [item]);
 
     try {
-      let response = null;
-      if (photoLog?.id && photoLog.id !== 'offline-photo') {
-        response = await mealApi.convertPhotoToMeal(photoLog.id, request);
-      } else {
-        response = await mealApi.saveManual(request);
-      }
+      const response = photoLog?.id
+        ? await mealApi.convertPhotoToMeal(photoLog.id, request)
+        : await mealApi.saveManual(request);
 
       if (response) {
         // Show the user's local photo instantly; on reload the same image is served
         // from the backend via the entry's mapped photoUrl.
         addEntry({ ...mealResponseToEntry(response), imageUrl });
-      } else {
-        // OFFLINE_MODE
-        addEntry({ id: `scan-${Date.now()}`, slot, time, name, calories: cal, protein: prot, carbs: carb, fat, tone: SLOT_TONES[slot], imageUrl });
       }
     } catch {
       // Save failed — still add locally so user doesn't lose the entry
@@ -222,9 +169,6 @@ export function useScanMeal(): ScanState & ScanActions {
     setErrorMessage(null);
     setPhotoLog(null);
     setManualForm(EMPTY_FORM);
-    pendingResult.current = null;
-    progressDone.current  = false;
-    apiDone.current       = false;
   }
 
   return {

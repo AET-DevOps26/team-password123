@@ -84,6 +84,13 @@ export function useAuthForm() {
         createdAt:   response.expiresAt,
       });
 
+      // Sync the profile name (the single source of truth for the greeting and
+      // sidebar) to the freshly-authenticated account. Always set it so a
+      // sign-out + different-account login on the same device can't leave the
+      // previous user's name on screen. For a brand-new account, onboarding
+      // runs next and overwrites this with whatever name the user enters.
+      patchProfile({ displayName: response.displayName });
+
       // Load server-side goals (non-blocking — ignore errors)
       if (!MOCK_MODE) {
         goalsApi.get().then((g) => {

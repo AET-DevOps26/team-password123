@@ -39,6 +39,10 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-nutrition}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-local-development-secret-change-me-please-1234567890}
       APP_UPLOAD_DIR: /app/uploads
+      # Points the photo-scan flow at the GenAI vision service. Setting this
+      # activates GenAiMealAnalyzer; unset (e.g. local non-compose runs) the
+      # deterministic HeuristicMealAnalyzer stays the safe default.
+      APP_GENAI_BASE_URL: http://genai-service:8084
       SERVER_PORT: 8082
     ports:
       - "8082:8082"
@@ -47,6 +51,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      genai-service:
+        condition: service_started
 
   analytics-service:
     build: ./services/analytics-service
@@ -90,9 +96,16 @@ services:
   genai-service:
     build: ./services/genai-service
     environment:
-      LLM_PROVIDER: ollama
-      OLLAMA_BASE_URL: http://host.docker.internal:11434
-      OLLAMA_MODEL: llava
+      # Default: free local Ollama (run `ollama pull llava` on the host first).
+      # For cloud vision, set LLM_PROVIDER=openai + OPENAI_* in your gitignored
+      # root .env (works with OpenAI or any OpenAI-compatible gateway). Never
+      # commit the key.
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llava}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
       PORT: 8084
       DEBUG: "false"
     ports:

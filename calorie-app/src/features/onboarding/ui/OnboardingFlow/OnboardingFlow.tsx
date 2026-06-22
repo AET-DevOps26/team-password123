@@ -259,9 +259,9 @@ function StepperRow({ label, value, unit, onChange, min, max, step, decimals = 0
       <div className={styles.stepper}>
         <span className={styles.stepperVal}>{decimals ? value.toFixed(decimals) : value} {unit}</span>
         <div className={styles.stepperBtns}>
-          <button className={styles.stepBtn} onClick={dec} disabled={value <= min}>−</button>
+          <button className={styles.stepBtn} onClick={dec} disabled={value <= min} aria-label={`Decrease ${label}`} type="button">−</button>
           <div className={styles.stepDivider} />
-          <button className={styles.stepBtn} onClick={inc} disabled={value >= max}>+</button>
+          <button className={styles.stepBtn} onClick={inc} disabled={value >= max} aria-label={`Increase ${label}`} type="button">+</button>
         </div>
       </div>
     </div>

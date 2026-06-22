@@ -68,3 +68,10 @@ target/
 test-results/
 playwright-report/
 blob-report/
+
+# Generated GenAI artifacts (reproducible from the service; not source)
+services/genai-service/outputs/
+
+# The unanchored Python 'lib/' rule above must not swallow the web client's
+# FSD shared/lib segment (or any future lib/ dir under the web client source).
+!calorie-app/src/**/lib/

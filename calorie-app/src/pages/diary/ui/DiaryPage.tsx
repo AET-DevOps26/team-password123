@@ -151,7 +151,7 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
           <button className={`${styles.btn} ${styles.ghost}`} onClick={() => openManual()}>
             <PlusIcon /> Manual
           </button>
-          <ScanMealButton onClick={onScan} />
+          <ScanMealButton onClick={onScan} label="Scan a meal for this day" />
         </div>
       </header>
 

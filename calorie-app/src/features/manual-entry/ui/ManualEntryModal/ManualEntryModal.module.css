@@ -5,6 +5,66 @@
   margin-bottom: 16px;
 }
 
+/* ── Photo (optional) ── */
+.photoRow {
+  margin-bottom: 16px;
+}
+
+.photoAdd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 13px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+  transition: border-color .15s, color .15s;
+}
+
+.photoAdd:hover {
+  border-color: var(--green);
+  color: var(--green-press);
+}
+
+.photoOpt {
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.photoPreview {
+  position: relative;
+  width: 100%;
+  height: 168px;
+  border-radius: 13px;
+  overflow: hidden;
+}
+
+.photoThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photoRemove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, .55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ── Search ── */
 .searchField {
   display: flex;

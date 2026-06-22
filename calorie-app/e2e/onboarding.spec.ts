@@ -42,8 +42,11 @@ test('full walkthrough with defaults computes and persists the goals', async ({ 
 
   await page.getByRole('button', { name: 'Finish' }).click();
 
-  // Lands in the main shell; the greeting uses the session display name
-  await expect(page.getByRole('heading', { name: 'Good afternoon, Mia' })).toBeVisible();
+  // Lands in the main shell; the greeting now uses the onboarding/profile name
+  // (the single source of truth) with a time-of-day-dependent salutation.
+  await expect(
+    page.getByRole('heading', { name: /^Good (morning|afternoon|evening), Pavel$/ }),
+  ).toBeVisible();
 
   const profile = await page.evaluate(() => JSON.parse(localStorage.getItem('userProfile')!));
   expect(profile.onboardingComplete).toBe(true);
@@ -52,7 +55,9 @@ test('full walkthrough with defaults computes and persists the goals', async ({ 
 
   // Onboarding must not reappear after a reload
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Good afternoon, Mia' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: /^Good (morning|afternoon|evening), Pavel$/ }),
+  ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Welcome', exact: true })).not.toBeVisible();
 });
 
@@ -67,14 +72,14 @@ test('cannot continue without a name', async ({ page }) => {
 test('steppers adjust the physical data', async ({ page }) => {
   await nextButton(page).click();
 
-  await stepperRow(page, 'Age').getByRole('button', { name: '+' }).click();
+  await stepperRow(page, 'Age').getByRole('button', { name: 'Increase Age' }).click();
   await expect(stepperRow(page, 'Age')).toContainText('31');
 
-  await stepperRow(page, 'Height').getByRole('button', { name: '−' }).click();
+  await stepperRow(page, 'Height').getByRole('button', { name: 'Decrease Height' }).click();
   await expect(stepperRow(page, 'Height')).toContainText('169 cm');
 
   // Weight steps by 0.5 and renders one decimal
-  await stepperRow(page, 'Weight').getByRole('button', { name: '+' }).click();
+  await stepperRow(page, 'Weight').getByRole('button', { name: 'Increase Weight' }).click();
   await expect(stepperRow(page, 'Weight')).toContainText('70.5 kg');
 });
 
@@ -98,7 +103,7 @@ test('going back preserves the entered data', async ({ page }) => {
   await page.getByPlaceholder('Your name').fill('Pavel');
   await nextButton(page).click();
 
-  await stepperRow(page, 'Age').getByRole('button', { name: '+' }).click();
+  await stepperRow(page, 'Age').getByRole('button', { name: 'Increase Age' }).click();
   await expect(stepperRow(page, 'Age')).toContainText('31');
 
   await page.getByRole('button', { name: 'Back' }).click();

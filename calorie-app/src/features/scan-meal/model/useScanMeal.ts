@@ -3,6 +3,7 @@ import { mealApi, useMealStore } from '../../../entities/meal';
 import { mealResponseToEntry, entryToManualRequest, singleItemFromMacros } from '../../../entities/meal/model/mapper';
 import type { Meal, MealEntry } from '../../../entities/meal';
 import type { PhotoLogResponse } from '../../../entities/meal/api/backendTypes';
+import { fileToDataUrl } from '../../../shared/lib/fileToDataUrl';
 import { MOCK_MODE } from '../../../shared/config/flags';
 
 export type ScanStage = 'idle' | 'scanning' | 'result' | 'manual_required' | 'error';
@@ -50,16 +51,6 @@ const SLOT_TONES: Record<MealSlot, string> = {
 };
 
 const EMPTY_FORM: ManualForm = { name: '', calories: '', protein: '', carbs: '', fat: '' };
-
-/** Read a File into a data: URL so the scanned photo renders instantly in the diary. */
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
 
 export function useScanMeal(): ScanState & ScanActions {
   const [stage,       setStage]       = useState<ScanStage>('idle');
@@ -139,19 +130,28 @@ export function useScanMeal(): ScanState & ScanActions {
         setStage('result');
       } else {
         // OFFLINE_MODE (no AI result) — fall back to manual entry.
-        fallbackToManual(file);
+        await fallbackToManual(file);
       }
     } catch {
       // AI unavailable (service down, quota exhausted, …) — degrade gracefully
       // to manual entry rather than dead-ending the user.
-      fallbackToManual(file);
+      await fallbackToManual(file);
     }
   }
 
-  function fallbackToManual(f: File) {
+  async function fallbackToManual(f: File) {
     const nameHint = f.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
     setManualForm({ ...EMPTY_FORM, name: nameHint });
     setStage('manual_required');
+    // Persist the captured photo now so addToDiary links it via convert-manual
+    // and it survives a reload. Non-fatal: on failure the meal still saves
+    // (without a linked photo) through the plain-manual path.
+    try {
+      const photo = await mealApi.uploadPhoto(f);
+      if (photo) setPhotoLog(photo);
+    } catch {
+      // upload failed — leave photoLog null; the meal saves photo-less
+    }
   }
 
   function patchManualForm(patch: Partial<ManualForm>) {

@@ -19,6 +19,8 @@ import base64
 import logging
 from datetime import datetime, timezone
 
+from pydantic import BaseModel
+
 from nutrition_analyzer import NutritionAnalyzer, NutritionResponse, NutritionComparisonResponse
 from config import PORT, DEBUG
 
@@ -60,6 +62,48 @@ async def health_check():
         status_info["error"] = "NutritionAnalyzer not initialized. Check Ollama, OpenAI, or Google configuration."
     
     return status_info
+
+
+class FoodEstimateRequest(BaseModel):
+    food_name: str
+
+
+class FoodEstimateResponse(BaseModel):
+    food_name: str
+    calories_per_100g: float
+    protein_grams_per_100g: float
+    carbs_grams_per_100g: float
+    fat_grams_per_100g: float
+    typical_portion_grams: float
+    typical_portion_label: str
+    source: str
+    confidence: float
+
+
+@app.post("/api/estimate", response_model=FoodEstimateResponse)
+async def estimate_food(request: FoodEstimateRequest):
+    """
+    Estimate nutrition per 100g for a food by name, plus a typical serving size.
+    Tries USDA database first, falls back to text LLM (e.g. Logos).
+    """
+    if not analyzer:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="GenAI service not initialized.")
+    if not request.food_name or not request.food_name.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="food_name is required.")
+    try:
+        result = analyzer.estimate_from_name(request.food_name.strip())
+        logger.info(
+            "Estimated '%s': %.0f kcal/100g, portion=%.0fg '%s' [%s]",
+            request.food_name, result["calories_per_100g"],
+            result["typical_portion_grams"], result["typical_portion_label"],
+            result["source"],
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error("Estimation error: %s", e, exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Estimation failed.")
 
 
 @app.post("/api/analyze", response_model=NutritionResponse)

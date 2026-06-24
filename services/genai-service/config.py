@@ -20,6 +20,12 @@ OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 GOOGLE_MODEL = os.getenv("GOOGLE_MODEL", "gemini-2.0-flash")
 
+# Optional separate text LLM for food-name estimation (e.g. Logos).
+# If unset, the primary LLM is used as fallback for text estimation too.
+TEXT_OPENAI_BASE_URL = os.getenv("TEXT_OPENAI_BASE_URL", "")
+TEXT_OPENAI_API_KEY = os.getenv("TEXT_OPENAI_API_KEY", "")
+TEXT_OPENAI_MODEL = os.getenv("TEXT_OPENAI_MODEL", "gpt-4o")
+
 # Nutrition data configuration
 NUTRITION_DATA_PROVIDER = os.getenv("NUTRITION_DATA_PROVIDER", "usda").lower()
 USDA_FDC_API_KEY = os.getenv("USDA_FDC_API_KEY", "")

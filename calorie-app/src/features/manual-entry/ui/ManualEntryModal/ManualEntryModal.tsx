@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Modal } from '../../../../shared/ui/Modal/Modal';
 import { useManualEntry } from '../../model/useManualEntry';
 import type { MealSlot } from '../../model/useManualEntry';
+import type { FoodEstimateResult } from '../../../../entities/meal/api/mealApi';
 import styles from './ManualEntryModal.module.css';
 
 interface ManualEntryModalProps {
@@ -112,8 +113,27 @@ export function ManualEntryModal({ onClose, onAdded, defaultSlot, loggedAt }: Ma
               </button>
             ))
           ) : (
-            <div className={styles.suggestEmpty}>
-              No quick match — "{entry.query}" will be estimated by AI.
+            <div className={styles.noMatch}>
+              {entry.aiEstimate ? (
+                <AiEstimateCard
+                  estimate={entry.aiEstimate}
+                  portionGrams={entry.portionGrams}
+                  onPortionChange={entry.setPortionGrams}
+                  onAdd={entry.addAiEstimate}
+                />
+              ) : entry.estimateError ? (
+                <span className={styles.estimateErr}>{entry.estimateError}</span>
+              ) : (
+                <button
+                  className={styles.estimateBtn}
+                  onClick={entry.estimateFood}
+                  disabled={entry.estimating}
+                >
+                  {entry.estimating
+                    ? <><SpinnerIcon /> Estimating…</>
+                    : <><SparkleIcon /> Estimate "{entry.query}" with AI</>}
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -166,6 +186,74 @@ export function ManualEntryModal({ onClose, onAdded, defaultSlot, loggedAt }: Ma
   );
 }
 
+/* ── AI Estimate Card ── */
+interface AiEstimateCardProps {
+  estimate: FoodEstimateResult;
+  portionGrams: number;
+  onPortionChange: (g: number) => void;
+  onAdd: () => void;
+}
+
+function AiEstimateCard({ estimate, portionGrams, onPortionChange, onAdd }: AiEstimateCardProps) {
+  const m = portionGrams / 100;
+  const cal     = Math.round(estimate.calories_per_100g      * m);
+  const protein = Math.round(estimate.protein_grams_per_100g * m * 10) / 10;
+  const carbs   = Math.round(estimate.carbs_grams_per_100g   * m * 10) / 10;
+  const fat     = Math.round(estimate.fat_grams_per_100g     * m * 10) / 10;
+
+  function handleInput(raw: string) {
+    const n = parseFloat(raw);
+    if (!isNaN(n) && n > 0) onPortionChange(Math.min(n, 9999));
+  }
+
+  return (
+    <div className={styles.estimateCard}>
+      <div className={styles.estimateCardHeader}>
+        <span className={styles.estimateCardName}><b>{estimate.food_name}</b></span>
+        <span className={styles.estimateBadge}>AI estimate</span>
+      </div>
+
+      <div className={styles.estimatePortionRow}>
+        <span className={styles.estimatePortionHint}>Suggested: {estimate.typical_portion_label}</span>
+        <div className={styles.estimatePortionInput}>
+          <button
+            className={styles.portionStep}
+            onClick={() => onPortionChange(Math.max(1, portionGrams - 10))}
+            type="button"
+          >−</button>
+          <input
+            className={styles.portionField}
+            type="number"
+            min={1}
+            max={9999}
+            value={portionGrams}
+            onChange={(e) => handleInput(e.target.value)}
+          />
+          <span className={styles.portionUnit}>g</span>
+          <button
+            className={styles.portionStep}
+            onClick={() => onPortionChange(portionGrams + 10)}
+            type="button"
+          >+</button>
+        </div>
+      </div>
+
+      <div className={styles.estimateNutrition}>
+        <div className={styles.estimateKcal}>{cal} <span>kcal</span></div>
+        <div className={styles.estimateMacroRow}>
+          <span className={styles.macroP}>P {protein}g</span>
+          <span className={styles.macroC}>C {carbs}g</span>
+          <span className={styles.macroF}>F {fat}g</span>
+        </div>
+      </div>
+
+      <button className={styles.estimateAddBtn} onClick={onAdd} type="button">
+        <PlusIcon /> Add to meal
+      </button>
+    </div>
+  );
+}
+
 /* ── Icons ── */
 function SearchIcon() {
   return (
@@ -209,6 +297,25 @@ function CloseIcon() {
     <svg width={15} height={15} viewBox="0 0 24 24" fill="none"
          stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
       <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  );
+}
+
+function SparkleIcon() {
+  return (
+    <svg width={15} height={15} viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2l2.4 7.2H22l-6.2 4.5 2.4 7.2L12 17l-6.2 3.9 2.4-7.2L2 9.2h7.6z" />
+    </svg>
+  );
+}
+
+function SpinnerIcon() {
+  return (
+    <svg width={15} height={15} viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth={2} strokeLinecap="round"
+         className={styles.spinner}>
+      <circle cx="12" cy="12" r="9" strokeDasharray="28 56" />
     </svg>
   );
 }

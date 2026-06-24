@@ -67,9 +67,10 @@ jobs:
           helm upgrade --install app helm/calorieasy \
             --namespace team-password123 \
             --set image.tag="${{ steps.ctx.outputs.tag }}" \
-            --set genai.openaiBaseUrl="${{ secrets.LOGOS_BASE_URL }}" \
-            --set genai.openaiModel="${{ vars.LOGOS_MODEL || 'gpt-4o' }}" \
-            --set genai.openaiApiKey="${{ secrets.LOGOS_API_KEY }}" \
+            --set genai.openaiApiKey="${{ secrets.GEMINI_API_KEY }}" \
+            --set genai.textOpenaiBaseUrl="${{ secrets.LOGOS_BASE_URL }}" \
+            --set genai.textOpenaiModel="${{ vars.LOGOS_MODEL || 'openai/gpt-oss-120b' }}" \
+            --set genai.textOpenaiApiKey="${{ secrets.LOGOS_API_KEY }}" \
             --wait --timeout 8m
 
       - name: Show rollout

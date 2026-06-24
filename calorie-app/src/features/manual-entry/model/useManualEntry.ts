@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMealStore } from '../../../entities/meal';
-import { mealApi } from '../../../entities/meal/api/mealApi';
+import { mealApi, type FoodEstimateResult } from '../../../entities/meal/api/mealApi';
 import { mealResponseToEntry, entryToManualRequest } from '../../../entities/meal/model/mapper';
 import { fileToDataUrl } from '../../../shared/lib/fileToDataUrl';
 
@@ -10,6 +10,20 @@ interface Ingredient {
   name: string;
   amount: string;
   calories: number;
+  proteinGrams?: number;
+  carbsGrams?: number;
+  fatGrams?: number;
+}
+
+/** Scale per-100g data to a given portion size */
+function scaleEstimate(e: FoodEstimateResult, grams: number) {
+  const m = grams / 100;
+  return {
+    calories:     Math.round(e.calories_per_100g * m),
+    proteinGrams: Math.round(e.protein_grams_per_100g * m * 10) / 10,
+    carbsGrams:   Math.round(e.carbs_grams_per_100g   * m * 10) / 10,
+    fatGrams:     Math.round(e.fat_grams_per_100g     * m * 10) / 10,
+  };
 }
 
 const SUGGESTIONS: Ingredient[] = [
@@ -29,6 +43,10 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
   const [slot, setSlot]     = useState<MealSlot>(defaultSlot);
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [estimating, setEstimating] = useState(false);
+  const [aiEstimate, setAiEstimate] = useState<FoodEstimateResult | null>(null);
+  const [portionGrams, setPortionGrams] = useState<number>(100);
+  const [estimateError, setEstimateError] = useState<string | null>(null);
 
   const addEntry = useMealStore((s) => s.addEntry);
 
@@ -36,11 +54,40 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
     ? SUGGESTIONS.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()))
     : [];
 
+  async function estimateFood() {
+    if (!query.trim()) return;
+    setEstimating(true);
+    setAiEstimate(null);
+    setEstimateError(null);
+    try {
+      const result = await mealApi.estimateFood(query.trim());
+      setAiEstimate(result);
+      setPortionGrams(result.typical_portion_grams);
+    } catch {
+      setEstimateError('Could not estimate — try a different name or add manually.');
+    } finally {
+      setEstimating(false);
+    }
+  }
+
   const totalCalories = items.reduce((sum, i) => sum + i.calories, 0);
 
   function addIngredient(ingredient: Ingredient) {
     setItems((prev) => [...prev, ingredient]);
     setQuery('');
+    setAiEstimate(null);
+    setEstimateError(null);
+    setPortionGrams(100);
+  }
+
+  function addAiEstimate() {
+    if (!aiEstimate) return;
+    const scaled = scaleEstimate(aiEstimate, portionGrams);
+    addIngredient({
+      name: aiEstimate.food_name,
+      amount: `${portionGrams} g`,
+      ...scaled,
+    });
   }
 
   function removeIngredient(index: number) {
@@ -68,10 +115,10 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
         quantity:     1,
         unit:         ing.amount,
         calories:     ing.calories,
-        // No per-ingredient macro data from the suggestions list → rough split
-        proteinGrams: Math.round(ing.calories * 0.05),
-        carbsGrams:   Math.round(ing.calories * 0.125),
-        fatGrams:     Math.round(ing.calories * 0.033),
+        // Use AI-provided macros when available; fall back to rough estimate otherwise
+        proteinGrams: ing.proteinGrams ?? Math.round(ing.calories * 0.05),
+        carbsGrams:   ing.carbsGrams   ?? Math.round(ing.calories * 0.125),
+        fatGrams:     ing.fatGrams     ?? Math.round(ing.calories * 0.033),
         fiberGrams:   0,
       }));
 
@@ -115,5 +162,11 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
     save,
     saving,
     canSave: items.length > 0,
+    estimateFood,
+    estimating,
+    aiEstimate,
+    portionGrams, setPortionGrams,
+    addAiEstimate,
+    estimateError,
   };
 }

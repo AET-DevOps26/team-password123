@@ -23,10 +23,10 @@ from importlib import import_module
 # Google / Gemini support is commented out for now to keep the runtime focused on
 # local Ollama + USDA only. If you want to re-enable Google, uncomment the
 # dynamic import below and ensure langchain-google-genai is installed.
-# try:
-#     ChatGoogleGenerativeAI = import_module("langchain_google_genai").ChatGoogleGenerativeAI
-# except Exception:  # Optional dependency.
-#     ChatGoogleGenerativeAI = None
+try:
+     ChatGoogleGenerativeAI = import_module("langchain_google_genai").ChatGoogleGenerativeAI
+except Exception:  # Optional dependency.
+     ChatGoogleGenerativeAI = None
 
 from config import (
     GOOGLE_API_KEY,
@@ -38,6 +38,9 @@ from config import (
     OPENAI_API_KEY,
     OPENAI_BASE_URL,
     OPENAI_MODEL,
+    TEXT_OPENAI_API_KEY,
+    TEXT_OPENAI_BASE_URL,
+    TEXT_OPENAI_MODEL,
     USDA_FDC_API_KEY,
 )
 
@@ -51,6 +54,67 @@ ALIASES: dict[str, str] = {
     "oatmeal bowl": "oatmeal",
     "pizza slice": "pizza",
 }
+
+# Typical single-serving sizes for common foods (grams, label).
+_TYPICAL_PORTIONS: dict[str, tuple[float, str]] = {
+    "toast":          (30,  "1 slice"),
+    "bread":          (25,  "1 slice"),
+    "white bread":    (25,  "1 slice"),
+    "whole wheat bread": (28, "1 slice"),
+    "bagel":          (98,  "1 medium"),
+    "egg":            (50,  "1 large"),
+    "banana":         (118, "1 medium"),
+    "apple":          (182, "1 medium"),
+    "orange":         (131, "1 medium"),
+    "oats":           (40,  "½ cup dry"),
+    "oatmeal":        (234, "1 cup cooked"),
+    "chicken breast": (174, "1 breast"),
+    "rice":           (186, "1 cup cooked"),
+    "brown rice":     (195, "1 cup cooked"),
+    "pasta":          (140, "1 cup cooked"),
+    "potato":         (148, "1 medium"),
+    "sweet potato":   (130, "1 medium"),
+    "milk":           (244, "1 cup"),
+    "whole milk":     (244, "1 cup"),
+    "yogurt":         (170, "¾ cup"),
+    "greek yogurt":   (170, "¾ cup"),
+    "cheese":         (28,  "1 oz"),
+    "butter":         (14,  "1 tbsp"),
+    "olive oil":      (14,  "1 tbsp"),
+    "peanut butter":  (32,  "2 tbsp"),
+    "almond butter":  (32,  "2 tbsp"),
+    "almonds":        (28,  "1 oz (~23 nuts)"),
+    "walnuts":        (28,  "1 oz"),
+    "avocado":        (150, "1 medium"),
+    "salmon":         (170, "1 fillet"),
+    "tuna":           (85,  "3 oz"),
+    "hamburger":      (200, "1 burger"),
+    "pizza":          (107, "1 slice"),
+    "salad":          (150, "1 bowl"),
+    "broccoli":       (91,  "1 cup"),
+    "spinach":        (30,  "1 cup"),
+    "carrot":         (61,  "1 medium"),
+    "tomato":         (123, "1 medium"),
+    "lentils":        (198, "1 cup cooked"),
+    "beans":          (172, "1 cup cooked"),
+    "orange juice":   (240, "1 cup"),
+    "coffee":         (240, "1 cup"),
+    "chocolate":      (40,  "1 bar (small)"),
+    "cookie":         (28,  "1 cookie"),
+    "muffin":         (113, "1 muffin"),
+}
+
+
+def _typical_portion(food_name: str) -> tuple[float, str]:
+    """Return (grams, label) for a typical single serving of the given food."""
+    key = food_name.strip().lower()
+    if key in _TYPICAL_PORTIONS:
+        return _TYPICAL_PORTIONS[key]
+    # Partial match: check if any known key is contained in the food name
+    for known, portion in _TYPICAL_PORTIONS.items():
+        if known in key or key in known:
+            return portion
+    return (100.0, "100 g")
 
 
 class NutritionResponse(BaseModel):
@@ -373,6 +437,7 @@ class NutritionAnalyzer:
 
         self.llm = self._build_llm(self.provider)
         self.fallback_llm = self._build_fallback_llm(self.provider)
+        self.text_llm = self._build_text_llm()
 
         if not self.llm and not self.fallback_llm:
             raise RuntimeError(
@@ -432,6 +497,25 @@ class NutritionAnalyzer:
 
         logger.warning("Unknown LLM provider: %s", provider)
         return None
+
+    def _build_text_llm(self):
+        """Build a dedicated text-only LLM for food-name estimation (e.g. Logos).
+        Returns None when TEXT_OPENAI_BASE_URL / TEXT_OPENAI_API_KEY are not set,
+        in which case callers fall back to the primary LLM."""
+        if not TEXT_OPENAI_BASE_URL or not TEXT_OPENAI_API_KEY:
+            return None
+        try:
+            logger.info("Initializing text LLM at %s with model %s", TEXT_OPENAI_BASE_URL, TEXT_OPENAI_MODEL)
+            return ChatOpenAI(
+                model=TEXT_OPENAI_MODEL,
+                api_key=TEXT_OPENAI_API_KEY,
+                base_url=TEXT_OPENAI_BASE_URL,
+                temperature=0,
+                max_tokens=256,
+            )
+        except Exception as exc:
+            logger.warning("Text LLM initialization failed: %s", exc)
+            return None
 
     def _build_fallback_llm(self, provider: str):
         fallback_order = []
@@ -524,6 +608,66 @@ class NutritionAnalyzer:
             continue
 
         return total_calories, total_protein, total_carbs, total_fat, total_fiber
+
+    def estimate_from_name(self, food_name: str) -> dict:
+        """Estimate nutrition per 100g for a food by name, plus a typical serving size.
+        Returns per-100g values so the caller can scale to any portion.
+        Tries USDA first, then falls back to text LLM."""
+        normalized = _normalize_food_name(food_name)
+        canonical = ALIASES.get(normalized, normalized)
+
+        nutrition = self._lookup_food_nutrition(canonical)
+        if nutrition:
+            portion_grams, portion_label = _typical_portion(canonical)
+            return {
+                "food_name": food_name,
+                "calories_per_100g":      round(_coerce_float(nutrition.get("calories_per_100g")), 1),
+                "protein_grams_per_100g": round(_coerce_float(nutrition.get("protein_per_100g")), 1),
+                "carbs_grams_per_100g":   round(_coerce_float(nutrition.get("carbs_per_100g")), 1),
+                "fat_grams_per_100g":     round(_coerce_float(nutrition.get("fat_per_100g")), 1),
+                "typical_portion_grams":  portion_grams,
+                "typical_portion_label":  portion_label,
+                "source": nutrition.get("source", "usda"),
+                "confidence": 0.9,
+            }
+
+        llm_to_use = self.text_llm or self.llm or self.fallback_llm
+        if not llm_to_use:
+            raise ValueError("No LLM available for text estimation")
+
+        prompt = (
+            f'Estimate the nutritional content per 100g of "{food_name}", '
+            "and suggest a typical single serving size.\n"
+            "Reply ONLY with a single JSON object, no markdown, no explanation:\n"
+            '{"calories_per_100g": 155, "protein_grams_per_100g": 6, "carbs_grams_per_100g": 17, '
+            '"fat_grams_per_100g": 7, "typical_portion_grams": 30, "typical_portion_label": "1 slice", '
+            '"confidence": 0.85}'
+        )
+        from langchain_core.messages import HumanMessage as _HM
+        response = llm_to_use.invoke([_HM(content=prompt)])
+        raw = response.content.strip()
+        raw = re.sub(r"```(?:json)?\s*(.*?)\s*```", r"\1", raw, flags=re.DOTALL)
+        payload = self._try_parse_json(raw)
+        if not isinstance(payload, dict):
+            m = re.search(r"\{.*\}", raw, re.DOTALL)
+            payload = self._try_parse_json(m.group(0)) if m else None
+        if not isinstance(payload, dict):
+            raise ValueError(f"Could not parse LLM response: {raw[:200]}")
+
+        portion_grams = _coerce_float(payload.get("typical_portion_grams", 100))
+        portion_label = str(payload.get("typical_portion_label") or f"{int(portion_grams)} g")
+
+        return {
+            "food_name": food_name,
+            "calories_per_100g":      round(_coerce_float(payload.get("calories_per_100g")), 1),
+            "protein_grams_per_100g": round(_coerce_float(payload.get("protein_grams_per_100g")), 1),
+            "carbs_grams_per_100g":   round(_coerce_float(payload.get("carbs_grams_per_100g")), 1),
+            "fat_grams_per_100g":     round(_coerce_float(payload.get("fat_grams_per_100g")), 1),
+            "typical_portion_grams":  round(max(1.0, portion_grams), 1),
+            "typical_portion_label":  portion_label,
+            "source": "llm",
+            "confidence": max(0.0, min(1.0, _coerce_float(payload.get("confidence", 0.6)))),
+        }
 
     def analyze(self, image_base64: str) -> NutritionResponse:
         """Analyze a base64-encoded food image and return nutrition estimates."""

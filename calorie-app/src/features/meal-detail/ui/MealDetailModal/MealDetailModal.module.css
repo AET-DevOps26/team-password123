@@ -1,0 +1,189 @@
+.hint {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.slot {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--green-press);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.time {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.photoWrap {
+  width: 100%;
+  height: 200px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photoPlaceholder {
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fieldLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fieldInput,
+.slotSelect {
+  background: var(--bg);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 0.95rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.fieldInput:focus,
+.slotSelect:focus {
+  border-color: var(--green);
+}
+
+.macroRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.error {
+  font-size: 14px;
+  color: var(--fat);
+  background: oklch(0.97 0.02 350);
+  border: 1px solid oklch(0.9 0.06 350);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 12px;
+  line-height: 1.5;
+}
+
+.loading {
+  font-size: 14px;
+  color: var(--text-2);
+  padding: 24px 0;
+  text-align: center;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 12px 18px;
+  transition: transform .12s, background .15s, opacity .15s;
+}
+
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .45; cursor: default; }
+
+.primary {
+  background: var(--green);
+  color: #fff;
+  flex: 1;
+}
+
+.primary:hover:not(:disabled) { background: var(--green-press); }
+
+.danger {
+  background: var(--surface);
+  border: 1px solid oklch(0.85 0.08 25);
+  color: oklch(0.45 0.15 25);
+}
+
+.danger:hover:not(:disabled) {
+  background: oklch(0.97 0.02 350);
+}
+
+.confirmDelete {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.confirmText {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 10px;
+}
+
+.ghost {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  flex: 1;
+}
+
+.ghost:hover:not(:disabled) { background: var(--surface-2); }
+
+.dangerSolid {
+  background: oklch(0.55 0.18 25);
+  color: #fff;
+  flex: 1;
+}
+
+.dangerSolid:hover:not(:disabled) {
+  background: oklch(0.48 0.18 25);
+}

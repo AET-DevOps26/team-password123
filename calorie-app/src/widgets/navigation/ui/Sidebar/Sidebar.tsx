@@ -1,5 +1,6 @@
 import { IconHome, IconBook, IconChart, IconUser, IconFlame, IconCamera } from '../../../../shared/ui/icons';
 import { useUserStore } from '../../../../entities/user';
+import { useProfileStore } from '../../../../entities/user/model/profile';
 import type { Page } from '../../../../app/App';
 import styles from './Sidebar.module.css';
 
@@ -19,8 +20,9 @@ interface SidebarProps {
 
 export function Sidebar({ currentPage, onNavigate, onScan, onSignOut }: SidebarProps) {
   const user = useUserStore((s) => s.user);
-  const initials = user?.displayName
-    ? user.displayName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+  const displayName = useProfileStore((s) => s.displayName);
+  const initials = displayName
+    ? displayName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
     : '??';
 
   return (
@@ -48,7 +50,7 @@ export function Sidebar({ currentPage, onNavigate, onScan, onSignOut }: SidebarP
       <div className={styles.foot}>
         <span className={styles.avatar}>{initials}</span>
         <div className={styles.footInfo}>
-          <div className={styles.userName}>{user?.displayName ?? 'You'}</div>
+          <div className={styles.userName}>{displayName || 'You'}</div>
           <div className={styles.plan}>{user?.email ?? ''}</div>
         </div>
         <button className={styles.signOutBtn} onClick={onSignOut} title="Sign out">

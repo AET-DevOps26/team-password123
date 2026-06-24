@@ -2,8 +2,9 @@ import { test, expect, type Page } from '@playwright/test';
 import { installApiFallback, mockAuthError, mockAuthSuccess, mockGoals } from './support/mocks';
 import { seedSession } from './support/session';
 
-// The mode tab and the submit button share the same accessible name
-// ("Sign in" / "Create account"); the submit button comes last in DOM order.
+// The submit button's visible text ("Sign in" / "Create account") can coincide
+// with the register-mode switch link; the mode tabs are disambiguated via
+// aria-label ("Switch to …"). `.last()` targets the submit (last in DOM order).
 function submitButton(page: Page, label: 'Sign in' | 'Create account') {
   return page.getByRole('button', { name: label, exact: true }).last();
 }

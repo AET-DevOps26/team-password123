@@ -47,14 +47,18 @@ export function AuthPage() {
           {/* Mode tabs */}
           <div className={styles.tabs}>
             <button
+              type="button"
               className={`${styles.tab} ${!isReg ? styles.tabActive : ''}`}
               onClick={() => auth.switchMode('login')}
+              aria-label="Switch to sign in"
             >
               Sign in
             </button>
             <button
+              type="button"
               className={`${styles.tab} ${isReg ? styles.tabActive : ''}`}
               onClick={() => auth.switchMode('register')}
+              aria-label="Switch to create account"
             >
               Create account
             </button>

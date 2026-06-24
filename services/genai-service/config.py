@@ -39,19 +39,20 @@ if NUTRITION_DATA_PROVIDER not in ["auto", "usda", "local"]:
         f"{NUTRITION_DATA_PROVIDER}. Must be 'auto', 'usda', or 'local'."
     )
 
-print(f"[Config] LLM_PROVIDER: {LLM_PROVIDER}")
-if LLM_PROVIDER == "ollama":
-    print(f"[Config] Ollama URL: {OLLAMA_BASE_URL}, Model: {OLLAMA_MODEL}")
-    print(f"[Config] OpenAI API Key set: {bool(OPENAI_API_KEY)} (fallback)")
-    print(f"[Config] Google API Key set: {bool(GOOGLE_API_KEY)} (fallback)")
-elif LLM_PROVIDER == "openai":
-    print(f"[Config] OpenAI Model: {OPENAI_MODEL}")
-    print(f"[Config] Ollama URL: {OLLAMA_BASE_URL} (fallback)")
-    print(f"[Config] Google API Key set: {bool(GOOGLE_API_KEY)} (fallback)")
-elif LLM_PROVIDER == "google":
-    print(f"[Config] Google Model: {GOOGLE_MODEL}")
-    print(f"[Config] Ollama URL: {OLLAMA_BASE_URL} (fallback)")
-    print(f"[Config] OpenAI API Key set: {bool(OPENAI_API_KEY)} (fallback)")
+if DEBUG:
+    print(f"[Config] LLM_PROVIDER: {LLM_PROVIDER}")
+    if LLM_PROVIDER == "ollama":
+        print(f"[Config] Ollama URL: {OLLAMA_BASE_URL}, Model: {OLLAMA_MODEL}")
+        print(f"[Config] OpenAI API Key set: {bool(OPENAI_API_KEY)} (fallback)")
+        print(f"[Config] Google API Key set: {bool(GOOGLE_API_KEY)} (fallback)")
+    elif LLM_PROVIDER == "openai":
+        print(f"[Config] OpenAI Model: {OPENAI_MODEL}")
+        print(f"[Config] Ollama URL: {OLLAMA_BASE_URL} (fallback)")
+        print(f"[Config] Google API Key set: {bool(GOOGLE_API_KEY)} (fallback)")
+    elif LLM_PROVIDER == "google":
+        print(f"[Config] Google Model: {GOOGLE_MODEL}")
+        print(f"[Config] Ollama URL: {OLLAMA_BASE_URL} (fallback)")
+        print(f"[Config] OpenAI API Key set: {bool(OPENAI_API_KEY)} (fallback)")
 
-print(f"[Config] NUTRITION_DATA_PROVIDER: {NUTRITION_DATA_PROVIDER}")
-print(f"[Config] USDA_FDC_API_KEY set: {bool(USDA_FDC_API_KEY)}")
+    print(f"[Config] NUTRITION_DATA_PROVIDER: {NUTRITION_DATA_PROVIDER}")
+    print(f"[Config] USDA_FDC_API_KEY set: {bool(USDA_FDC_API_KEY)}")

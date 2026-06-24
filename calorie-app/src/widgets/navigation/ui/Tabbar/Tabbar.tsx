@@ -26,7 +26,7 @@ export function Tabbar({ currentPage, onNavigate, onScan }: TabbarProps) {
       </button>
 
       <div className={styles.fabWrap}>
-        <button className={styles.fab} onClick={onScan}><IconCamera size={26} /></button>
+        <button className={styles.fab} onClick={onScan} aria-label="Scan a meal" type="button"><IconCamera size={26} /></button>
       </div>
 
       <button

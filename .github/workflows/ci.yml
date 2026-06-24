@@ -67,6 +67,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
       # `npm run build` = `tsc && vite build`: strict typecheck + production build.
       - name: Typecheck & build
         run: npm run build

@@ -1,8 +1,8 @@
 // ── Types mirroring the meals-service DTOs ─────────────────────────────────
 
 export type BackendMealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
-export type BackendSourceType = 'MANUAL' | 'PHOTO_MANUAL';
-export type BackendPhotoStatus = 'AI_NOT_AVAILABLE' | 'MANUALLY_COMPLETED';
+export type BackendSourceType = 'MANUAL' | 'PHOTO_MANUAL' | 'PHOTO_AI';
+export type BackendPhotoStatus = 'AI_NOT_AVAILABLE' | 'MANUALLY_COMPLETED' | 'ANALYZED';
 
 export interface MealItemResponse {
   id: string;

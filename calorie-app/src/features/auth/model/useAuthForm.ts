@@ -83,6 +83,14 @@ export function useAuthForm() {
         createdAt:   response.expiresAt,
       });
 
+      // Sync the profile name (the single source of truth for the greeting and
+      // sidebar) to the freshly-authenticated account. Always set it so a
+      // sign-out + different-account login on the same device can't leave the
+      // previous user's name on screen. me() below only patches the name once a
+      // profile exists (age set), so a brand-new account would otherwise keep
+      // the prior user's name until onboarding overwrites it.
+      patchProfile({ displayName: response.displayName });
+
       // Hydrate the local profile from the backend (non-blocking). A filled
       // profile (age set) means the user already onboarded — or was seeded — so
       // we mark onboarding complete and skip the wizard. Never downgrades:

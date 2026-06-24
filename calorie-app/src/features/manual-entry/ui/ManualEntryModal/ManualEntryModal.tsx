@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Modal } from '../../../../shared/ui/Modal/Modal';
 import { useManualEntry } from '../../model/useManualEntry';
 import type { MealSlot } from '../../model/useManualEntry';
@@ -14,6 +15,25 @@ const SLOTS: MealSlot[] = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
 export function ManualEntryModal({ onClose, onAdded, defaultSlot, loggedAt }: ManualEntryModalProps) {
   const entry = useManualEntry(defaultSlot, loggedAt);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  function pickPhoto(file: File) {
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 10 * 1024 * 1024) return;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(file));
+    entry.setPhoto(file);
+  }
+
+  function clearPhoto() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    entry.clearPhoto();
+  }
+
+  // Release the preview blob URL when the modal unmounts (e.g. after a save).
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
 
   async function handleSave() {
     const kcal = await entry.save();
@@ -41,6 +61,29 @@ export function ManualEntryModal({ onClose, onAdded, defaultSlot, loggedAt }: Ma
       <p className={styles.hint}>
         For home-made meals, type ingredients for 100% accuracy.
       </p>
+
+      {/* Photo (optional) */}
+      <div className={styles.photoRow}>
+        {entry.photoFile && previewUrl ? (
+          <div className={styles.photoPreview}>
+            <img src={previewUrl} alt="Meal" className={styles.photoThumb} />
+            <button className={styles.photoRemove} onClick={clearPhoto} aria-label="Remove photo" type="button">
+              <CloseIcon />
+            </button>
+          </div>
+        ) : (
+          <button className={styles.photoAdd} onClick={() => fileInputRef.current?.click()} type="button">
+            <CameraIcon /> Add a photo <span className={styles.photoOpt}>(optional)</span>
+          </button>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) pickPhoto(f); }}
+        />
+      </div>
 
       {/* Search */}
       <div className={styles.searchField}>
@@ -147,6 +190,16 @@ function CheckIcon() {
     <svg width={18} height={18} viewBox="0 0 24 24" fill="none"
          stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
       <path d="M5 12.5 10 17.5 19 6.5" />
+    </svg>
+  );
+}
+
+function CameraIcon() {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.1-1.8a1 1 0 0 1 .9-.5h6.6a1 1 0 0 1 .9.5L17.3 7h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z" />
+      <circle cx="12" cy="13" r="3.4" />
     </svg>
   );
 }

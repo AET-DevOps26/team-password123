@@ -5,7 +5,6 @@ import { mealApi } from '../../../entities/meal/api/mealApi';
 import { mealResponseToEntry } from '../../../entities/meal/model/mapper';
 import { analyticsApi } from '../../../entities/nutrition/api/analyticsApi';
 import type { AnalyticsResponse } from '../../../entities/nutrition/api/backendTypes';
-import { useUserStore } from '../../../entities/user';
 import { useProfileStore } from '../../../entities/user/model/profile';
 import { ScanMealButton } from '../../../features/scan-meal';
 import { StatPill } from '../../../shared/ui/StatPill/StatPill';
@@ -17,11 +16,11 @@ interface HomePageProps {
 }
 
 export function HomePage({ onScan }: HomePageProps) {
-  const entries    = useMealStore((s) => s.entries);
-  const setEntries = useMealStore((s) => s.setEntries);
-  const user       = useUserStore((s) => s.user);
-  const goals      = useProfileStore((s) => s.goals);
-  const firstName  = user?.displayName?.split(' ')[0] ?? 'there';
+  const entries     = useMealStore((s) => s.entries);
+  const setEntries  = useMealStore((s) => s.setEntries);
+  const goals       = useProfileStore((s) => s.goals);
+  const displayName = useProfileStore((s) => s.displayName);
+  const firstName   = displayName?.split(' ')[0] || 'there';
 
   const [dailyAnalytics, setDailyAnalytics] = useState<AnalyticsResponse | null>(null);
   const [weeklyAnalytics, setWeeklyAnalytics] = useState<AnalyticsResponse | null>(null);
@@ -58,6 +57,8 @@ export function HomePage({ onScan }: HomePageProps) {
   }, [setEntries]);
 
   const today = new Date();
+  const hour = today.getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const realDateLabel = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
   const dateLabel   = `Today, ${realDateLabel}`;
@@ -82,10 +83,10 @@ export function HomePage({ onScan }: HomePageProps) {
       <header className={styles.head}>
         <div>
           <div className={styles.eyebrow}>{dateLabel}</div>
-          <h1 className={styles.title}>Good afternoon, {firstName}</h1>
+          <h1 className={styles.title}>{greeting}, {firstName}</h1>
         </div>
         <div className={styles.headActions}>
-          <ScanMealButton onClick={onScan} />
+          <ScanMealButton onClick={onScan} label="Scan a meal for today" />
         </div>
       </header>
 

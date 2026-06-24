@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMealStore } from '../../../entities/meal';
 import { mealApi } from '../../../entities/meal/api/mealApi';
 import { mealResponseToEntry, entryToManualRequest } from '../../../entities/meal/model/mapper';
+import { fileToDataUrl } from '../../../shared/lib/fileToDataUrl';
 
 export type MealSlot = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
 
@@ -27,6 +28,7 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
   const [items, setItems]   = useState<Ingredient[]>([]);
   const [slot, setSlot]     = useState<MealSlot>(defaultSlot);
   const [saving, setSaving] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const addEntry = useMealStore((s) => s.addEntry);
 
@@ -55,6 +57,10 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
       ? items[0].name
       : `${items[0]?.name ?? 'Mixed meal'} & more`;
 
+    // The user's own photo as a data URL — shown instantly in the diary thumbnail;
+    // on reload the same image is served from the backend via the mapped photoUrl.
+    const imageUrl = photoFile ? await fileToDataUrl(photoFile).catch(() => undefined) : undefined;
+
     setSaving(true);
     try {
       const itemRequests = items.map((ing) => ({
@@ -70,9 +76,21 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
       }));
 
       const request = entryToManualRequest(slot, name, savedAt, itemRequests);
-      const response = await mealApi.saveManual(request);
+
+      // With a photo: upload it, then link the nutrition via convert-manual so the
+      // photo persists. Without one: a plain manual save.
+      let response = null;
+      if (photoFile) {
+        const photo = await mealApi.uploadPhoto(photoFile).catch(() => null);
+        response = photo?.id
+          ? await mealApi.convertPhotoToMeal(photo.id, request)
+          : await mealApi.saveManual(request);
+      } else {
+        response = await mealApi.saveManual(request);
+      }
+
       if (response) {
-        addEntry(mealResponseToEntry(response));
+        addEntry({ ...mealResponseToEntry(response), imageUrl });
       } else if (import.meta.env.DEV) {
         // A 2xx with no body shouldn't happen for this endpoint — flag it in dev
         // so a silently dropped entry is noticeable. (Network/5xx errors throw
@@ -91,6 +109,9 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
     suggestions,
     totalCalories,
     slot, setSlot,
+    photoFile,
+    setPhoto: setPhotoFile,
+    clearPhoto: () => setPhotoFile(null),
     save,
     saving,
     canSave: items.length > 0,

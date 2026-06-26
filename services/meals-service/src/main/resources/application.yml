@@ -4,7 +4,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/nutrition?currentSchema=meals}
     username: ${SPRING_DATASOURCE_USERNAME:nutrition}
-    password: ${SPRING_DATASOURCE_PASSWORD:nutrition}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -25,7 +25,7 @@ server:
 
 app:
   jwt:
-    secret: ${APP_JWT_SECRET:local-development-secret-change-me-please-1234567890}
+    secret: ${APP_JWT_SECRET}
   storage:
     upload-dir: ${APP_UPLOAD_DIR:uploads}
 

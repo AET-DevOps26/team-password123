@@ -22,10 +22,45 @@ kubectl create secret docker-registry ghcr-pull \
 
 `values.yaml` already references this secret via `imagePullSecrets`.
 
+## Secrets
+
+The chart no longer ships working default secrets. `jwt.secret` and
+`postgres.password` are **required** — a deploy without them fails closed.
+
+**Option A — externally-managed Secret (recommended for production).** Create the
+Secret once, out-of-band, then point the chart at it. Survives `helm upgrade` and
+keeps secrets out of `values.yaml` / shell history / the Helm release:
+
+```bash
+kubectl -n team-password123 create secret generic calorieasy-secrets \
+  --from-literal=APP_JWT_SECRET=$(openssl rand -hex 32) \
+  --from-literal=POSTGRES_PASSWORD=$(openssl rand -hex 24) \
+  --from-literal=OPENAI_API_KEY=<logos-key> \
+  --from-literal=USDA_FDC_API_KEY=
+# then install with: --set secrets.existingSecret=calorieasy-secrets
+```
+
+**Option B — chart-managed Secret.** Pass the same values on every upgrade:
+
+```bash
+--set jwt.secret=$(openssl rand -hex 32) --set postgres.password=$(openssl rand -hex 24)
+```
+
+> HS256 requires a key of at least 32 bytes (`openssl rand -hex 32` = 64 hex chars).
+> Rotate by updating the Secret and `kubectl rollout restart` the three Java
+> services — existing JWTs are invalidated and users simply log in again.
+
 ## Install / upgrade
 
 ```bash
-helm upgrade --install app . --namespace team-password123
+# Option A — external Secret created above:
+helm upgrade --install app . --namespace team-password123 \
+  --set secrets.existingSecret=calorieasy-secrets
+
+# Option B — chart-managed Secret:
+helm upgrade --install app . --namespace team-password123 \
+  --set jwt.secret=$(openssl rand -hex 32) \
+  --set postgres.password=$(openssl rand -hex 24)
 ```
 
 ## Access

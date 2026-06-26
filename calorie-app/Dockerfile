@@ -10,9 +10,13 @@ COPY . .
 # .dockerignore so local dev overrides never leak into the image.
 RUN npm run build
 
-# ── Serve via nginx, reverse-proxying /api/* to the backend services ──
-FROM nginx:1.27-alpine
+# ── Serve via nginx (unprivileged: runs as non-root uid 101, listens on 8080) ──
+FROM nginxinc/nginx-unprivileged:1.27-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 80
+# Explicit non-root, numeric UID (the unprivileged base's built-in nginx user).
+USER 101
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD wget -q -O /dev/null http://localhost:8080/ || exit 1
 CMD ["nginx", "-g", "daemon off;"]

@@ -45,7 +45,7 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: calorieasy-secrets
+                  name: {{ include "calorieasy.secretName" . }}
                   key: POSTGRES_PASSWORD
             # Use a subdirectory so initdb is not confused by lost+found on the volume.
             - name: PGDATA

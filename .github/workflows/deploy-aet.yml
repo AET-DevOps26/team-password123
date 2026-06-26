@@ -67,6 +67,8 @@ jobs:
           helm upgrade --install app helm/calorieasy \
             --namespace team-password123 \
             --set image.tag="${{ steps.ctx.outputs.tag }}" \
+            --set jwt.secret="${{ secrets.APP_JWT_SECRET }}" \
+            --set postgres.password="${{ secrets.POSTGRES_PASSWORD }}" \
             --set genai.openaiBaseUrl="${{ secrets.LOGOS_BASE_URL }}" \
             --set genai.openaiModel="${{ vars.LOGOS_MODEL || 'gpt-4o' }}" \
             --set genai.openaiApiKey="${{ secrets.LOGOS_API_KEY }}" \

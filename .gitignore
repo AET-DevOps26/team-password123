@@ -44,6 +44,9 @@ htmlcov/
 # IDE
 .idea/
 .vscode/
+
+# Claude Code local state (worktrees, memory, settings) — never commit
+.claude/
 *.swp
 *.swo
 *~

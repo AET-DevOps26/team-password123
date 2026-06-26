@@ -16,8 +16,9 @@ pillow==10.4.0
 # HTTP requests
 requests==2.31.0
 
-# Prometheus metrics
-prometheus-fastapi-instrumentator==7.0.0
+# Prometheus metrics (6.1.0 is the newest that keeps starlette<0.28, matching the
+# pinned fastapi 0.104.1; 7.x requires starlette>=0.30 and breaks the image build)
+prometheus-fastapi-instrumentator==6.1.0
 
 # Environment variables
 python-dotenv==1.0.0

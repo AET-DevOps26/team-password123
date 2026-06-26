@@ -23,6 +23,15 @@ spring:
 server:
   port: ${SERVER_PORT:8082}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
 app:
   jwt:
     secret: ${APP_JWT_SECRET}

@@ -72,6 +72,35 @@ web:
     requests: { cpu: "50m", memory: "64Mi" }
     limits:   { cpu: "250m", memory: "128Mi" }
 
+# Observability — in-namespace Prometheus + Grafana (no operator/CRDs, no
+# cluster-scoped RBAC). Prometheus scrapes the services via static in-cluster DNS
+# and stays ClusterIP (internal-only); Grafana is exposed online at <host>/grafana
+# (login-gated) through the shared Ingress.
+monitoring:
+  enabled: true
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    retention: 7d
+    scrapeInterval: 15s
+    # ponytail: emptyDir — metrics are ephemeral. Flip enabled:true for a PVC if
+    # you need history to survive pod restarts.
+    persistence:
+      enabled: false
+      storageClass: ""
+      size: 2Gi
+    resources:
+      requests: { cpu: "50m", memory: "256Mi" }
+      limits:   { cpu: "300m", memory: "512Mi" }
+  grafana:
+    image: grafana/grafana:11.4.0
+    adminUser: admin
+    # No default: Grafana is internet-facing, so a password must be supplied at
+    # install via --set monitoring.grafana.adminPassword=... (fails closed).
+    adminPassword: ""
+    resources:
+      requests: { cpu: "50m", memory: "128Mi" }
+      limits:   { cpu: "250m", memory: "256Mi" }
+
 # Traefik runs in-namespace as the L7 load balancer / router in front of the app.
 # The AET cluster exposes no Traefik ingress class, so we ship our own via the
 # file provider — no cluster-scoped RBAC or CRDs required. It routes /api/* to the

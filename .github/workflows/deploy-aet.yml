@@ -69,6 +69,7 @@ jobs:
             --set image.tag="${{ steps.ctx.outputs.tag }}" \
             --set jwt.secret="${{ secrets.APP_JWT_SECRET }}" \
             --set postgres.password="${{ secrets.POSTGRES_PASSWORD }}" \
+            --set monitoring.grafana.adminPassword="${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
             --set genai.openaiBaseUrl="${{ secrets.LOGOS_BASE_URL }}" \
             --set genai.openaiModel="${{ vars.LOGOS_MODEL || 'gpt-4o' }}" \
             --set genai.openaiApiKey="${{ secrets.LOGOS_API_KEY }}" \

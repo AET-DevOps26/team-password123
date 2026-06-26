@@ -17,6 +17,16 @@ spec:
     - host: {{ .Values.ingress.host | quote }}
       http:
         paths:
+          {{- if .Values.monitoring.enabled }}
+          # More-specific prefix than "/"; nginx matches longest-prefix.
+          - path: /grafana
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 3000
+          {{- end }}
           - path: /
             pathType: Prefix
             backend:

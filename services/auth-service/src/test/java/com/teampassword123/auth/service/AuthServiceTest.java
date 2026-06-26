@@ -48,7 +48,8 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(users, encoder, authenticationManager, jwtService);
+        authService = new AuthService(users, encoder, authenticationManager, jwtService,
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
     }
 
     private AppUser persistedUser(UUID id, String email, String displayName) {

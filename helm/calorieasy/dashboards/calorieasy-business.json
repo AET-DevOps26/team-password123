@@ -1,0 +1,127 @@
+{
+  "uid": "calorieasy-business",
+  "title": "Calorieasy Business",
+  "tags": ["calorieasy"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    { "id": 100, "type": "row", "title": "Accounts", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 } },
+    {
+      "id": 1, "type": "stat", "title": "Registrations (success, cumulative)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" },
+      "targets": [ { "refId": "A", "expr": "sum(calorieasy_auth_registrations_total{result=\"success\"})" } ]
+    },
+    {
+      "id": 2, "type": "stat", "title": "Logins (success, cumulative)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" },
+      "targets": [ { "refId": "A", "expr": "sum(calorieasy_auth_logins_total{result=\"success\"})" } ]
+    },
+    {
+      "id": 3, "type": "stat", "title": "Login failure rate",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 0.2 }, { "color": "red", "value": 0.5 } ] }, "color": { "mode": "thresholds" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "targets": [ { "refId": "A", "expr": "sum(rate(calorieasy_auth_logins_total{result=\"failure\"}[5m])) / sum(rate(calorieasy_auth_logins_total[5m]))" } ]
+    },
+    {
+      "id": 4, "type": "stat", "title": "Meals logged (cumulative)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" },
+      "targets": [ { "refId": "A", "expr": "sum(calorieasy_meals_logged_total)" } ]
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Logins per minute by result",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 15 } }, "overrides": [] },
+      "targets": [ { "refId": "A", "expr": "sum by (result) (rate(calorieasy_auth_logins_total[5m])) * 60", "legendFormat": "{{result}}" } ]
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "Registrations per minute by result",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 15 } }, "overrides": [] },
+      "targets": [ { "refId": "A", "expr": "sum by (result) (rate(calorieasy_auth_registrations_total[5m])) * 60", "legendFormat": "{{result}}" } ]
+    },
+
+    { "id": 101, "type": "row", "title": "Meals", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 } },
+    {
+      "id": 7, "type": "timeseries", "title": "Meals logged per minute by source",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "fillOpacity": 60, "stacking": { "mode": "normal" } } }, "overrides": [] },
+      "targets": [ { "refId": "A", "expr": "sum by (source) (rate(calorieasy_meals_logged_total[5m])) * 60", "legendFormat": "{{source}}" } ]
+    },
+    {
+      "id": 8, "type": "timeseries", "title": "Average calories per logged meal",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "fieldConfig": { "defaults": { "unit": "none", "custom": { "drawStyle": "line", "fillOpacity": 10 } }, "overrides": [] },
+      "targets": [ { "refId": "A", "expr": "sum(rate(calorieasy_meals_calories_sum[5m])) / sum(rate(calorieasy_meals_calories_count[5m]))", "legendFormat": "avg kcal" } ]
+    },
+    {
+      "id": 9, "type": "timeseries", "title": "Photo uploads / deletes / analyze (per min)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 } }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "expr": "sum(rate(calorieasy_meals_photo_uploads_total[5m])) * 60", "legendFormat": "uploads" },
+        { "refId": "B", "expr": "sum(rate(calorieasy_meals_deleted_total[5m])) * 60", "legendFormat": "deletes" },
+        { "refId": "C", "expr": "sum by (result) (rate(calorieasy_meals_analyze_total[5m])) * 60", "legendFormat": "analyze {{result}}" }
+      ]
+    },
+    {
+      "id": 10, "type": "timeseries", "title": "Calories logged per minute (throughput)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 23 },
+      "fieldConfig": { "defaults": { "unit": "none", "custom": { "drawStyle": "line", "fillOpacity": 15 } }, "overrides": [] },
+      "targets": [ { "refId": "A", "expr": "sum(rate(calorieasy_meals_calories_sum[5m])) * 60", "legendFormat": "kcal/min" } ]
+    },
+
+    { "id": 102, "type": "row", "title": "GenAI & analytics", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 } },
+    {
+      "id": 11, "type": "timeseries", "title": "GenAI analyze per min by result",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 32 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "fillOpacity": 60, "stacking": { "mode": "normal" } } }, "overrides": [] },
+      "targets": [ { "refId": "A", "expr": "sum by (result) (rate(calorieasy_genai_analyze_total[5m])) * 60", "legendFormat": "{{result}}" } ]
+    },
+    {
+      "id": 12, "type": "timeseries", "title": "GenAI estimate per min by source",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 32 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 15 } }, "overrides": [] },
+      "targets": [ { "refId": "A", "expr": "sum by (source) (rate(calorieasy_genai_estimate_total[5m])) * 60", "legendFormat": "{{source}}" } ]
+    },
+    {
+      "id": 13, "type": "timeseries", "title": "GenAI analyze latency p95 (s)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 32 },
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "drawStyle": "line", "fillOpacity": 10 } }, "overrides": [] },
+      "targets": [ { "refId": "A", "expr": "histogram_quantile(0.95, sum by (le) (rate(calorieasy_genai_analyze_seconds_bucket[5m])))", "legendFormat": "p95" } ]
+    },
+    {
+      "id": 14, "type": "timeseries", "title": "Analytics queries per min by endpoint",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 } }, "overrides": [] },
+      "targets": [ { "refId": "A", "expr": "sum by (uri) (rate(http_server_requests_seconds_count{application=\"analytics-service\", uri=~\"/api/analytics.*\"}[5m])) * 60", "legendFormat": "{{uri}}" } ]
+    },
+    {
+      "id": 15, "type": "timeseries", "title": "Goals saved per minute",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 15 } }, "overrides": [] },
+      "targets": [ { "refId": "A", "expr": "sum(rate(http_server_requests_seconds_count{application=\"analytics-service\", uri=\"/api/goals\", method=\"PUT\"}[5m])) * 60", "legendFormat": "goals saved" } ]
+    }
+  ]
+}

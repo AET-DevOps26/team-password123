@@ -23,10 +23,18 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        include: health,info,prometheus,metrics
   metrics:
     tags:
       application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+logging:
+  level:
+    com.teampassword123: DEBUG
+    org.hibernate.SQL: DEBUG
 
 app:
   jwt:

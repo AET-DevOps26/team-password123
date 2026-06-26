@@ -17,6 +17,7 @@ import com.teampassword123.meals.exception.BadRequestException;
 import com.teampassword123.meals.exception.NotFoundException;
 import com.teampassword123.meals.repository.MealLogRepository;
 import com.teampassword123.meals.repository.PhotoLogRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
@@ -29,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -39,27 +42,44 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class MealService {
 
+    private static final Logger log = LoggerFactory.getLogger(MealService.class);
+
     private final MealLogRepository meals;
     private final PhotoLogRepository photos;
     private final MealAnalyzer analyzer;
     private final Path uploadDir;
+    private final MeterRegistry metrics;
 
     public MealService(
             MealLogRepository meals,
             PhotoLogRepository photos,
             MealAnalyzer analyzer,
-            StorageProperties storageProperties
+            StorageProperties storageProperties,
+            MeterRegistry metrics
     ) {
         this.meals = meals;
         this.photos = photos;
         this.analyzer = analyzer;
         this.uploadDir = Path.of(storageProperties.getUploadDir()).toAbsolutePath().normalize();
+        this.metrics = metrics;
     }
 
     @Transactional
     public MealResponse createManual(UUID userId, ManualMealRequest request) {
         MealLog meal = buildMeal(userId, request, SourceType.MANUAL);
-        return MealMapper.toMealResponse(meals.save(meal));
+        MealLog saved = meals.save(meal);
+        recordLogged(saved, "manual");
+        return MealMapper.toMealResponse(saved);
+    }
+
+    /** Bumps the meals-logged counter + calorie distribution and emits a business log line. */
+    private void recordLogged(MealLog meal, String source) {
+        metrics.counter("calorieasy.meals.logged", "source", source).increment();
+        if (meal.getCalories() != null) {
+            metrics.summary("calorieasy.meals.calories").record(meal.getCalories().doubleValue());
+        }
+        log.info("Meal logged id={} user={} source={} kcal={} type={}",
+                meal.getId(), meal.getUserId(), source, meal.getCalories(), meal.getMealType());
     }
 
     @Transactional(readOnly = true)
@@ -99,6 +119,8 @@ public class MealService {
     public void delete(UUID userId, UUID mealId) {
         MealLog meal = findOwnedMeal(userId, mealId);
         meals.delete(meal);
+        metrics.counter("calorieasy.meals.deleted").increment();
+        log.info("Meal deleted id={} user={}", mealId, userId);
     }
 
     @Transactional
@@ -116,6 +138,8 @@ public class MealService {
         photo.setContentType(file.getContentType());
         photo.setStatus(PhotoStatus.AI_NOT_AVAILABLE);
         photo.setCreatedAt(OffsetDateTime.now());
+        metrics.counter("calorieasy.meals.photo_uploads").increment();
+        log.info("Photo uploaded user={} file={}", userId, stored.originalFilename());
         return MealMapper.toPhotoResponse(photos.save(photo));
     }
 
@@ -133,10 +157,19 @@ public class MealService {
         }
 
         StoredFile stored = storePhoto(image);
-        MealAnalysis analysis = analyzer.analyze(bytes, stored.originalFilename());
+        MealAnalysis analysis;
+        try {
+            analysis = analyzer.analyze(bytes, stored.originalFilename());
+        } catch (RuntimeException e) {
+            metrics.counter("calorieasy.meals.analyze", "result", "error").increment();
+            log.error("Photo analysis failed user={} file={}: {}", userId, stored.originalFilename(), e.toString());
+            throw e;
+        }
+        metrics.counter("calorieasy.meals.analyze", "result", "success").increment();
 
         OffsetDateTime now = OffsetDateTime.now();
         MealLog meal = meals.save(buildAnalyzedMeal(userId, analysis, now));
+        recordLogged(meal, "photo_ai");
 
         PhotoLog photo = new PhotoLog();
         photo.setUserId(userId);
@@ -193,6 +226,7 @@ public class MealService {
         }
 
         MealLog meal = meals.save(buildMeal(userId, request, SourceType.PHOTO_MANUAL));
+        recordLogged(meal, "photo_manual");
         photo.setLinkedMealLog(meal);
         photo.setStatus(PhotoStatus.MANUALLY_COMPLETED);
         photos.save(photo);

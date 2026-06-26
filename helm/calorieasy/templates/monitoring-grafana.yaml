@@ -37,8 +37,10 @@ metadata:
   labels:
     {{- include "calorieasy.labels" . | nindent 4 }}
 data:
-  calorieasy-overview.json: |
-{{ .Files.Get "dashboards/calorieasy-overview.json" | indent 4 }}
+{{- range $path, $bytes := .Files.Glob "dashboards/*.json" }}
+  {{ base $path }}: |
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
 ---
 apiVersion: apps/v1
 kind: Deployment

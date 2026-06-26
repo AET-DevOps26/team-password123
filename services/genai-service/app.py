@@ -16,8 +16,10 @@ To run locally:
 from fastapi import FastAPI, File, UploadFile, HTTPException, status
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Counter, Histogram
 import base64
 import logging
+import time
 from datetime import datetime, timezone
 
 from pydantic import BaseModel
@@ -47,6 +49,19 @@ app = FastAPI(
 
 # Expose Prometheus metrics at /metrics for scraping.
 Instrumentator().instrument(app).expose(app)
+
+# Custom business metrics — these live alongside the HTTP metrics above and
+# capture signal the request metrics can't (which provider answered, success vs
+# fallback vs hard failure, model latency).
+GENAI_ANALYZE = Counter(
+    "calorieasy_genai_analyze_total", "Meal-image analyses", ["result"]
+)
+GENAI_ESTIMATE = Counter(
+    "calorieasy_genai_estimate_total", "Food-name nutrition estimates", ["result", "source"]
+)
+GENAI_LATENCY = Histogram(
+    "calorieasy_genai_analyze_seconds", "Wall-clock seconds per image analysis"
+)
 
 # Initialize the analyzer
 analyzer = None
@@ -97,6 +112,7 @@ async def estimate_food(request: FoodEstimateRequest):
     Tries USDA database first, falls back to text LLM (e.g. Logos).
     """
     if not analyzer:
+        GENAI_ESTIMATE.labels(result="unavailable", source="none").inc()
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="GenAI service not initialized.")
     food_name = request.food_name.strip() if request.food_name else ""
     if not food_name:
@@ -107,6 +123,7 @@ async def estimate_food(request: FoodEstimateRequest):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="food_name must be 120 characters or fewer.")
     try:
         result = analyzer.estimate_from_name(food_name)
+        GENAI_ESTIMATE.labels(result="success", source=result.get("source", "unknown")).inc()
         logger.info(
             "Estimated '%s': %.0f kcal/100g, portion=%.0fg '%s' [%s]",
             request.food_name, result["calories_per_100g"],
@@ -116,13 +133,17 @@ async def estimate_food(request: FoodEstimateRequest):
         return result
     except LLMUnavailableError as e:
         # Backend has no usable LLM — a service problem, not bad client input.
+        GENAI_ESTIMATE.labels(result="unavailable", source="none").inc()
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
     except LLMResponseError as e:
         # Upstream LLM returned something we couldn't parse — bad gateway.
+        GENAI_ESTIMATE.labels(result="error", source="none").inc()
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
     except ValueError as e:
+        GENAI_ESTIMATE.labels(result="bad_request", source="none").inc()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
+        GENAI_ESTIMATE.labels(result="error", source="none").inc()
         logger.error("Estimation error: %s", e, exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Estimation failed.")
 
@@ -139,35 +160,42 @@ async def analyze_meal(file: UploadFile = File(...)):
         NutritionResponse with estimated macros and confidence score
     """
     if not analyzer:
+        GENAI_ANALYZE.labels(result="unavailable").inc()
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="GenAI service not initialized. Ensure Ollama is running, or set OPENAI_API_KEY / GOOGLE_API_KEY."
         )
-    
+
+    started = time.perf_counter()
     try:
         # Validate file
         if not file.filename:
             raise ValueError("File must have a name")
-        
+
         # Read the image file
         image_data = await file.read()
         if not image_data:
             raise ValueError("Empty image file")
-        
+
         # Encode to base64
         image_base64 = base64.b64encode(image_data).decode("utf-8")
-        
+
         # Analyze
         logger.info(f"Analyzing image: {file.filename}")
         result = analyzer.analyze(image_base64)
-        
+
+        GENAI_LATENCY.observe(time.perf_counter() - started)
+        GENAI_ANALYZE.labels(result="success").inc()
         logger.info(f"Analysis result: {result.calories} cal, confidence {result.confidence}")
         return result
-        
+
     except ValueError as e:
+        GENAI_ANALYZE.labels(result="bad_request").inc()
         logger.error(f"Validation error: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
+        GENAI_LATENCY.observe(time.perf_counter() - started)
+        GENAI_ANALYZE.labels(result="error").inc()
         logger.error(f"Analysis error: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

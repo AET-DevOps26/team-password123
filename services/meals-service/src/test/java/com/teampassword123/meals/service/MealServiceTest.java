@@ -63,7 +63,8 @@ class MealServiceTest {
     void setUp() {
         StorageProperties storageProperties = new StorageProperties();
         storageProperties.setUploadDir(uploadDir.toString());
-        service = new MealService(meals, photos, analyzer, storageProperties);
+        service = new MealService(meals, photos, analyzer, storageProperties,
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
     }
 
     private static MealItemRequest item(

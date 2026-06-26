@@ -147,13 +147,58 @@ services:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in .env}
       GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/metrics/calorieasy-overview.json
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
     volumes:
       - ./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      # Metrics dashboards are shared with the Helm chart; logs dashboards are
+      # compose-only (Loki isn't in the chart yet). Both land under one dir so a
+      # single provider picks them up.
+      - ./helm/calorieasy/dashboards:/var/lib/grafana/dashboards/metrics:ro
+      - ./infra/monitoring/grafana/dashboards:/var/lib/grafana/dashboards/logs:ro
       - grafana-data:/var/lib/grafana
     ports:
       - "3001:3000"   # web uses 3000 locally, so Grafana is on 3001
     depends_on:
       - prometheus
+      - loki
+
+  # Loki stores logs; runs on its built-in single-binary filesystem config.
+  loki:
+    image: grafana/loki:3.1.1
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+
+  # Promtail tails every container's logs via the Docker socket and pushes to Loki.
+  promtail:
+    image: grafana/promtail:3.1.1
+    command: -config.file=/etc/promtail/config.yml
+    user: root
+    volumes:
+      - ./infra/monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - loki
+
+  # Hammers every endpoint in a loop so the dashboards always have live data.
+  # Disable by commenting this out (or `docker compose stop load-generator`).
+  load-generator:
+    image: python:3.12-alpine
+    command: python /loadgen.py
+    environment:
+      LOADGEN_SLEEP: ${LOADGEN_SLEEP:-1.5}
+    volumes:
+      - ./scripts/load-generator/loadgen.py:/loadgen.py:ro
+    depends_on:
+      auth-service:
+        condition: service_started
+      meals-service:
+        condition: service_started
+      analytics-service:
+        condition: service_started
 
 volumes:
   postgres-data:
@@ -161,3 +206,4 @@ volumes:
   web-node-modules:
   prometheus-data:
   grafana-data:
+  loki-data:

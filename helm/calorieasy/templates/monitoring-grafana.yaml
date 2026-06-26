@@ -76,6 +76,12 @@ spec:
                   key: GRAFANA_ADMIN_PASSWORD
             - name: GF_USERS_ALLOW_SIGN_UP
               value: "false"
+            # Land on the provisioned Calorieasy dashboard instead of the default
+            # "Welcome to Grafana" getting-started page.
+            - name: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH
+              value: /var/lib/grafana/dashboards/calorieasy-overview.json
+            - name: GF_NEWS_NEWS_FEED_ENABLED
+              value: "false"
             {{- if .Values.ingress.host }}
             - name: GF_SERVER_ROOT_URL
               value: "https://{{ .Values.ingress.host }}/grafana"

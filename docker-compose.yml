@@ -117,7 +117,42 @@ services:
       timeout: 5s
       retries: 3
 
+  # Observability — same stack as the Helm chart, for local dev. Prometheus
+  # scrapes the services (names match k8s); Grafana auto-provisions the datasource.
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - auth-service
+      - meals-service
+      - analytics-service
+      - genai-service
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    environment:
+      # No baked-in credentials — set GRAFANA_ADMIN_PASSWORD in .env, same as
+      # POSTGRES_PASSWORD/APP_JWT_SECRET. The deployed chart sources it from a Secret.
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3001:3000"   # web uses 3000 locally, so Grafana is on 3001
+    depends_on:
+      - prometheus
+
 volumes:
   postgres-data:
   meals-uploads:
   web-node-modules:
+  prometheus-data:
+  grafana-data:

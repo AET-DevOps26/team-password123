@@ -1,0 +1,10 @@
+# Local (docker-compose) Grafana datasource — auto-connects Grafana to the
+# compose Prometheus so the stack works on first `docker compose up`.
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true

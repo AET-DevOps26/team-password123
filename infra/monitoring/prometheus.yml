@@ -1,0 +1,25 @@
+# Local (docker-compose) Prometheus scrape config. Compose service names match
+# the in-cluster Service names, so the same targets work here and in k8s.
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: auth-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['auth-service:8081']
+  - job_name: meals-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['meals-service:8082']
+  - job_name: analytics-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['analytics-service:8083']
+  - job_name: genai-service
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['genai-service:8084']

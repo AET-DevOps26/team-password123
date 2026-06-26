@@ -15,6 +15,7 @@ To run locally:
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, status
 from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 import base64
 import logging
 from datetime import datetime, timezone
@@ -35,6 +36,9 @@ app = FastAPI(
     description="Analyzes food images and returns nutritional estimates using Ollama, OpenAI, or Google Gemini",
     version="0.1.0"
 )
+
+# Expose Prometheus metrics at /metrics for scraping.
+Instrumentator().instrument(app).expose(app)
 
 # Initialize the analyzer
 analyzer = None

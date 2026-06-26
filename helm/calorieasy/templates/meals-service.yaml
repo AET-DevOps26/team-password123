@@ -32,6 +32,13 @@ spec:
       labels:
         app: meals-service
     spec:
+      # Non-root (matches the image's UID 1001); fsGroup makes the uploads PVC
+      # group-writable so the unprivileged process can persist photos.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}

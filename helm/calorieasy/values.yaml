@@ -14,8 +14,11 @@ imagePullSecrets:
 # "calorieasy-secrets" from the values below (jwt.secret + postgres.password are
 # then REQUIRED — a deploy without them fails closed). For production, create a
 # Secret out-of-band with keys APP_JWT_SECRET, POSTGRES_PASSWORD, OPENAI_API_KEY,
-# TEXT_OPENAI_API_KEY, USDA_FDC_API_KEY and set its name here:
-#   --set secrets.existingSecret=calorieasy-secrets
+# TEXT_OPENAI_API_KEY, USDA_FDC_API_KEY, GRAFANA_ADMIN_PASSWORD and set its name
+# here so secrets never live in values/history:
+#   kubectl -n <ns> create secret generic calorieasy-secrets \
+#     --from-literal=APP_JWT_SECRET=$(openssl rand -hex 32) \
+#     --from-literal=POSTGRES_PASSWORD=$(openssl rand -hex 24) ...
 secrets:
   existingSecret: ""
 
@@ -57,7 +60,7 @@ genai:
   llmProvider: openai          # OpenAI-compatible provider used for photo analysis (vision)
   # ── Vision / photo scan. ACTIVE: Google Gemini. ──────────────────────────────
   openaiBaseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/"
-  openaiModel: "gemini-2.0-flash"        # vision-capable model for photo scan
+  openaiModel: "gemini-3.1-flash-lite"   # vision-capable, free-tier quota on the project
   openaiApiKey: ""             # Google AI Studio key — provide via --set or CI secret
   # STAGED swap → Logos gemma-4 (once AET grants google/gemma-4-26B-A4B-it to the
   # key; until then it 404s). To cut over, set these three — gemma-4 reuses the
@@ -83,6 +86,35 @@ web:
   resources:
     requests: { cpu: "50m", memory: "64Mi" }
     limits:   { cpu: "250m", memory: "128Mi" }
+
+# Observability — in-namespace Prometheus + Grafana (no operator/CRDs, no
+# cluster-scoped RBAC). Prometheus scrapes the services via static in-cluster DNS
+# and stays ClusterIP (internal-only); Grafana is exposed online at <host>/grafana
+# (login-gated) through the shared Ingress.
+monitoring:
+  enabled: true
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    retention: 7d
+    scrapeInterval: 15s
+    # ponytail: emptyDir — metrics are ephemeral. Flip enabled:true for a PVC if
+    # you need history to survive pod restarts.
+    persistence:
+      enabled: false
+      storageClass: ""
+      size: 2Gi
+    resources:
+      requests: { cpu: "50m", memory: "256Mi" }
+      limits:   { cpu: "300m", memory: "512Mi" }
+  grafana:
+    image: grafana/grafana:11.4.0
+    adminUser: admin
+    # No default: Grafana is internet-facing, so a password must be supplied at
+    # install via --set monitoring.grafana.adminPassword=... (fails closed).
+    adminPassword: ""
+    resources:
+      requests: { cpu: "50m", memory: "128Mi" }
+      limits:   { cpu: "250m", memory: "256Mi" }
 
 # Traefik runs in-namespace as the L7 load balancer / router in front of the app.
 # The AET cluster exposes no Traefik ingress class, so we ship our own via the

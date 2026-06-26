@@ -29,13 +29,13 @@ spec:
           image: {{ include "calorieasy.image" (dict "root" $ "name" "web") }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: 80
+            - containerPort: 8080
           readinessProbe:
-            httpGet: { path: /, port: 80 }
+            httpGet: { path: /, port: 8080 }
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
-            tcpSocket: { port: 80 }
+            tcpSocket: { port: 8080 }
             periodSeconds: 15
           resources:
             {{- toYaml .Values.web.resources | nindent 12 }}
@@ -52,4 +52,4 @@ spec:
     app: web
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8080

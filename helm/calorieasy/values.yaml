@@ -10,16 +10,29 @@ image:
 imagePullSecrets:
   - name: ghcr-pull
 
-# Shared JWT secret — all services validate with it; only auth-service issues tokens.
+# Secret provisioning. Leave existingSecret empty to let the chart create
+# "calorieasy-secrets" from the values below (jwt.secret + postgres.password are
+# then REQUIRED — a deploy without them fails closed). For production, create a
+# Secret out-of-band with keys APP_JWT_SECRET, POSTGRES_PASSWORD, OPENAI_API_KEY,
+# TEXT_OPENAI_API_KEY, USDA_FDC_API_KEY and set its name here:
+#   --set secrets.existingSecret=calorieasy-secrets
+secrets:
+  existingSecret: ""
+
+# Shared JWT signing key — all services validate with it; only auth-service issues
+# tokens. HS256 requires >= 32 bytes. Provide at install (chart-managed Secret):
+#   --set jwt.secret=$(openssl rand -hex 32)
+# No default: a working key must never be committed.
 jwt:
-  secret: "change-me-in-production-0123456789abcdef0123456789abcdef"
+  secret: ""
   expiration: "PT24H"
 
 postgres:
   image: postgres:16-alpine
   db: nutrition
   user: nutrition
-  password: nutrition
+  # No default: provide at install via --set postgres.password=$(openssl rand -hex 24)
+  password: ""
   storageClass: ""        # "" -> cluster default (csi-rbd-sc on the AET cluster)
   storageSize: 2Gi
   resources:
@@ -42,11 +55,19 @@ meals:
 genai:
   enabled: true
   llmProvider: openai          # OpenAI-compatible provider used for photo analysis (vision)
+  # ── Vision / photo scan. ACTIVE: Google Gemini. ──────────────────────────────
   openaiBaseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/"
   openaiModel: "gemini-2.0-flash"        # vision-capable model for photo scan
   openaiApiKey: ""             # Google AI Studio key — provide via --set or CI secret
-  # Optional dedicated text LLM for food-name estimation (Logos).
-  # When set, estimate endpoint uses this instead of the vision LLM.
+  # STAGED swap → Logos gemma-4 (once AET grants google/gemma-4-26B-A4B-it to the
+  # key; until then it 404s). To cut over, set these three — gemma-4 reuses the
+  # Logos key, same as the text LLM below:
+  #   openaiBaseUrl: "https://logos.aet.cit.tum.de/v1"
+  #   openaiModel:   "google/gemma-4-26B-A4B-it"
+  #   openaiApiKey:  <Logos key>   (CI: --set genai.openaiApiKey=${{ secrets.LOGOS_API_KEY }})
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Dedicated text LLM for food-name estimation (Logos gpt-oss-120b).
+  # When set, the estimate endpoint uses this instead of the vision LLM.
   # Provided via CI --set overrides; empty here so local docker-compose falls back to .env
   textOpenaiBaseUrl: ""
   textOpenaiModel: "openai/gpt-oss-120b"

@@ -21,7 +21,13 @@ from datetime import datetime, timezone
 
 from pydantic import BaseModel
 
-from nutrition_analyzer import NutritionAnalyzer, NutritionResponse, NutritionComparisonResponse
+from nutrition_analyzer import (
+    NutritionAnalyzer,
+    NutritionResponse,
+    NutritionComparisonResponse,
+    LLMUnavailableError,
+    LLMResponseError,
+)
 from config import PORT, DEBUG
 
 # Set up logging
@@ -88,10 +94,15 @@ async def estimate_food(request: FoodEstimateRequest):
     """
     if not analyzer:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="GenAI service not initialized.")
-    if not request.food_name or not request.food_name.strip():
+    food_name = request.food_name.strip() if request.food_name else ""
+    if not food_name:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="food_name is required.")
+    # Defense for this unauthenticated, host-published endpoint: bound the input
+    # length before it ever reaches the LLM prompt.
+    if len(food_name) > 120:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="food_name must be 120 characters or fewer.")
     try:
-        result = analyzer.estimate_from_name(request.food_name.strip())
+        result = analyzer.estimate_from_name(food_name)
         logger.info(
             "Estimated '%s': %.0f kcal/100g, portion=%.0fg '%s' [%s]",
             request.food_name, result["calories_per_100g"],
@@ -99,6 +110,12 @@ async def estimate_food(request: FoodEstimateRequest):
             result["source"],
         )
         return result
+    except LLMUnavailableError as e:
+        # Backend has no usable LLM — a service problem, not bad client input.
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
+    except LLMResponseError as e:
+        # Upstream LLM returned something we couldn't parse — bad gateway.
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:

@@ -24,7 +24,7 @@ GOOGLE_MODEL = os.getenv("GOOGLE_MODEL", "gemini-2.0-flash")
 # If unset, the primary LLM is used as fallback for text estimation too.
 TEXT_OPENAI_BASE_URL = os.getenv("TEXT_OPENAI_BASE_URL", "")
 TEXT_OPENAI_API_KEY = os.getenv("TEXT_OPENAI_API_KEY", "")
-TEXT_OPENAI_MODEL = os.getenv("TEXT_OPENAI_MODEL", "gpt-4o")
+TEXT_OPENAI_MODEL = os.getenv("TEXT_OPENAI_MODEL", "openai/gpt-oss-120b")
 
 # Nutrition data configuration
 NUTRITION_DATA_PROVIDER = os.getenv("NUTRITION_DATA_PROVIDER", "usda").lower()

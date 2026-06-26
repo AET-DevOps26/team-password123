@@ -38,7 +38,7 @@ spec:
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: calorieasy-secrets
+                  name: {{ include "calorieasy.secretName" . }}
                   key: OPENAI_API_KEY
             - name: TEXT_OPENAI_BASE_URL
               value: {{ .Values.genai.textOpenaiBaseUrl | quote }}
@@ -47,14 +47,14 @@ spec:
             - name: TEXT_OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: calorieasy-secrets
+                  name: {{ include "calorieasy.secretName" . }}
                   key: TEXT_OPENAI_API_KEY
             - name: NUTRITION_DATA_PROVIDER
               value: {{ .Values.genai.nutritionDataProvider | quote }}
             - name: USDA_FDC_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: calorieasy-secrets
+                  name: {{ include "calorieasy.secretName" . }}
                   key: USDA_FDC_API_KEY
           startupProbe:
             tcpSocket: { port: 8084 }

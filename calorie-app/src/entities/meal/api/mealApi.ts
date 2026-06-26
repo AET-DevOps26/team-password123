@@ -1,6 +1,6 @@
 import { apiClient } from '../../../shared/api/client';
 import type { MealAnalysisResponse } from '../model/types';
-import type { MealResponse, ManualMealRequest, PhotoLogResponse } from './backendTypes';
+import type { MealResponse, ManualMealRequest, PhotoLogResponse, FoodEstimateResponse } from './backendTypes';
 
 export const mealApi = {
   /** POST /meals/manual — persist a manually-entered meal */
@@ -48,18 +48,6 @@ export const mealApi = {
    * POST /meals/estimate — estimate per-100g nutrition for a food by name,
    * plus a typical serving size. Uses USDA first, then Logos text LLM.
    */
-  estimateFood: (foodName: string): Promise<FoodEstimateResult> =>
-    apiClient.post<FoodEstimateResult>('/meals/estimate', { foodName }),
+  estimateFood: (foodName: string): Promise<FoodEstimateResponse> =>
+    apiClient.post<FoodEstimateResponse>('/meals/estimate', { foodName }),
 };
-
-export interface FoodEstimateResult {
-  food_name: string;
-  calories_per_100g: number;
-  protein_grams_per_100g: number;
-  carbs_grams_per_100g: number;
-  fat_grams_per_100g: number;
-  typical_portion_grams: number;
-  typical_portion_label: string;
-  source: 'usda' | 'llm' | string;
-  confidence: number;
-}

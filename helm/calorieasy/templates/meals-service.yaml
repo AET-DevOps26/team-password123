@@ -56,12 +56,12 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: calorieasy-secrets
+                  name: {{ include "calorieasy.secretName" . }}
                   key: POSTGRES_PASSWORD
             - name: APP_JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: calorieasy-secrets
+                  name: {{ include "calorieasy.secretName" . }}
                   key: APP_JWT_SECRET
             - name: APP_UPLOAD_DIR
               value: /app/uploads

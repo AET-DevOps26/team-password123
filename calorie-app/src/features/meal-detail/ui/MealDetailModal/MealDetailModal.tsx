@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Modal } from '../../../../shared/ui/Modal/Modal';
-import type { MealEntry } from '../../../../entities/meal';
+import type { MealEntry, MealSlot } from '../../../../entities/meal';
 import { useMealPhoto } from '../../../../entities/meal/lib/useMealPhoto';
 import { useMealDetail } from '../../model/useMealDetail';
-import type { MealSlot } from '../../../manual-entry/model/useManualEntry';
 import styles from './MealDetailModal.module.css';
 
 interface MealDetailModalProps {

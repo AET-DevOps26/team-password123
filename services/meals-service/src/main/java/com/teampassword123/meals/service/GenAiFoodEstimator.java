@@ -8,15 +8,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.server.ResponseStatusException;
 
 @Component
 @ConditionalOnProperty(prefix = "app.genai", name = "base-url")
 public class GenAiFoodEstimator {
 
     private static final int CONNECT_TIMEOUT_MS = 5_000;
-    private static final int READ_TIMEOUT_MS = 30_000;
+    private static final int READ_TIMEOUT_MS = 60_000;
 
     private final RestClient client;
 
@@ -32,32 +36,42 @@ public class GenAiFoodEstimator {
     public FoodEstimateResponse estimate(String foodName) {
         GenAiEstimateRequest body = new GenAiEstimateRequest(foodName);
 
-        GenAiEstimateResponse raw = client.post()
-                .uri("/api/estimate")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .body(GenAiEstimateResponse.class);
-
-        return toResponse(raw);
+        try {
+            GenAiEstimateResponse raw = client.post()
+                    .uri("/api/estimate")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(GenAiEstimateResponse.class);
+            return toResponse(raw);
+        } catch (RestClientResponseException ex) {
+            HttpStatus status = ex.getStatusCode().is4xxClientError()
+                    ? HttpStatus.BAD_REQUEST
+                    : HttpStatus.SERVICE_UNAVAILABLE;
+            throw new ResponseStatusException(status, "AI estimation temporarily unavailable");
+        } catch (ResourceAccessException ex) {
+            throw new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE, "AI estimation temporarily unavailable");
+        }
     }
 
     private static FoodEstimateResponse toResponse(GenAiEstimateResponse r) {
         return new FoodEstimateResponse(
                 r.foodName(),
-                orZero(r.caloriesPer100g()),
-                orZero(r.proteinPer100g()),
-                orZero(r.carbsPer100g()),
-                orZero(r.fatPer100g()),
-                orZero(r.typicalPortionGrams()),
+                clamp(r.caloriesPer100g()),
+                clamp(r.proteinPer100g()),
+                clamp(r.carbsPer100g()),
+                clamp(r.fatPer100g()),
+                clamp(r.typicalPortionGrams()),
                 r.typicalPortionLabel() != null ? r.typicalPortionLabel() : "100 g",
                 r.source() != null ? r.source() : "unknown",
-                r.confidence() != null ? r.confidence() : BigDecimal.ZERO
+                clamp(r.confidence())
         );
     }
 
-    private static BigDecimal orZero(BigDecimal v) {
-        return v == null ? BigDecimal.ZERO : v;
+    // Floor at zero: a null or negative value from genai must not pass through.
+    private static BigDecimal clamp(BigDecimal v) {
+        return v == null || v.signum() < 0 ? BigDecimal.ZERO : v;
     }
 
     private record GenAiEstimateRequest(

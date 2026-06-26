@@ -1,7 +1,5 @@
-import type { MealEntry } from './types';
-import type { MealResponse, ManualMealRequest, MealItemRequest } from '../api/backendTypes';
-
-type MealSlot = MealEntry['slot'];
+import type { MealEntry, MealSlot, FoodEstimate } from './types';
+import type { MealResponse, ManualMealRequest, MealItemRequest, FoodEstimateResponse } from '../api/backendTypes';
 
 const MEAL_TYPE_TO_SLOT: Record<string, MealSlot> = {
   BREAKFAST: 'Breakfast',
@@ -60,6 +58,21 @@ export function entryToManualRequest(
     loggedAt: loggedAt.toISOString(),
     notes:    name,
     items,
+  };
+}
+
+/** Convert a backend FoodEstimateResponse into a clean UI FoodEstimate */
+export function foodEstimateResponseToEstimate(r: FoodEstimateResponse): FoodEstimate {
+  return {
+    foodName:            r.foodName,
+    caloriesPer100g:     r.caloriesPer100g,
+    proteinPer100g:      r.proteinPer100g,
+    carbsPer100g:        r.carbsPer100g,
+    fatPer100g:          r.fatPer100g,
+    typicalPortionGrams: r.typicalPortionGrams,
+    typicalPortionLabel: r.typicalPortionLabel,
+    source:              r.source,
+    confidence:          r.confidence,
   };
 }
 

@@ -112,7 +112,6 @@ public class MealController {
 
     @PostMapping("/estimate")
     public FoodEstimateResponse estimate(
-            @AuthenticationPrincipal AuthenticatedUser user,
             @Valid @RequestBody FoodEstimateRequest request
     ) {
         return foodEstimator

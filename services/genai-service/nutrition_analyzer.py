@@ -20,13 +20,12 @@ from langchain_openai import ChatOpenAI
 
 from importlib import import_module
 
-# Google / Gemini support is commented out for now to keep the runtime focused on
-# local Ollama + USDA only. If you want to re-enable Google, uncomment the
-# dynamic import below and ensure langchain-google-genai is installed.
+# Google / Gemini is an optional dependency; import dynamically so the service
+# still runs when langchain-google-genai is not installed.
 try:
-     ChatGoogleGenerativeAI = import_module("langchain_google_genai").ChatGoogleGenerativeAI
+    ChatGoogleGenerativeAI = import_module("langchain_google_genai").ChatGoogleGenerativeAI
 except Exception:  # Optional dependency.
-     ChatGoogleGenerativeAI = None
+    ChatGoogleGenerativeAI = None
 
 from config import (
     GOOGLE_API_KEY,
@@ -45,6 +44,15 @@ from config import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class LLMUnavailableError(RuntimeError):
+    """No text LLM is configured/available for estimation (maps to HTTP 503)."""
+
+
+class LLMResponseError(RuntimeError):
+    """The LLM returned an unparseable response (maps to HTTP 502)."""
+
 
 # Alias map: map common colloquial names to canonical lookup terms.
 ALIASES: dict[str, str] = {
@@ -110,11 +118,18 @@ def _typical_portion(food_name: str) -> tuple[float, str]:
     key = food_name.strip().lower()
     if key in _TYPICAL_PORTIONS:
         return _TYPICAL_PORTIONS[key]
-    # Partial match: check if any known key is contained in the food name
+    # Fuzzy match: a known food name must appear as a whole word in the input.
+    # Require length >= 3 and prefer the longest match to avoid false hits like
+    # 'ham' in 'hamburger', 'egg' in 'eggplant', or 'oats' vs 'oat'.
+    best_match: Optional[tuple[float, str]] = None
+    best_len = 0
     for known, portion in _TYPICAL_PORTIONS.items():
-        if known in key or key in known:
-            return portion
-    return (100.0, "100 g")
+        if len(known) < 3 or len(known) <= best_len:
+            continue
+        if re.search(rf"\b{re.escape(known)}\b", key):
+            best_match = portion
+            best_len = len(known)
+    return best_match if best_match else (100.0, "100 g")
 
 
 class NutritionResponse(BaseModel):
@@ -226,36 +241,30 @@ class NutritionDataClient:
         return ["usda", "local"]
 
     def _lookup_local(self, food_name: str, normalized_name: str) -> Optional[Dict[str, Any]]:
-        # Exact match
+        # Exact curated-DB key hit: return it verbatim. Calorie-dense foods
+        # (lard, cheddar, bacon, ...) must keep their own values and must NOT be
+        # swapped for a lower-calorie substring match.
         entry = self.local_fallback.get(normalized_name)
         if entry:
-            # If the local entry has an implausible calorie value (e.g., branded
-            # product or cookie) try to find a better alternative (singular form
-            # or nearby key) before returning.
-            cal = _coerce_float(entry.get("calories_per_100g"))
-            if cal and cal > 400:
-                # try singular form
-                if normalized_name.endswith("s"):
-                    alt = normalized_name[:-1]
-                    alt_entry = self.local_fallback.get(alt)
-                    if alt_entry and _coerce_float(alt_entry.get("calories_per_100g")) < 400:
-                        return {**alt_entry, "source": "local"}
-
-                # scan for nearby reasonable matches
-                for db_key, db_val in self.local_fallback.items():
-                    if normalized_name in db_key or db_key in normalized_name:
-                        if _coerce_float(db_val.get("calories_per_100g")) and _coerce_float(db_val.get("calories_per_100g")) < 400:
-                            logger.debug("Local fallback alternative '%s' -> '%s'", food_name, db_key)
-                            return {**db_val, "source": "local"}
-
             return {**entry, "source": "local"}
 
+        # No exact match: fall back to fuzzy matching. For dense fuzzy hits,
+        # prefer a more plausible (<400 kcal/100g) alternative when one exists.
+        if normalized_name.endswith("s"):
+            alt_entry = self.local_fallback.get(normalized_name[:-1])
+            if alt_entry:
+                return {**alt_entry, "source": "local"}
+
+        first_match: Optional[Dict[str, Any]] = None
         for db_key, db_val in self.local_fallback.items():
             if normalized_name in db_key or db_key in normalized_name:
-                logger.debug("Local fallback matched '%s' -> '%s'", food_name, db_key)
-                return {**db_val, "source": "local"}
+                if first_match is None:
+                    first_match = {**db_val, "source": "local"}
+                if _coerce_float(db_val.get("calories_per_100g")) < 400:
+                    logger.debug("Local fallback matched '%s' -> '%s'", food_name, db_key)
+                    return {**db_val, "source": "local"}
 
-        return None
+        return first_match
 
     def _lookup_usda(self, food_name: str, normalized_name: str) -> Optional[Dict[str, Any]]:
         # Prefer an explicit key if provided when the client was constructed
@@ -621,10 +630,10 @@ class NutritionAnalyzer:
             portion_grams, portion_label = _typical_portion(canonical)
             return {
                 "food_name": food_name,
-                "calories_per_100g":      round(_coerce_float(nutrition.get("calories_per_100g")), 1),
-                "protein_grams_per_100g": round(_coerce_float(nutrition.get("protein_per_100g")), 1),
-                "carbs_grams_per_100g":   round(_coerce_float(nutrition.get("carbs_per_100g")), 1),
-                "fat_grams_per_100g":     round(_coerce_float(nutrition.get("fat_per_100g")), 1),
+                "calories_per_100g":      max(0.0, round(_coerce_float(nutrition.get("calories_per_100g")), 1)),
+                "protein_grams_per_100g": max(0.0, round(_coerce_float(nutrition.get("protein_per_100g")), 1)),
+                "carbs_grams_per_100g":   max(0.0, round(_coerce_float(nutrition.get("carbs_per_100g")), 1)),
+                "fat_grams_per_100g":     max(0.0, round(_coerce_float(nutrition.get("fat_per_100g")), 1)),
                 "typical_portion_grams":  portion_grams,
                 "typical_portion_label":  portion_label,
                 "source": nutrition.get("source", "usda"),
@@ -633,7 +642,7 @@ class NutritionAnalyzer:
 
         llm_to_use = self.text_llm or self.llm or self.fallback_llm
         if not llm_to_use:
-            raise ValueError("No LLM available for text estimation")
+            raise LLMUnavailableError("No LLM available for text estimation")
 
         prompt = (
             f'Estimate the nutritional content per 100g of "{food_name}", '
@@ -652,17 +661,17 @@ class NutritionAnalyzer:
             m = re.search(r"\{.*\}", raw, re.DOTALL)
             payload = self._try_parse_json(m.group(0)) if m else None
         if not isinstance(payload, dict):
-            raise ValueError(f"Could not parse LLM response: {raw[:200]}")
+            raise LLMResponseError(f"Could not parse LLM response: {raw[:200]}")
 
         portion_grams = _coerce_float(payload.get("typical_portion_grams", 100))
         portion_label = str(payload.get("typical_portion_label") or f"{int(portion_grams)} g")
 
         return {
             "food_name": food_name,
-            "calories_per_100g":      round(_coerce_float(payload.get("calories_per_100g")), 1),
-            "protein_grams_per_100g": round(_coerce_float(payload.get("protein_grams_per_100g")), 1),
-            "carbs_grams_per_100g":   round(_coerce_float(payload.get("carbs_grams_per_100g")), 1),
-            "fat_grams_per_100g":     round(_coerce_float(payload.get("fat_grams_per_100g")), 1),
+            "calories_per_100g":      max(0.0, round(_coerce_float(payload.get("calories_per_100g")), 1)),
+            "protein_grams_per_100g": max(0.0, round(_coerce_float(payload.get("protein_grams_per_100g")), 1)),
+            "carbs_grams_per_100g":   max(0.0, round(_coerce_float(payload.get("carbs_grams_per_100g")), 1)),
+            "fat_grams_per_100g":     max(0.0, round(_coerce_float(payload.get("fat_grams_per_100g")), 1)),
             "typical_portion_grams":  round(max(1.0, portion_grams), 1),
             "typical_portion_label":  portion_label,
             "source": "llm",

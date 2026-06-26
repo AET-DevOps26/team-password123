@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Modal } from '../../../../shared/ui/Modal/Modal';
 import { useManualEntry } from '../../model/useManualEntry';
-import type { MealSlot } from '../../model/useManualEntry';
-import type { FoodEstimateResult } from '../../../../entities/meal/api/mealApi';
+import type { MealSlot, FoodEstimate } from '../../../../entities/meal';
+import { scaleEstimate } from '../../../../entities/meal/lib/scaleEstimate';
 import styles from './ManualEntryModal.module.css';
 
 interface ManualEntryModalProps {
@@ -188,62 +188,75 @@ export function ManualEntryModal({ onClose, onAdded, defaultSlot, loggedAt }: Ma
 
 /* ── AI Estimate Card ── */
 interface AiEstimateCardProps {
-  estimate: FoodEstimateResult;
+  estimate: FoodEstimate;
   portionGrams: number;
   onPortionChange: (g: number) => void;
   onAdd: () => void;
 }
 
 function AiEstimateCard({ estimate, portionGrams, onPortionChange, onAdd }: AiEstimateCardProps) {
-  const m = portionGrams / 100;
-  const cal     = Math.round(estimate.calories_per_100g      * m);
-  const protein = Math.round(estimate.protein_grams_per_100g * m * 10) / 10;
-  const carbs   = Math.round(estimate.carbs_grams_per_100g   * m * 10) / 10;
-  const fat     = Math.round(estimate.fat_grams_per_100g     * m * 10) / 10;
+  // Same scaling used on save, so the displayed macros == the saved macros.
+  const scaled = scaleEstimate(estimate, portionGrams);
+
+  // Hold the raw input string while editing so the field can be cleared.
+  const [rawPortion, setRawPortion] = useState(String(portionGrams));
+  useEffect(() => { setRawPortion(String(portionGrams)); }, [portionGrams]);
 
   function handleInput(raw: string) {
+    setRawPortion(raw);
     const n = parseFloat(raw);
-    if (!isNaN(n) && n > 0) onPortionChange(Math.min(n, 9999));
+    if (!isNaN(n) && n > 0) onPortionChange(Math.min(9999, n));
+  }
+
+  function handleBlur() {
+    const n = parseFloat(rawPortion);
+    const clamped = isNaN(n) ? portionGrams : Math.min(9999, Math.max(1, n));
+    onPortionChange(clamped);
+    setRawPortion(String(clamped));
   }
 
   return (
     <div className={styles.estimateCard}>
       <div className={styles.estimateCardHeader}>
-        <span className={styles.estimateCardName}><b>{estimate.food_name}</b></span>
+        <span className={styles.estimateCardName}><b>{estimate.foodName}</b></span>
         <span className={styles.estimateBadge}>AI estimate</span>
       </div>
 
       <div className={styles.estimatePortionRow}>
-        <span className={styles.estimatePortionHint}>Suggested: {estimate.typical_portion_label}</span>
+        <span className={styles.estimatePortionHint}>Suggested: {estimate.typicalPortionLabel}</span>
         <div className={styles.estimatePortionInput}>
           <button
             className={styles.portionStep}
             onClick={() => onPortionChange(Math.max(1, portionGrams - 10))}
             type="button"
+            aria-label="Decrease portion"
           >−</button>
           <input
             className={styles.portionField}
             type="number"
             min={1}
             max={9999}
-            value={portionGrams}
+            value={rawPortion}
             onChange={(e) => handleInput(e.target.value)}
+            onBlur={handleBlur}
+            aria-label="Portion size in grams"
           />
           <span className={styles.portionUnit}>g</span>
           <button
             className={styles.portionStep}
-            onClick={() => onPortionChange(portionGrams + 10)}
+            onClick={() => onPortionChange(Math.min(9999, portionGrams + 10))}
             type="button"
+            aria-label="Increase portion"
           >+</button>
         </div>
       </div>
 
       <div className={styles.estimateNutrition}>
-        <div className={styles.estimateKcal}>{cal} <span>kcal</span></div>
+        <div className={styles.estimateKcal}>{scaled.calories} <span>kcal</span></div>
         <div className={styles.estimateMacroRow}>
-          <span className={styles.macroP}>P {protein}g</span>
-          <span className={styles.macroC}>C {carbs}g</span>
-          <span className={styles.macroF}>F {fat}g</span>
+          <span className={styles.macroP}>P {scaled.proteinGrams}g</span>
+          <span className={styles.macroC}>C {scaled.carbsGrams}g</span>
+          <span className={styles.macroF}>F {scaled.fatGrams}g</span>
         </div>
       </div>
 

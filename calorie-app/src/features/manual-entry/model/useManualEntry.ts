@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useMealStore } from '../../../entities/meal';
-import { mealApi, type FoodEstimateResult } from '../../../entities/meal/api/mealApi';
-import { mealResponseToEntry, entryToManualRequest } from '../../../entities/meal/model/mapper';
+import type { MealSlot, FoodEstimate } from '../../../entities/meal';
+import { mealApi } from '../../../entities/meal/api/mealApi';
+import {
+  mealResponseToEntry,
+  entryToManualRequest,
+  foodEstimateResponseToEstimate,
+} from '../../../entities/meal/model/mapper';
+import { scaleEstimate } from '../../../entities/meal/lib/scaleEstimate';
 import { fileToDataUrl } from '../../../shared/lib/fileToDataUrl';
 
-export type MealSlot = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+export type { MealSlot };
 
 interface Ingredient {
   name: string;
@@ -13,17 +19,6 @@ interface Ingredient {
   proteinGrams?: number;
   carbsGrams?: number;
   fatGrams?: number;
-}
-
-/** Scale per-100g data to a given portion size */
-function scaleEstimate(e: FoodEstimateResult, grams: number) {
-  const m = grams / 100;
-  return {
-    calories:     Math.round(e.calories_per_100g * m),
-    proteinGrams: Math.round(e.protein_grams_per_100g * m * 10) / 10,
-    carbsGrams:   Math.round(e.carbs_grams_per_100g   * m * 10) / 10,
-    fatGrams:     Math.round(e.fat_grams_per_100g     * m * 10) / 10,
-  };
 }
 
 const SUGGESTIONS: Ingredient[] = [
@@ -44,9 +39,12 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [estimating, setEstimating] = useState(false);
-  const [aiEstimate, setAiEstimate] = useState<FoodEstimateResult | null>(null);
+  const [aiEstimate, setAiEstimate] = useState<FoodEstimate | null>(null);
   const [portionGrams, setPortionGrams] = useState<number>(100);
   const [estimateError, setEstimateError] = useState<string | null>(null);
+
+  // Mirror of `query` readable inside async callbacks for the staleness guard.
+  const queryRef = useRef('');
 
   const addEntry = useMealStore((s) => s.addEntry);
 
@@ -54,16 +52,33 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
     ? SUGGESTIONS.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()))
     : [];
 
+  function resetEstimate() {
+    setAiEstimate(null);
+    setEstimateError(null);
+    setPortionGrams(100);
+  }
+
+  // Editing the search box invalidates any stale AI estimate.
+  function changeQuery(value: string) {
+    queryRef.current = value;
+    setQuery(value);
+    resetEstimate();
+  }
+
   async function estimateFood() {
-    if (!query.trim()) return;
+    const q = query.trim();
+    if (!q) return;
     setEstimating(true);
     setAiEstimate(null);
     setEstimateError(null);
     try {
-      const result = await mealApi.estimateFood(query.trim());
-      setAiEstimate(result);
-      setPortionGrams(result.typical_portion_grams);
+      const response = await mealApi.estimateFood(q);
+      if (queryRef.current.trim() !== q) return; // query changed mid-flight — ignore
+      const estimate = foodEstimateResponseToEstimate(response);
+      setAiEstimate(estimate);
+      setPortionGrams(estimate.typicalPortionGrams);
     } catch {
+      if (queryRef.current.trim() !== q) return;
       setEstimateError('Could not estimate — try a different name or add manually.');
     } finally {
       setEstimating(false);
@@ -74,17 +89,16 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
 
   function addIngredient(ingredient: Ingredient) {
     setItems((prev) => [...prev, ingredient]);
+    queryRef.current = '';
     setQuery('');
-    setAiEstimate(null);
-    setEstimateError(null);
-    setPortionGrams(100);
+    resetEstimate();
   }
 
   function addAiEstimate() {
     if (!aiEstimate) return;
     const scaled = scaleEstimate(aiEstimate, portionGrams);
     addIngredient({
-      name: aiEstimate.food_name,
+      name: aiEstimate.foodName,
       amount: `${portionGrams} g`,
       ...scaled,
     });
@@ -151,7 +165,7 @@ export function useManualEntry(defaultSlot: MealSlot = 'Lunch', loggedAt?: Date)
   }
 
   return {
-    query, setQuery,
+    query, setQuery: changeQuery,
     items, addIngredient, removeIngredient,
     suggestions,
     totalCalories,

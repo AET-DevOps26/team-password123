@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { mealApi } from '../../../entities/meal/api/mealApi';
 import { useMealStore } from '../../../entities/meal/model/store';
-import type { MealEntry } from '../../../entities/meal';
+import type { MealEntry, MealSlot } from '../../../entities/meal';
 import {
   entryToManualRequest,
   mealResponseToEntry,
   singleItemFromMacros,
 } from '../../../entities/meal/model/mapper';
-import type { MealSlot } from '../../manual-entry/model/useManualEntry';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

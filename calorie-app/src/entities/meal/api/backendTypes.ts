@@ -57,3 +57,16 @@ export interface PhotoLogResponse {
   linkedMealLogId: string | null;
   createdAt: string;
 }
+
+// meals-service serializes FoodEstimateResponse as camelCase.
+export interface FoodEstimateResponse {
+  foodName: string;
+  caloriesPer100g: number;
+  proteinPer100g: number;
+  carbsPer100g: number;
+  fatPer100g: number;
+  typicalPortionGrams: number;
+  typicalPortionLabel: string;
+  source: 'usda' | 'llm' | string;
+  confidence: number;
+}

@@ -294,7 +294,7 @@
   font-weight: 600;
 }
 
-.macroP { color: #3b82f6; }
+.macroP { color: var(--protein, #3b82f6); }
 .macroC { color: var(--carbs, #f59e0b); }
 .macroF { color: var(--fat, #ef4444); }
 

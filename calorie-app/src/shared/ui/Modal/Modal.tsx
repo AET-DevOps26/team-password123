@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import styles from './Modal.module.css';
 
 interface ModalProps {
@@ -10,6 +10,8 @@ interface ModalProps {
 }
 
 export function Modal({ title, onClose, children, footer, narrow }: ModalProps) {
+  const sheetRef = useRef<HTMLDivElement>(null);
+
   // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -17,11 +19,23 @@ export function Modal({ title, onClose, children, footer, narrow }: ModalProps) 
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
+  // Focus the dialog on open; restore focus to the trigger on close.
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    sheetRef.current?.focus();
+    return () => previouslyFocused?.focus();
+  }, []);
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div
+        ref={sheetRef}
         className={`${styles.sheet} ${narrow ? styles.narrow : ''}`}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
       >
         <header className={styles.head}>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close">

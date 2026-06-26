@@ -1,48 +1,17 @@
-import { useEffect, useState } from 'react';
 import type { MealEntry } from '../../model/types';
-import { fetchBlobUrl } from '../../../../shared/api/client';
+import { useMealPhoto } from '../../lib/useMealPhoto';
 import styles from './MealRow.module.css';
 
 interface MealRowProps {
   meal: MealEntry;
+  onSelect?: (meal: MealEntry) => void;
 }
 
-/**
- * Resolve a MealEntry.imageUrl to a renderable <img src>. Local data:/blob: URLs
- * (just-scanned meals) are used as-is; backend `/api/...` paths are fetched with
- * the auth header into an object URL. Returns null while loading or absent.
- */
-function useMealPhoto(imageUrl?: string): string | null {
-  const [src, setSrc] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!imageUrl) { setSrc(null); return; }
-    if (imageUrl.startsWith('data:') || imageUrl.startsWith('blob:')) {
-      setSrc(imageUrl);
-      return;
-    }
-
-    let active = true;
-    let objectUrl: string | null = null;
-    fetchBlobUrl(imageUrl).then((url) => {
-      if (!active) { if (url) URL.revokeObjectURL(url); return; }
-      objectUrl = url;
-      setSrc(url);
-    });
-    return () => {
-      active = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [imageUrl]);
-
-  return src;
-}
-
-export function MealRow({ meal }: MealRowProps) {
+export function MealRow({ meal, onSelect }: MealRowProps) {
   const photoSrc = useMealPhoto(meal.imageUrl);
 
-  return (
-    <div className={styles.row}>
+  const content = (
+    <>
       <div className={styles.thumb} style={{ background: meal.tone }}>
         {photoSrc
           ? <img src={photoSrc} alt={meal.name} className={styles.thumbImg} />
@@ -64,6 +33,21 @@ export function MealRow({ meal }: MealRowProps) {
         <b>{meal.calories}</b>
         <span>kcal</span>
       </div>
-    </div>
+    </>
+  );
+
+  if (!onSelect) {
+    return <div className={styles.row}>{content}</div>;
+  }
+
+  return (
+    <button
+      className={`${styles.row} ${styles.clickable}`}
+      onClick={() => onSelect(meal)}
+      type="button"
+      aria-label={`View ${meal.name}, ${meal.calories} calories`}
+    >
+      {content}
+    </button>
   );
 }

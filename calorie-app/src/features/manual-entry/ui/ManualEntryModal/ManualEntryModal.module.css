@@ -133,6 +133,209 @@
   text-align: center;
 }
 
+/* ── AI Estimate ── */
+.noMatch {
+  display: flex;
+  flex-direction: column;
+}
+
+.estimateBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 14px;
+  border-radius: 11px;
+  border: 1px dashed var(--green);
+  background: var(--green-tint);
+  color: var(--green-press);
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  transition: background .15s, border-color .15s, opacity .15s;
+}
+
+.estimateBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--green-tint) 60%, var(--green) 8%);
+}
+
+.estimateBtn:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
+/* Estimate result card */
+.estimateCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 13px;
+  border: 1px solid var(--green);
+  background: var(--green-tint);
+}
+
+.estimateCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14.5px;
+}
+
+.estimateCardName {
+  color: var(--text);
+}
+
+.estimateBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green-press);
+  background: color-mix(in srgb, var(--green-tint) 80%, var(--green) 15%);
+  border: 1px solid color-mix(in srgb, var(--green) 40%, transparent);
+  border-radius: 6px;
+  padding: 2px 7px;
+  flex-shrink: 0;
+}
+
+/* Portion row */
+.estimatePortionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.estimatePortionHint {
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+
+.estimatePortionInput {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 4px 6px;
+}
+
+.portionStep {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s;
+  line-height: 1;
+}
+
+.portionStep:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.portionField {
+  width: 48px;
+  border: none;
+  outline: none;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.portionField::-webkit-outer-spin-button,
+.portionField::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.portionUnit {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+/* Nutrition display */
+.estimateNutrition {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-radius: 9px;
+  border: 1px solid var(--border);
+}
+
+.estimateKcal {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+
+.estimateKcal span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+.estimateMacroRow {
+  display: flex;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.macroP { color: var(--protein, #3b82f6); }
+.macroC { color: var(--carbs, #f59e0b); }
+.macroF { color: var(--fat, #ef4444); }
+
+.estimateAddBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--green);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  transition: background .15s;
+}
+
+.estimateAddBtn:hover {
+  background: var(--green-press);
+}
+
+.estimateErr {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--fat);
+  background: color-mix(in srgb, var(--fat) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fat) 25%, transparent);
+  border-radius: 11px;
+  display: block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  animation: spin .75s linear infinite;
+  transform-origin: center;
+}
+
 /* ── Slot selector ── */
 .slotRow {
   display: flex;

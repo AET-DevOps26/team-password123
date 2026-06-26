@@ -15,10 +15,26 @@ export interface MealAnalysisResponse {
   message: string;
 }
 
+/** The four meal slots used across the app. Single source of truth. */
+export type MealSlot = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+
+/** UI domain type for an AI food estimate (camelCase, mapped from the backend) */
+export interface FoodEstimate {
+  foodName: string;
+  caloriesPer100g: number;
+  proteinPer100g: number;
+  carbsPer100g: number;
+  fatPer100g: number;
+  typicalPortionGrams: number;
+  typicalPortionLabel: string;
+  source: string;
+  confidence: number;
+}
+
 /** UI-only: a meal entry shown in Today / Diary lists */
 export interface MealEntry {
   id: string;
-  slot: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+  slot: MealSlot;
   time: string;
   name: string;
   calories: number;

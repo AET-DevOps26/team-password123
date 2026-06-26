@@ -7,6 +7,7 @@ import { MacroChip } from '../../../entities/nutrition';
 import { useProfileStore } from '../../../entities/user/model/profile';
 import { ScanMealButton } from '../../../features/scan-meal';
 import { ManualEntryModal } from '../../../features/manual-entry';
+import { MealDetailModal } from '../../../features/meal-detail';
 import type { MealSlot } from '../../../features/manual-entry/model/useManualEntry';
 import { Toast } from '../../../widgets/notification';
 import styles from './DiaryPage.module.css';
@@ -44,6 +45,7 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
   const [defaultSlot,  setDefaultSlot] = useState<MealSlot>('Lunch');
   const [offset,       setOffsetState] = useState(initialOffset);
   const [apiEntries,   setApiEntries]  = useState<MealEntry[] | null>(null);
+  const [selectedMeal, setSelectedMeal] = useState<MealEntry | null>(null);
 
   function setOffset(n: number) {
     setOffsetState(n);
@@ -196,7 +198,9 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
               </button>
             ) : (
               <div className={styles.mealList}>
-                {meals.map((m) => <MealRow key={m.id} meal={m} />)}
+                {meals.map((m) => (
+                  <MealRow key={m.id} meal={m} onSelect={setSelectedMeal} />
+                ))}
                 <button
                   className={styles.addMore}
                   onClick={() => openManual(slot)}
@@ -215,6 +219,15 @@ export function DiaryPage({ onScan, initialOffset = 0, onOffsetChange, onBack }:
           onAdded={handleAdded}
           defaultSlot={defaultSlot}
           loggedAt={viewDate}
+        />
+      )}
+
+      {selectedMeal && (
+        <MealDetailModal
+          meal={selectedMeal}
+          onClose={() => setSelectedMeal(null)}
+          onSaved={() => fetchMeals(offset)}
+          onDeleted={() => fetchMeals(offset)}
         />
       )}
 

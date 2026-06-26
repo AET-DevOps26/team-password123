@@ -14,7 +14,8 @@ imagePullSecrets:
 # "calorieasy-secrets" from the values below (jwt.secret + postgres.password are
 # then REQUIRED — a deploy without them fails closed). For production, create a
 # Secret out-of-band with keys APP_JWT_SECRET, POSTGRES_PASSWORD, OPENAI_API_KEY,
-# USDA_FDC_API_KEY and set its name here so secrets never live in values/history:
+# TEXT_OPENAI_API_KEY, USDA_FDC_API_KEY, GRAFANA_ADMIN_PASSWORD and set its name
+# here so secrets never live in values/history:
 #   kubectl -n <ns> create secret generic calorieasy-secrets \
 #     --from-literal=APP_JWT_SECRET=$(openssl rand -hex 32) \
 #     --from-literal=POSTGRES_PASSWORD=$(openssl rand -hex 24) ...
@@ -56,10 +57,24 @@ meals:
 
 genai:
   enabled: true
-  llmProvider: openai          # OpenAI-compatible provider (Google Gemini via its OpenAI endpoint)
+  llmProvider: openai          # OpenAI-compatible provider used for photo analysis (vision)
+  # ── Vision / photo scan. ACTIVE: Google Gemini. ──────────────────────────────
   openaiBaseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/"
-  openaiModel: "gemini-3.1-flash-lite"   # vision-capable, has free-tier quota on the project
-  openaiApiKey: ""             # Google AI Studio key — provide via --set or the LOGOS_API_KEY secret
+  openaiModel: "gemini-3.1-flash-lite"   # vision-capable, free-tier quota on the project
+  openaiApiKey: ""             # Google AI Studio key — provide via --set or CI secret
+  # STAGED swap → Logos gemma-4 (once AET grants google/gemma-4-26B-A4B-it to the
+  # key; until then it 404s). To cut over, set these three — gemma-4 reuses the
+  # Logos key, same as the text LLM below:
+  #   openaiBaseUrl: "https://logos.aet.cit.tum.de/v1"
+  #   openaiModel:   "google/gemma-4-26B-A4B-it"
+  #   openaiApiKey:  <Logos key>   (CI: --set genai.openaiApiKey=${{ secrets.LOGOS_API_KEY }})
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Dedicated text LLM for food-name estimation (Logos gpt-oss-120b).
+  # When set, the estimate endpoint uses this instead of the vision LLM.
+  # Provided via CI --set overrides; empty here so local docker-compose falls back to .env
+  textOpenaiBaseUrl: ""
+  textOpenaiModel: "openai/gpt-oss-120b"
+  textOpenaiApiKey: ""
   nutritionDataProvider: local # use the bundled nutrition_db.json (no USDA key needed)
   usdaApiKey: ""
   resources:

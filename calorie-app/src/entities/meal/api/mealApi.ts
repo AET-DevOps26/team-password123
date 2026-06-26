@@ -1,6 +1,6 @@
 import { apiClient } from '../../../shared/api/client';
 import type { MealAnalysisResponse } from '../model/types';
-import type { MealResponse, ManualMealRequest, PhotoLogResponse } from './backendTypes';
+import type { MealResponse, ManualMealRequest, PhotoLogResponse, FoodEstimateResponse } from './backendTypes';
 
 export const mealApi = {
   /** POST /meals/manual — persist a manually-entered meal */
@@ -14,6 +14,10 @@ export const mealApi = {
   /** GET /meals/:id */
   getById: (id: string): Promise<MealResponse> =>
     apiClient.get<MealResponse>(`/meals/${id}`),
+
+  /** PUT /meals/:id — update name, slot, and nutrition */
+  update: (id: string, request: ManualMealRequest): Promise<MealResponse> =>
+    apiClient.put<MealResponse>(`/meals/${id}`, request),
 
   /** DELETE /meals/:id */
   delete: (id: string): Promise<null> =>
@@ -39,4 +43,11 @@ export const mealApi = {
     formData.append('image', imageFile);
     return apiClient.post<MealAnalysisResponse>('/meals/analyze', formData);
   },
+
+  /**
+   * POST /meals/estimate — estimate per-100g nutrition for a food by name,
+   * plus a typical serving size. Uses USDA first, then Logos text LLM.
+   */
+  estimateFood: (foodName: string): Promise<FoodEstimateResponse> =>
+    apiClient.post<FoodEstimateResponse>('/meals/estimate', { foodName }),
 };

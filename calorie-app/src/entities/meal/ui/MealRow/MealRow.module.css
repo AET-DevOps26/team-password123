@@ -116,3 +116,21 @@
   font-size: 11px;
   color: var(--text-3);
 }
+
+.clickable {
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.clickable:hover {
+  border-color: var(--green);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+}
+
+.clickable:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}

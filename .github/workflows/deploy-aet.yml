@@ -64,15 +64,22 @@ jobs:
 
       - name: Helm upgrade (image tag ${{ steps.ctx.outputs.tag }})
         run: |
+          # Photo-scan vision = Google Gemini (active). To swap to Logos gemma-4 once
+          # AET grants google/gemma-4-26B-A4B-it to the key, replace the three
+          # genai.openai* --set lines below with:
+          #   --set genai.openaiBaseUrl="https://logos.aet.cit.tum.de/v1"
+          #   --set genai.openaiModel="google/gemma-4-26B-A4B-it"
+          #   --set genai.openaiApiKey="${{ secrets.LOGOS_API_KEY }}"
           helm upgrade --install app helm/calorieasy \
             --namespace team-password123 \
             --set image.tag="${{ steps.ctx.outputs.tag }}" \
             --set jwt.secret="${{ secrets.APP_JWT_SECRET }}" \
             --set postgres.password="${{ secrets.POSTGRES_PASSWORD }}" \
             --set monitoring.grafana.adminPassword="${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
-            --set genai.openaiBaseUrl="${{ secrets.LOGOS_BASE_URL }}" \
-            --set genai.openaiModel="${{ vars.LOGOS_MODEL || 'gpt-4o' }}" \
-            --set genai.openaiApiKey="${{ secrets.LOGOS_API_KEY }}" \
+            --set genai.openaiApiKey="${{ secrets.GEMINI_API_KEY }}" \
+            --set genai.textOpenaiBaseUrl="${{ secrets.LOGOS_BASE_URL }}" \
+            --set genai.textOpenaiModel="${{ vars.LOGOS_MODEL || 'openai/gpt-oss-120b' }}" \
+            --set genai.textOpenaiApiKey="${{ secrets.LOGOS_API_KEY }}" \
             --wait --timeout 8m
 
       - name: Show rollout

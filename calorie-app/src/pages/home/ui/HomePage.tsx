@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { CalorieRing, MacroBar } from '../../../entities/nutrition';
 import { MealRow, useMealStore } from '../../../entities/meal';
+import type { MealEntry } from '../../../entities/meal';
 import { mealApi } from '../../../entities/meal/api/mealApi';
 import { mealResponseToEntry } from '../../../entities/meal/model/mapper';
 import { analyticsApi } from '../../../entities/nutrition/api/analyticsApi';
 import type { AnalyticsResponse } from '../../../entities/nutrition/api/backendTypes';
 import { useProfileStore } from '../../../entities/user/model/profile';
 import { ScanMealButton } from '../../../features/scan-meal';
+import { MealDetailModal } from '../../../features/meal-detail';
 import { StatPill } from '../../../shared/ui/StatPill/StatPill';
 import { IconFlame, IconTarget, IconTrend, IconBolt, IconChevR } from '../../../shared/ui/icons';
 import styles from './HomePage.module.css';
@@ -25,10 +27,21 @@ export function HomePage({ onScan }: HomePageProps) {
   const [dailyAnalytics, setDailyAnalytics] = useState<AnalyticsResponse | null>(null);
   const [weeklyAnalytics, setWeeklyAnalytics] = useState<AnalyticsResponse | null>(null);
   const [streak, setStreak] = useState<number | null>(null);
+  const [selectedMeal, setSelectedMeal] = useState<MealEntry | null>(null);
+
+  const refreshToday = useCallback(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    mealApi.getHistory(today, today).then((raw) => {
+      if (raw) setEntries(raw.map(mealResponseToEntry));
+    }).catch(() => {});
+
+    analyticsApi.getDaily(today).then((r) => {
+      if (r) setDailyAnalytics(r);
+    }).catch(() => {});
+  }, [setEntries]);
 
   // Fetch today's data from API when backend is live
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
     const weekStart = (() => {
       const date = new Date();
       const day = date.getDay();
@@ -36,15 +49,7 @@ export function HomePage({ onScan }: HomePageProps) {
       return date.toISOString().slice(0, 10);
     })();
 
-    // Load today's meals into store
-    mealApi.getHistory(today, today).then((raw) => {
-      if (raw) setEntries(raw.map(mealResponseToEntry));
-    }).catch(() => {});
-
-    // Load daily analytics
-    analyticsApi.getDaily(today).then((r) => {
-      if (r) setDailyAnalytics(r);
-    }).catch(() => {});
+    refreshToday();
 
     // Load weekly analytics and streak KPI
     analyticsApi.getWeekly(weekStart).then((r) => {
@@ -54,7 +59,7 @@ export function HomePage({ onScan }: HomePageProps) {
     analyticsApi.getStreak().then((r) => {
       if (r) setStreak(r.streak);
     }).catch(() => {});
-  }, [setEntries]);
+  }, [refreshToday]);
 
   const today = new Date();
   const hour = today.getHours();
@@ -125,9 +130,20 @@ export function HomePage({ onScan }: HomePageProps) {
           <span className={styles.sectionMeta}>{entries.length} logged</span>
         </div>
         <div className={styles.mealsList}>
-          {entries.map((meal) => <MealRow key={meal.id} meal={meal} />)}
+          {entries.map((meal) => (
+            <MealRow key={meal.id} meal={meal} onSelect={setSelectedMeal} />
+          ))}
         </div>
       </section>
+
+      {selectedMeal && (
+        <MealDetailModal
+          meal={selectedMeal}
+          onClose={() => setSelectedMeal(null)}
+          onSaved={refreshToday}
+          onDeleted={refreshToday}
+        />
+      )}
     </div>
   );
 }

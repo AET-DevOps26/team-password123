@@ -453,6 +453,13 @@ class NutritionAnalyzer:
                 "No LLM provider available. Set LLM_PROVIDER to ollama, openai, or google and configure the matching API key or local model."
             )
 
+        if not self.llm and self.fallback_llm:
+            logger.warning(
+                "Configured LLM_PROVIDER='%s' did not initialize (check its API key); "
+                "running on the fallback LLM only, which is unreachable in most deployments.",
+                self.provider,
+            )
+
     def _build_llm(self, provider: str):
         if provider == "ollama":
             try:
@@ -678,6 +685,21 @@ class NutritionAnalyzer:
             "confidence": max(0.0, min(1.0, _coerce_float(payload.get("confidence", 0.6)))),
         }
 
+    def _analysis_failure(self, primary_error) -> str:
+        """Human-readable cause for a failed image analysis.
+
+        When the configured provider never initialized (``self.llm is None`` —
+        e.g. OPENAI_API_KEY is unset) any fallback connection error is just
+        noise, so point the operator at the real fix instead of masking it."""
+        if primary_error is not None:
+            return f"{self.provider} vision analysis failed: {primary_error}"
+        if self.llm is None:
+            return (
+                f"No vision model available: provider '{self.provider}' did not "
+                "initialize. Set OPENAI_API_KEY (vision model key) on the genai-service."
+            )
+        return "No LLM response received"
+
     def analyze(self, image_base64: str) -> NutritionResponse:
         """Analyze a base64-encoded food image and return nutrition estimates."""
         try:
@@ -696,12 +718,14 @@ class NutritionAnalyzer:
             )
 
             response = None
+            primary_error = None
             if self.llm:
                 try:
                     logger.info("Calling %s for image analysis", self.provider)
                     response = self.llm.invoke([message])
                 except Exception as exc:
-                    logger.warning("Primary LLM failed: %s", exc)
+                    primary_error = exc
+                    logger.warning("Primary (%s) LLM failed: %s", self.provider, exc)
 
             if not response and self.fallback_llm:
                 try:
@@ -709,10 +733,14 @@ class NutritionAnalyzer:
                     response = self.fallback_llm.invoke([message])
                 except Exception as exc:
                     logger.error("Fallback LLM also failed: %s", exc)
-                    raise ValueError(f"All LLM providers failed: {exc}") from exc
+                    # Surface the configured provider's real failure, not the
+                    # fallback's. In prod the ollama fallback usually doesn't
+                    # exist, so its connection error would otherwise mask the
+                    # actual cause — a 403 from the vision API, or an unset key.
+                    raise ValueError(self._analysis_failure(primary_error)) from (primary_error or exc)
 
             if not response:
-                raise ValueError("No LLM response received")
+                raise ValueError(self._analysis_failure(primary_error))
 
             logger.debug("Raw LLM response: %s", response.content)
             foods_with_grams, confidence = self._parse_response(response.content)

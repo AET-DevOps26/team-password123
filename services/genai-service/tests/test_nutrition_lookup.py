@@ -143,3 +143,50 @@ def test_compare_providers_returns_calorie_difference(monkeypatch):
     assert comparison.primary.calories == 165
     assert comparison.secondary.calories == 130
     assert comparison.calorie_difference == 35
+
+
+def _tiny_png_b64() -> str:
+    img = Image.new("RGB", (1, 1), color=(255, 255, 255))
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+
+class _RaisingLLM:
+    def __init__(self, exc):
+        self._exc = exc
+
+    def invoke(self, messages):
+        raise self._exc
+
+
+def test_analyze_unconfigured_provider_reports_key_not_fallback_error():
+    """When the configured provider never initialized (e.g. empty OPENAI_API_KEY),
+    the dead ollama fallback's connection error must NOT mask the real cause."""
+    analyzer = NutritionAnalyzer.__new__(NutritionAnalyzer)
+    analyzer.provider = "openai"
+    analyzer.llm = None  # provider failed to build — no API key
+    analyzer.fallback_llm = _RaisingLLM(OSError("[Errno -2] Name or service not known"))
+
+    with pytest.raises(ValueError) as exc_info:
+        analyzer.analyze(_tiny_png_b64())
+
+    msg = str(exc_info.value)
+    assert "OPENAI_API_KEY" in msg
+    assert "Name or service not known" not in msg
+
+
+def test_analyze_surfaces_primary_error_over_fallback():
+    """A 403 (or any error) from the configured vision provider must surface,
+    not be swallowed by the fallback's failure."""
+    analyzer = NutritionAnalyzer.__new__(NutritionAnalyzer)
+    analyzer.provider = "openai"
+    analyzer.llm = _RaisingLLM(RuntimeError("Error code: 403 - PERMISSION_DENIED"))
+    analyzer.fallback_llm = _RaisingLLM(OSError("[Errno -2] Name or service not known"))
+
+    with pytest.raises(ValueError) as exc_info:
+        analyzer.analyze(_tiny_png_b64())
+
+    msg = str(exc_info.value)
+    assert "403" in msg
+    assert "Name or service not known" not in msg

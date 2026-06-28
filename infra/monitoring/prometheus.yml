@@ -3,6 +3,11 @@
 global:
   scrape_interval: 15s
 
+# Alerting rules. The file is the chart's canonical helm/calorieasy/alerts.yml,
+# mounted here by docker-compose at the same /etc/prometheus path the chart uses.
+rule_files:
+  - /etc/prometheus/alerts.yml
+
 scrape_configs:
   - job_name: prometheus
     static_configs:

@@ -130,6 +130,7 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
     volumes:
       - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./helm/calorieasy/alerts.yml:/etc/prometheus/alerts.yml:ro
       - prometheus-data:/prometheus
     ports:
       - "9090:9090"

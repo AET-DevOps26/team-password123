@@ -18,6 +18,22 @@ groups:
           summary: "{{ $labels.job }} is down"
           description: "Prometheus target {{ $labels.job }} ({{ $labels.instance }}) has been unreachable for 2m."
 
+      # Slow responses: a Spring service's p95 request latency above 1s for 5m.
+      # All three services publish percentiles-histogram buckets, so the _bucket
+      # series this needs exists.
+      - alert: HighRequestLatency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (job, le) (rate(http_server_requests_seconds_bucket[5m]))
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 latency on {{ $labels.job }}"
+          description: "{{ $labels.job }} p95 request latency has been above 1s for 5m."
+
       # High error rate: more than 5% of a Spring service's HTTP requests
       # returning 5xx over the last 5 minutes.
       - alert: HighServerErrorRate

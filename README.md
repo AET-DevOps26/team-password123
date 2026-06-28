@@ -291,7 +291,7 @@ Backend tests are unit-only (mocked collaborators, no Spring context / DB). Ther
 
 Four GitHub Actions workflows in [`.github/workflows/`](.github/workflows/):
 
-- **`ci.yml`** — on every PR and push to `main`: a 3-way backend matrix runs `mvn -B -ntp verify` (JDK 21 temurin) for auth/meals/analytics, and the frontend job runs `npm ci`, `npm run build` (strict `tsc` + Vite build), and `npm test` (Node 20).
+- **`ci.yml`** — on every PR and push to `main`: a 3-way backend matrix runs `mvn -B -ntp verify` (JDK 21 temurin) for auth/meals/analytics; the frontend job runs `npm ci`, lint, `npm run build` (strict `tsc` + Vite build) and `npm test` (Node 20); a Playwright **e2e** job runs the browser flows; and a **genai** job runs `ruff` + `pytest` on the headless unit suites (Python 3.11).
 - **`build-images.yml`** — on push to `main` (or manual dispatch): builds five `linux/amd64` images (auth-service, meals-service, analytics-service, genai-service, web) and pushes them to GHCR tagged `:latest` and `:<sha>`.
 - **`deploy-aet.yml`** — auto-runs after a successful image build on `main`; deploys the Helm chart to the AET Kubernetes cluster **by commit SHA** (immutable tag).
 - **`deploy-azure.yml`** — manual-only (`workflow_dispatch`): Terraform `fmt`/`validate` then an Ansible Docker Compose deploy to an Azure VM (paused to save credits).
@@ -339,8 +339,28 @@ The prod Compose stack ([`docker-compose.prod.yml`](docker-compose.prod.yml)) pu
 - [x] GHCR image build & push (5 images, immutable SHA tags)
 - [x] Helm chart + Kubernetes deployment (AET cluster, Traefik, TLS via cert-manager)
 - [x] Terraform (Azure VM) + Ansible IaC
-- [ ] Prometheus + Grafana observability
+- [x] Prometheus + Grafana observability (metrics, dashboard, alert rules)
 - [ ] iOS networking layer wired to the services
+
+## Observability
+
+Prometheus + Grafana ship in both the docker-compose stack and the Helm chart.
+
+**Metrics.** Each Spring service exposes Micrometer metrics at `/actuator/prometheus`; the GenAI service exposes `/metrics` (FastAPI instrumentator + custom `calorieasy_genai_analyze_*` counters/histogram). Prometheus scrapes all four every 15s ([`infra/monitoring/prometheus.yml`](infra/monitoring/prometheus.yml) for compose; a ConfigMap in [`helm/.../monitoring-prometheus.yaml`](helm/calorieasy/templates/monitoring-prometheus.yaml) for k8s — same targets).
+
+**Dashboard.** A provisioned Grafana dashboard ([`helm/calorieasy/dashboards/calorieasy-overview.json`](helm/calorieasy/dashboards/calorieasy-overview.json)) covers request rate, error rate, p50/p95/p99 latency, JVM/GC/threads/CPU, HikariCP connections, error-level log events, and a **GenAI** row (analyses by result + analysis latency).
+
+**Alerts.** [`helm/calorieasy/alerts.yml`](helm/calorieasy/alerts.yml) (one source of truth for both compose and the chart) defines: `ServiceDown` (`up==0` 2m), `HighRequestLatency` (p95 > 1s, 5m), `HighServerErrorRate` (>5% 5xx, 5m). Firing alerts show on Prometheus `/alerts`.
+
+**Access.**
+
+```bash
+# Local (docker compose): Grafana on :3001, Prometheus on :9090
+#   login: admin / $GRAFANA_ADMIN_PASSWORD (from .env)
+open http://localhost:3001
+
+# AET cluster: Grafana is served at https://<ingress-host>/grafana
+```
 
 ## Docs
 

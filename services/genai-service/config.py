@@ -20,9 +20,11 @@ OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 GOOGLE_MODEL = os.getenv("GOOGLE_MODEL", "gemini-2.0-flash")
 
-# Optional separate text LLM for food-name estimation (e.g. Logos).
-# If unset, the primary LLM is used as fallback for text estimation too.
-TEXT_OPENAI_BASE_URL = os.getenv("TEXT_OPENAI_BASE_URL", "")
+# Dedicated text LLM for food-name estimation and the health-insight RAG
+# generation. Defaults to AET Logos gpt-oss-120b; only the API key must be
+# supplied (via env / .env / Secret — never committed). Without a key the text
+# LLM stays unconfigured and those paths fail soft.
+TEXT_OPENAI_BASE_URL = os.getenv("TEXT_OPENAI_BASE_URL", "https://logos.aet.cit.tum.de/v1")
 TEXT_OPENAI_API_KEY = os.getenv("TEXT_OPENAI_API_KEY", "")
 TEXT_OPENAI_MODEL = os.getenv("TEXT_OPENAI_MODEL", "openai/gpt-oss-120b")
 

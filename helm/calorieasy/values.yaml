@@ -69,10 +69,10 @@ genai:
   #   openaiModel:   "google/gemma-4-26B-A4B-it"
   #   openaiApiKey:  <Logos key>   (CI: --set genai.openaiApiKey=${{ secrets.LOGOS_API_KEY }})
   # ─────────────────────────────────────────────────────────────────────────────
-  # Dedicated text LLM for food-name estimation (Logos gpt-oss-120b).
-  # When set, the estimate endpoint uses this instead of the vision LLM.
-  # Provided via CI --set overrides; empty here so local docker-compose falls back to .env
-  textOpenaiBaseUrl: ""
+  # Dedicated text LLM for food-name estimation + the health-insight RAG
+  # generation. Defaults to AET Logos gpt-oss-120b; only the key is a secret
+  # (CI passes --set genai.textOpenaiApiKey=${{ secrets.LOGOS_API_KEY }}).
+  textOpenaiBaseUrl: "https://logos.aet.cit.tum.de/v1"
   textOpenaiModel: "openai/gpt-oss-120b"
   textOpenaiApiKey: ""
   nutritionDataProvider: local # use the bundled nutrition_db.json (no USDA key needed)

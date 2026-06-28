@@ -109,9 +109,10 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
-      # Optional dedicated text LLM for food-name estimation (e.g. Logos).
-      # When set, the estimate endpoint uses this instead of the vision LLM.
-      TEXT_OPENAI_BASE_URL: ${TEXT_OPENAI_BASE_URL:-}
+      # Dedicated text LLM for food-name estimation + the health-insight RAG
+      # generation. Defaults to AET Logos gpt-oss-120b; set TEXT_OPENAI_API_KEY
+      # (Logos key) in your gitignored .env to enable generation.
+      TEXT_OPENAI_BASE_URL: ${TEXT_OPENAI_BASE_URL:-https://logos.aet.cit.tum.de/v1}
       TEXT_OPENAI_API_KEY: ${TEXT_OPENAI_API_KEY:-}
       TEXT_OPENAI_MODEL: ${TEXT_OPENAI_MODEL:-openai/gpt-oss-120b}
       PORT: 8084

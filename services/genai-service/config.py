@@ -30,6 +30,30 @@ TEXT_OPENAI_MODEL = os.getenv("TEXT_OPENAI_MODEL", "openai/gpt-oss-120b")
 NUTRITION_DATA_PROVIDER = os.getenv("NUTRITION_DATA_PROVIDER", "usda").lower()
 USDA_FDC_API_KEY = os.getenv("USDA_FDC_API_KEY", "")
 
+# ============================================================================
+# RAG health-insights configuration (Weaviate vector store + embeddings).
+# ============================================================================
+
+# Weaviate endpoint. The vector DB stores the HealthFact corpus; genai supplies
+# the vectors (vectorizer: none), so no Weaviate inference module is needed.
+WEAVIATE_URL = os.getenv("WEAVIATE_URL", "http://weaviate:8080")
+
+# Embedding provider switch, mirroring LLM_PROVIDER:
+#   local  -> fastembed BAAI/bge-small-en-v1.5 (384-dim, ONNX, offline, no torch)
+#   openai -> OpenAI text-embedding-3-small (1536-dim, needs OPENAI_API_KEY)
+EMBED_PROVIDER = os.getenv("EMBED_PROVIDER", "local").lower()
+EMBED_MODEL_LOCAL = os.getenv("EMBED_MODEL_LOCAL", "BAAI/bge-small-en-v1.5")
+OPENAI_EMBED_MODEL = os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-small")
+
+# Health-facts corpus path; defaults to the file shipped beside this service.
+HEALTH_FACTS_PATH = os.getenv(
+    "HEALTH_FACTS_PATH",
+    str((__import__("pathlib").Path(__file__).parent / "health_facts.json").resolve()),
+)
+
+# Top-k facts retrieved per insight query.
+INSIGHT_TOPK = int(os.getenv("INSIGHT_TOPK", "5"))
+
 # genai-service configuration
 PORT = int(os.getenv("PORT", 8084))
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
@@ -43,6 +67,11 @@ if NUTRITION_DATA_PROVIDER not in ["auto", "usda", "local"]:
     raise ValueError(
         "Invalid NUTRITION_DATA_PROVIDER: "
         f"{NUTRITION_DATA_PROVIDER}. Must be 'auto', 'usda', or 'local'."
+    )
+
+if EMBED_PROVIDER not in ["local", "openai"]:
+    raise ValueError(
+        f"Invalid EMBED_PROVIDER: {EMBED_PROVIDER}. Must be 'local' or 'openai'."
     )
 
 if DEBUG:

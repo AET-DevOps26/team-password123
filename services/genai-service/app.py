@@ -30,6 +30,7 @@ from nutrition_analyzer import (
     LLMUnavailableError,
     LLMResponseError,
 )
+from health_rag import HealthInsightEngine, build_index
 from config import PORT, DEBUG
 
 # Set up logging
@@ -61,6 +62,12 @@ GENAI_ESTIMATE = Counter(
 GENAI_LATENCY = Histogram(
     "calorieasy_genai_analyze_seconds", "Wall-clock seconds per image analysis"
 )
+GENAI_INSIGHT = Counter(
+    "calorieasy_genai_insight_total", "RAG health insights", ["result"]
+)
+GENAI_INSIGHT_LATENCY = Histogram(
+    "calorieasy_genai_insight_seconds", "Wall-clock seconds per health insight"
+)
 
 # Initialize the analyzer
 analyzer = None
@@ -70,6 +77,37 @@ try:
     logger.info("NutritionAnalyzer initialized successfully")
 except Exception as e:
     logger.error(f"Failed to initialize NutritionAnalyzer: {e}")
+
+
+# Lazily-initialized RAG insight engine (mirrors the analyzer lifecycle). Built
+# on first use so importing the module stays cheap and tests can inject a fake.
+_insight_engine = None
+
+
+def get_insight_engine() -> HealthInsightEngine:
+    global _insight_engine
+    if _insight_engine is None:
+        _insight_engine = HealthInsightEngine()
+    return _insight_engine
+
+
+@app.on_event("startup")
+def _build_health_index_on_startup() -> None:
+    """Best-effort: populate the HealthFact index if Weaviate is up and empty.
+    Must never crash the app — a down/unconfigured Weaviate is tolerated."""
+    try:
+        engine = get_insight_engine()
+        store = engine.store
+        if not store.is_ready():
+            logger.warning("Weaviate not reachable; skipping health-index build")
+            return
+        if store.is_populated():
+            logger.info("HealthFact index already populated")
+            return
+        written = build_index(embedder=engine.embedder, store=store)
+        logger.info("Built HealthFact index: %d facts", written)
+    except Exception as exc:
+        logger.warning("Health-index build skipped: %s", exc)
 
 
 @app.get("/health")
@@ -274,6 +312,68 @@ async def compare_meal(file: UploadFile = File(...)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Comparison failed. Check service logs."
         )
+
+
+class FoodTotal(BaseModel):
+    name: str
+    total_grams: float = 0
+
+
+class InsightRequest(BaseModel):
+    window: str = "week"
+    foods: list[FoodTotal] = []
+    nutrient_totals: dict[str, float] = {}
+    days_logged: int = 0
+
+
+class FactRef(BaseModel):
+    id: str
+    text: str
+
+
+class InsightResponse(BaseModel):
+    insight: str | None
+    facts_used: list[FactRef]
+    generated_by: str
+    result: str
+
+
+@app.post("/api/insight", response_model=InsightResponse)
+async def health_insight(request: InsightRequest):
+    """Generate a short, personalized health insight via RAG.
+
+    Pipeline: embed a profile-derived query -> Weaviate top-k HealthFact search
+    -> augment a text-LLM prompt with the retrieved facts -> generate. Fail-soft:
+    a down Weaviate or LLM degrades gracefully (still HTTP 200) instead of erroring.
+    """
+    started = time.perf_counter()
+    profile = {
+        "window": request.window,
+        "foods": [{"name": f.name, "total_grams": f.total_grams} for f in request.foods],
+        "nutrient_totals": request.nutrient_totals,
+        "days_logged": request.days_logged,
+    }
+    try:
+        result = get_insight_engine().insight(profile)
+    except Exception as exc:
+        # The engine is fail-soft and should not raise, but guard anyway so the
+        # endpoint never 500s on the insight path.
+        GENAI_INSIGHT.labels(result="error").inc()
+        GENAI_INSIGHT_LATENCY.observe(time.perf_counter() - started)
+        logger.error("Insight generation failed: %s", exc, exc_info=True)
+        return InsightResponse(
+            insight=None, facts_used=[], generated_by="none", result="error"
+        )
+
+    GENAI_INSIGHT.labels(result=result.get("result", "error")).inc()
+    GENAI_INSIGHT_LATENCY.observe(time.perf_counter() - started)
+    logger.info(
+        "Insight [%s] via %s using %d facts",
+        result.get("result"),
+        result.get("generated_by"),
+        len(result.get("facts_used", [])),
+    )
+    return InsightResponse(**result)
 
 
 if __name__ == "__main__":

@@ -37,3 +37,15 @@ export interface GoalRequest {
 export interface StreakResponse {
   streak: number;
 }
+
+export interface InsightFact {
+  id: string;
+  text: string;
+}
+
+export interface InsightResponse {
+  insight: string | null;
+  factsUsed: InsightFact[];
+  generatedBy: string;
+  result: string;
+}

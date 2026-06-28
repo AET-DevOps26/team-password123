@@ -48,6 +48,9 @@ spec:
                   key: APP_JWT_SECRET
             - name: MEALS_SERVICE_URL
               value: http://meals-service:8082
+            # RAG health-insights: analytics calls genai to generate the insight.
+            - name: GENAI_URL
+              value: http://genai-service:8084
           startupProbe:
             httpGet: { path: /actuator/health, port: 8083 }
             failureThreshold: 30

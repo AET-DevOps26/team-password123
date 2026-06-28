@@ -1,0 +1,802 @@
+[
+  {
+    "id": "protein-role-001",
+    "text": "Protein supplies the amino acids the body uses to build and repair muscle and other tissues, and it tends to be more filling per calorie than carbohydrate or fat.",
+    "foods": ["chicken breast", "eggs", "tofu", "greek yogurt"],
+    "nutrients": ["protein"],
+    "food_groups": ["poultry", "eggs", "dairy"],
+    "tags": ["muscle", "satiety", "recovery"]
+  },
+  {
+    "id": "protein-distribution-002",
+    "text": "Spreading protein fairly evenly across meals, rather than eating most of it at one meal, tends to support muscle maintenance better than clustering it all at dinner.",
+    "foods": ["eggs", "chicken breast", "lentils", "cottage cheese"],
+    "nutrients": ["protein"],
+    "food_groups": ["poultry", "eggs", "legumes", "dairy"],
+    "tags": ["protein-distribution", "muscle", "meal-timing"]
+  },
+  {
+    "id": "protein-plant-003",
+    "text": "Plant proteins such as beans, lentils, tofu, and tempeh provide protein along with fiber and have little saturated fat, making them a useful way to vary protein sources.",
+    "foods": ["beans", "lentils", "tofu", "tempeh"],
+    "nutrients": ["protein", "fiber"],
+    "food_groups": ["legumes"],
+    "tags": ["plant-protein", "variety", "fiber"]
+  },
+  {
+    "id": "protein-complete-004",
+    "text": "Animal foods and soy provide all essential amino acids, while combining varied plant proteins across the day (for example grains with legumes) easily covers the full amino-acid range.",
+    "foods": ["soy", "rice", "beans", "eggs"],
+    "nutrients": ["protein"],
+    "food_groups": ["legumes", "whole grains", "eggs"],
+    "tags": ["amino-acids", "plant-protein", "variety"]
+  },
+  {
+    "id": "protein-satiety-005",
+    "text": "Higher-protein meals can increase fullness and help reduce later snacking, which is one reason protein is emphasized in many weight-management eating patterns.",
+    "foods": ["greek yogurt", "eggs", "chicken breast", "fish"],
+    "nutrients": ["protein"],
+    "food_groups": ["dairy", "eggs", "poultry", "fish"],
+    "tags": ["satiety", "appetite", "weight-management"]
+  },
+  {
+    "id": "carbs-complex-001",
+    "text": "Complex carbohydrates from whole grains, legumes, and vegetables are digested more slowly than refined carbohydrates, giving steadier energy and more sustained fullness.",
+    "foods": ["oats", "brown rice", "quinoa", "beans"],
+    "nutrients": ["carbohydrate", "fiber"],
+    "food_groups": ["whole grains", "legumes", "vegetables"],
+    "tags": ["complex-carbs", "energy", "blood-sugar"]
+  },
+  {
+    "id": "carbs-refined-002",
+    "text": "Refined or simple carbohydrates such as white bread, sugary drinks, and sweets are absorbed quickly and provide energy with little fiber, so they are easy to overeat without feeling full.",
+    "foods": ["white bread", "soda", "candy", "pastries"],
+    "nutrients": ["carbohydrate", "added sugar"],
+    "food_groups": ["refined grains", "sweets"],
+    "tags": ["simple-carbs", "blood-sugar", "satiety"]
+  },
+  {
+    "id": "carbs-whole-grain-003",
+    "text": "Choosing whole-grain versions of bread, rice, and pasta adds fiber, B vitamins, and minerals compared with their refined counterparts.",
+    "foods": ["whole wheat bread", "brown rice", "whole grain pasta"],
+    "nutrients": ["carbohydrate", "fiber", "b vitamins"],
+    "food_groups": ["whole grains"],
+    "tags": ["complex-carbs", "fiber", "swap"]
+  },
+  {
+    "id": "carbs-energy-004",
+    "text": "Carbohydrates are the body's main fuel for the brain and for higher-intensity exercise, so very low intake can leave some people feeling tired or low on energy.",
+    "foods": ["oats", "fruit", "potato", "rice"],
+    "nutrients": ["carbohydrate"],
+    "food_groups": ["whole grains", "fruits", "vegetables"],
+    "tags": ["energy", "exercise", "fuel"]
+  },
+  {
+    "id": "fat-unsaturated-001",
+    "text": "Unsaturated fats from olive oil, nuts, seeds, avocado, and fish are generally considered heart-healthy and can replace some saturated fat in the diet.",
+    "foods": ["olive oil", "avocado", "almonds", "salmon"],
+    "nutrients": ["unsaturated fat", "fat"],
+    "food_groups": ["nuts and seeds", "fish", "vegetables"],
+    "tags": ["healthy-fats", "heart-health", "swap"]
+  },
+  {
+    "id": "fat-saturated-002",
+    "text": "Saturated fat, found mainly in fatty meat, butter, and full-fat dairy, is often eaten in large amounts in Western diets; swapping some of it for unsaturated fats is a common dietary recommendation.",
+    "foods": ["butter", "fatty beef", "cheese", "cream"],
+    "nutrients": ["saturated fat", "fat"],
+    "food_groups": ["red meat", "dairy"],
+    "tags": ["saturated-fat", "heart-health", "swap"]
+  },
+  {
+    "id": "fat-essential-003",
+    "text": "Dietary fat helps the body absorb fat-soluble vitamins A, D, E, and K and provides essential fatty acids it cannot make on its own.",
+    "foods": ["olive oil", "nuts", "avocado", "seeds"],
+    "nutrients": ["fat", "vitamin a", "vitamin d", "vitamin e", "vitamin k"],
+    "food_groups": ["nuts and seeds", "vegetables"],
+    "tags": ["healthy-fats", "vitamin-absorption", "essential"]
+  },
+  {
+    "id": "fat-trans-004",
+    "text": "Trans fats, historically from partially hydrogenated oils in some fried and packaged foods, are widely discouraged; many countries have restricted them.",
+    "foods": ["fried foods", "margarine", "packaged baked goods"],
+    "nutrients": ["trans fat", "fat"],
+    "food_groups": ["ultra-processed foods"],
+    "tags": ["trans-fat", "heart-health", "processed"]
+  },
+  {
+    "id": "fat-omega3-005",
+    "text": "Omega-3 fats from oily fish, walnuts, flaxseed, and chia are a type of unsaturated fat linked with heart and brain health, and many diets are low in them.",
+    "foods": ["salmon", "walnuts", "flaxseed", "chia seeds"],
+    "nutrients": ["omega-3", "unsaturated fat"],
+    "food_groups": ["fish", "nuts and seeds"],
+    "tags": ["omega-3", "heart-health", "brain-health"]
+  },
+  {
+    "id": "fiber-role-001",
+    "text": "Dietary fiber adds bulk that supports regular digestion and helps you feel full, and most people eat less of it than recommended.",
+    "foods": ["beans", "oats", "vegetables", "fruit"],
+    "nutrients": ["fiber"],
+    "food_groups": ["legumes", "whole grains", "vegetables", "fruits"],
+    "tags": ["digestion", "satiety", "fiber"]
+  },
+  {
+    "id": "fiber-soluble-002",
+    "text": "Soluble fiber, abundant in oats, beans, apples, and citrus, forms a gel in the gut that can help slow digestion and smooth out blood-sugar rises after meals.",
+    "foods": ["oats", "beans", "apples", "oranges"],
+    "nutrients": ["fiber", "soluble fiber"],
+    "food_groups": ["whole grains", "legumes", "fruits"],
+    "tags": ["soluble-fiber", "blood-sugar", "digestion"]
+  },
+  {
+    "id": "fiber-insoluble-003",
+    "text": "Insoluble fiber from whole grains, vegetables, and the skins of fruit adds bulk to stool and supports regular bowel movements.",
+    "foods": ["whole wheat bread", "broccoli", "carrots", "apple skin"],
+    "nutrients": ["fiber", "insoluble fiber"],
+    "food_groups": ["whole grains", "vegetables", "fruits"],
+    "tags": ["insoluble-fiber", "digestion", "regularity"]
+  },
+  {
+    "id": "fiber-legumes-004",
+    "text": "Legumes such as beans, lentils, and chickpeas are among the richest sources of fiber and also deliver plant protein, making them a strong addition to most meals.",
+    "foods": ["beans", "lentils", "chickpeas"],
+    "nutrients": ["fiber", "protein"],
+    "food_groups": ["legumes"],
+    "tags": ["fiber", "plant-protein", "digestion"]
+  },
+  {
+    "id": "fiber-gut-005",
+    "text": "Fiber acts as food for beneficial gut bacteria, and eating a variety of fiber-rich plants supports a more diverse gut microbiome.",
+    "foods": ["beans", "onions", "garlic", "whole grains"],
+    "nutrients": ["fiber", "prebiotic fiber"],
+    "food_groups": ["legumes", "vegetables", "whole grains"],
+    "tags": ["gut-health", "microbiome", "variety"]
+  },
+  {
+    "id": "iron-role-001",
+    "text": "Iron is needed to carry oxygen in the blood, and low intake over time can contribute to tiredness; meat, beans, lentils, and fortified grains are common sources.",
+    "foods": ["red meat", "lentils", "spinach", "fortified cereal"],
+    "nutrients": ["iron"],
+    "food_groups": ["red meat", "legumes", "leafy greens"],
+    "tags": ["iron", "energy", "blood"]
+  },
+  {
+    "id": "iron-plant-002",
+    "text": "Plant (non-heme) iron from beans, lentils, tofu, and leafy greens is absorbed less efficiently than iron from meat, but pairing it with vitamin C-rich foods improves absorption.",
+    "foods": ["lentils", "tofu", "spinach", "chickpeas"],
+    "nutrients": ["iron", "vitamin c"],
+    "food_groups": ["legumes", "leafy greens"],
+    "tags": ["iron", "plant-based", "absorption"]
+  },
+  {
+    "id": "iron-vitc-pairing-003",
+    "text": "Adding a vitamin C source such as peppers, citrus, or tomatoes to a meal with beans or greens can substantially increase how much plant iron the body absorbs.",
+    "foods": ["bell peppers", "oranges", "tomatoes", "lentils"],
+    "nutrients": ["iron", "vitamin c"],
+    "food_groups": ["vegetables", "fruits", "legumes"],
+    "tags": ["iron", "absorption", "pairing"]
+  },
+  {
+    "id": "calcium-role-001",
+    "text": "Calcium is central to building and maintaining strong bones and teeth; dairy, fortified plant milks, tofu, and leafy greens are reliable sources.",
+    "foods": ["milk", "yogurt", "tofu", "kale"],
+    "nutrients": ["calcium"],
+    "food_groups": ["dairy", "leafy greens"],
+    "tags": ["calcium", "bone-health", "teeth"]
+  },
+  {
+    "id": "calcium-plant-002",
+    "text": "For those who eat little dairy, fortified plant milks, calcium-set tofu, almonds, and leafy greens like bok choy and kale can help meet calcium needs.",
+    "foods": ["fortified soy milk", "tofu", "almonds", "bok choy"],
+    "nutrients": ["calcium"],
+    "food_groups": ["leafy greens", "nuts and seeds"],
+    "tags": ["calcium", "plant-based", "bone-health"]
+  },
+  {
+    "id": "vitamin-c-role-001",
+    "text": "Vitamin C supports the immune system and helps the body form collagen and absorb plant iron; citrus, peppers, strawberries, and broccoli are good sources.",
+    "foods": ["oranges", "bell peppers", "strawberries", "broccoli"],
+    "nutrients": ["vitamin c"],
+    "food_groups": ["fruits", "vegetables"],
+    "tags": ["vitamin-c", "immune", "collagen"]
+  },
+  {
+    "id": "vitamin-c-fresh-002",
+    "text": "Vitamin C is sensitive to heat and prolonged storage, so a mix of raw or lightly cooked fruits and vegetables helps retain more of it.",
+    "foods": ["bell peppers", "broccoli", "kiwi", "strawberries"],
+    "nutrients": ["vitamin c"],
+    "food_groups": ["fruits", "vegetables"],
+    "tags": ["vitamin-c", "cooking", "freshness"]
+  },
+  {
+    "id": "vitamin-d-role-001",
+    "text": "Vitamin D helps the body absorb calcium and is hard to get from food alone; oily fish, eggs, and fortified foods contribute, and sunlight is a major source.",
+    "foods": ["salmon", "eggs", "fortified milk", "mushrooms"],
+    "nutrients": ["vitamin d"],
+    "food_groups": ["fish", "eggs", "dairy"],
+    "tags": ["vitamin-d", "bone-health", "calcium"]
+  },
+  {
+    "id": "vitamin-d-sources-002",
+    "text": "Few foods are naturally rich in vitamin D; oily fish such as salmon and sardines, egg yolks, and fortified products are among the main dietary contributors.",
+    "foods": ["salmon", "sardines", "egg yolks", "fortified cereal"],
+    "nutrients": ["vitamin d"],
+    "food_groups": ["fish", "eggs"],
+    "tags": ["vitamin-d", "sources", "fortified"]
+  },
+  {
+    "id": "potassium-role-001",
+    "text": "Potassium helps regulate fluid balance and blood pressure, and it can blunt some of the effects of sodium; bananas, potatoes, beans, and leafy greens are rich in it.",
+    "foods": ["bananas", "potatoes", "beans", "spinach"],
+    "nutrients": ["potassium"],
+    "food_groups": ["fruits", "vegetables", "legumes"],
+    "tags": ["potassium", "blood-pressure", "fluid-balance"]
+  },
+  {
+    "id": "potassium-sources-002",
+    "text": "Many whole plant foods are good potassium sources, so diets centered on vegetables, fruit, beans, and tubers tend to be naturally high in potassium.",
+    "foods": ["sweet potato", "white beans", "avocado", "tomato"],
+    "nutrients": ["potassium"],
+    "food_groups": ["vegetables", "legumes", "fruits"],
+    "tags": ["potassium", "plant-based", "sources"]
+  },
+  {
+    "id": "magnesium-role-001",
+    "text": "Magnesium is involved in hundreds of enzyme reactions, including energy production and muscle function; nuts, seeds, whole grains, legumes, and leafy greens supply it.",
+    "foods": ["almonds", "pumpkin seeds", "black beans", "spinach"],
+    "nutrients": ["magnesium"],
+    "food_groups": ["nuts and seeds", "legumes", "leafy greens", "whole grains"],
+    "tags": ["magnesium", "energy", "muscle"]
+  },
+  {
+    "id": "magnesium-sources-002",
+    "text": "Refining grains removes much of their magnesium, so whole grains, nuts, seeds, and beans are more dependable sources than refined products.",
+    "foods": ["whole grains", "cashews", "sunflower seeds", "lentils"],
+    "nutrients": ["magnesium"],
+    "food_groups": ["whole grains", "nuts and seeds", "legumes"],
+    "tags": ["magnesium", "whole-grains", "sources"]
+  },
+  {
+    "id": "omega3-fish-001",
+    "text": "Oily fish such as salmon, mackerel, and sardines are the richest dietary sources of the long-chain omega-3 fats EPA and DHA, linked with heart and brain health.",
+    "foods": ["salmon", "mackerel", "sardines", "herring"],
+    "nutrients": ["omega-3"],
+    "food_groups": ["fish"],
+    "tags": ["omega-3", "heart-health", "fatty-fish"]
+  },
+  {
+    "id": "omega3-plant-002",
+    "text": "Plant sources of omega-3, such as flaxseed, chia, and walnuts, provide ALA, which the body converts only partly into the longer-chain forms found in fish.",
+    "foods": ["flaxseed", "chia seeds", "walnuts"],
+    "nutrients": ["omega-3"],
+    "food_groups": ["nuts and seeds"],
+    "tags": ["omega-3", "plant-based", "ala"]
+  },
+  {
+    "id": "legumes-group-001",
+    "text": "Legumes like beans, lentils, and chickpeas combine plant protein, fiber, iron, and slow-digesting carbohydrate, making them a nutrient-dense and inexpensive staple.",
+    "foods": ["beans", "lentils", "chickpeas", "peas"],
+    "nutrients": ["protein", "fiber", "iron"],
+    "food_groups": ["legumes"],
+    "tags": ["legumes", "nutrient-dense", "plant-protein"]
+  },
+  {
+    "id": "legumes-substitute-002",
+    "text": "Using legumes in place of some red or processed meat a few times a week adds fiber and lowers saturated fat while keeping protein intake adequate.",
+    "foods": ["lentils", "black beans", "chickpeas"],
+    "nutrients": ["protein", "fiber"],
+    "food_groups": ["legumes", "red meat"],
+    "tags": ["legumes", "swap", "saturated-fat"]
+  },
+  {
+    "id": "whole-grains-group-001",
+    "text": "Whole grains keep the bran and germ, so they retain fiber, minerals, and B vitamins that are largely stripped from refined grains.",
+    "foods": ["oats", "brown rice", "quinoa", "whole wheat"],
+    "nutrients": ["fiber", "b vitamins", "magnesium"],
+    "food_groups": ["whole grains"],
+    "tags": ["whole-grains", "fiber", "nutrient-density"]
+  },
+  {
+    "id": "whole-grains-benefit-002",
+    "text": "Diets higher in whole grains are associated with better digestive health and steadier energy, partly because of their fiber and slower digestion.",
+    "foods": ["oats", "barley", "brown rice", "whole grain bread"],
+    "nutrients": ["fiber", "carbohydrate"],
+    "food_groups": ["whole grains"],
+    "tags": ["whole-grains", "digestion", "energy"]
+  },
+  {
+    "id": "leafy-greens-group-001",
+    "text": "Leafy greens such as spinach, kale, and chard are low in calories yet rich in fiber, folate, vitamin K, and antioxidants, so they add a lot of nutrition for little energy.",
+    "foods": ["spinach", "kale", "chard", "romaine"],
+    "nutrients": ["fiber", "folate", "vitamin k"],
+    "food_groups": ["leafy greens"],
+    "tags": ["leafy-greens", "nutrient-dense", "low-calorie"]
+  },
+  {
+    "id": "leafy-greens-benefit-002",
+    "text": "Including a serving of leafy greens most days is an easy way to raise intake of vitamins, minerals, and fiber without adding many calories.",
+    "foods": ["spinach", "kale", "arugula", "collard greens"],
+    "nutrients": ["vitamin k", "folate", "fiber"],
+    "food_groups": ["leafy greens"],
+    "tags": ["leafy-greens", "variety", "habits"]
+  },
+  {
+    "id": "fatty-fish-group-001",
+    "text": "Eating fatty fish such as salmon or sardines once or twice a week is a common recommendation for raising omega-3 intake and supporting heart health.",
+    "foods": ["salmon", "sardines", "trout", "mackerel"],
+    "nutrients": ["omega-3", "protein", "vitamin d"],
+    "food_groups": ["fish"],
+    "tags": ["fatty-fish", "omega-3", "heart-health"]
+  },
+  {
+    "id": "fatty-fish-nutrients-002",
+    "text": "Beyond omega-3s, oily fish provide high-quality protein and are one of the few natural food sources of vitamin D.",
+    "foods": ["salmon", "herring", "mackerel"],
+    "nutrients": ["omega-3", "protein", "vitamin d"],
+    "food_groups": ["fish"],
+    "tags": ["fatty-fish", "protein", "vitamin-d"]
+  },
+  {
+    "id": "red-meat-group-001",
+    "text": "Red meat supplies protein, iron, and vitamin B12, but it is also higher in saturated fat, so many guidelines suggest keeping portions moderate.",
+    "foods": ["beef", "lamb", "pork"],
+    "nutrients": ["protein", "iron", "saturated fat", "vitamin b12"],
+    "food_groups": ["red meat"],
+    "tags": ["red-meat", "iron", "saturated-fat"]
+  },
+  {
+    "id": "processed-meat-group-002",
+    "text": "Processed meats such as bacon, sausages, and deli meats are typically high in sodium and saturated fat, and health bodies generally advise limiting them.",
+    "foods": ["bacon", "sausage", "ham", "salami"],
+    "nutrients": ["sodium", "saturated fat"],
+    "food_groups": ["processed meat"],
+    "tags": ["processed-meat", "sodium", "limit"]
+  },
+  {
+    "id": "red-meat-balance-003",
+    "text": "Alternating red meat with poultry, fish, eggs, and legumes across the week keeps protein varied while moderating saturated fat and processed-meat intake.",
+    "foods": ["chicken", "fish", "lentils", "eggs"],
+    "nutrients": ["protein", "saturated fat"],
+    "food_groups": ["red meat", "poultry", "fish", "legumes"],
+    "tags": ["variety", "balance", "protein"]
+  },
+  {
+    "id": "dairy-group-001",
+    "text": "Dairy foods like milk, yogurt, and cheese are concentrated sources of calcium and protein; lower-fat versions cut saturated fat while keeping most of the calcium.",
+    "foods": ["milk", "yogurt", "cheese"],
+    "nutrients": ["calcium", "protein", "saturated fat"],
+    "food_groups": ["dairy"],
+    "tags": ["dairy", "calcium", "protein"]
+  },
+  {
+    "id": "dairy-yogurt-002",
+    "text": "Plain yogurt, especially Greek yogurt, is high in protein and contains live cultures, while flavored versions can carry a lot of added sugar.",
+    "foods": ["greek yogurt", "yogurt"],
+    "nutrients": ["protein", "calcium", "added sugar"],
+    "food_groups": ["dairy"],
+    "tags": ["dairy", "protein", "added-sugar"]
+  },
+  {
+    "id": "nuts-seeds-group-001",
+    "text": "Nuts and seeds pack healthy unsaturated fats, plant protein, fiber, and minerals like magnesium, so a small handful makes a nutrient-dense snack.",
+    "foods": ["almonds", "walnuts", "pumpkin seeds", "sunflower seeds"],
+    "nutrients": ["unsaturated fat", "protein", "fiber", "magnesium"],
+    "food_groups": ["nuts and seeds"],
+    "tags": ["nuts", "healthy-fats", "snack"]
+  },
+  {
+    "id": "nuts-seeds-portion-002",
+    "text": "Because nuts and seeds are calorie-dense from their fat content, modest portions deliver their benefits without contributing excess energy.",
+    "foods": ["almonds", "cashews", "chia seeds", "peanuts"],
+    "nutrients": ["fat", "unsaturated fat"],
+    "food_groups": ["nuts and seeds"],
+    "tags": ["nuts", "portion", "calorie-density"]
+  },
+  {
+    "id": "fruits-group-001",
+    "text": "Whole fruit provides fiber, vitamins, potassium, and natural sugars in a package that is filling, so it is digested more gently than fruit juice.",
+    "foods": ["apple", "banana", "berries", "orange"],
+    "nutrients": ["fiber", "vitamin c", "potassium"],
+    "food_groups": ["fruits"],
+    "tags": ["fruit", "fiber", "vitamins"]
+  },
+  {
+    "id": "fruits-color-002",
+    "text": "Eating a range of fruit colors helps cover different vitamins and antioxidants, since the pigments often reflect distinct beneficial compounds.",
+    "foods": ["berries", "oranges", "grapes", "kiwi"],
+    "nutrients": ["vitamin c", "antioxidants", "fiber"],
+    "food_groups": ["fruits"],
+    "tags": ["fruit", "variety", "antioxidants"]
+  },
+  {
+    "id": "fruit-juice-003",
+    "text": "Fruit juice concentrates natural sugars without the fiber of whole fruit, so it raises blood sugar faster and is less filling; whole fruit is usually the better default.",
+    "foods": ["orange juice", "apple juice", "fruit"],
+    "nutrients": ["added sugar", "fiber"],
+    "food_groups": ["fruits", "sweets"],
+    "tags": ["juice", "blood-sugar", "fiber"]
+  },
+  {
+    "id": "vegetables-group-001",
+    "text": "Vegetables are low in calories and high in fiber, vitamins, and minerals, so filling part of each plate with them is a simple way to improve overall diet quality.",
+    "foods": ["broccoli", "carrots", "peppers", "tomatoes"],
+    "nutrients": ["fiber", "vitamin c", "potassium"],
+    "food_groups": ["vegetables"],
+    "tags": ["vegetables", "nutrient-density", "fiber"]
+  },
+  {
+    "id": "vegetables-variety-002",
+    "text": "Different colored vegetables supply different nutrients, so mixing greens, reds, oranges, and purples across the week broadens nutrient intake.",
+    "foods": ["spinach", "bell peppers", "carrots", "eggplant"],
+    "nutrients": ["vitamins", "antioxidants", "fiber"],
+    "food_groups": ["vegetables", "leafy greens"],
+    "tags": ["vegetables", "variety", "antioxidants"]
+  },
+  {
+    "id": "vegetables-half-plate-003",
+    "text": "Many balanced-plate guides suggest making vegetables and fruit about half the plate, which naturally raises fiber and lowers calorie density.",
+    "foods": ["vegetables", "salad", "fruit"],
+    "nutrients": ["fiber"],
+    "food_groups": ["vegetables", "fruits"],
+    "tags": ["plate-method", "balance", "fiber"]
+  },
+  {
+    "id": "added-sugar-001",
+    "text": "Added sugars in sodas, sweets, and many packaged foods contribute calories with few other nutrients, so cutting back leaves more room for nutrient-rich foods.",
+    "foods": ["soda", "candy", "cookies", "sweetened cereal"],
+    "nutrients": ["added sugar"],
+    "food_groups": ["sweets", "ultra-processed foods"],
+    "tags": ["added-sugar", "empty-calories", "limit"]
+  },
+  {
+    "id": "added-sugar-drinks-002",
+    "text": "Sugary drinks are a leading source of added sugar and do little to satisfy hunger, so swapping them for water or unsweetened drinks is a high-impact change.",
+    "foods": ["soda", "energy drinks", "sweetened coffee", "water"],
+    "nutrients": ["added sugar"],
+    "food_groups": ["sweets"],
+    "tags": ["added-sugar", "beverages", "swap"]
+  },
+  {
+    "id": "added-sugar-hidden-003",
+    "text": "Added sugar often hides in foods that do not taste especially sweet, such as some sauces, breads, and flavored yogurts, so checking labels helps spot it.",
+    "foods": ["ketchup", "flavored yogurt", "granola", "pasta sauce"],
+    "nutrients": ["added sugar"],
+    "food_groups": ["ultra-processed foods"],
+    "tags": ["added-sugar", "labels", "hidden"]
+  },
+  {
+    "id": "sodium-001",
+    "text": "Most dietary sodium comes from processed and restaurant foods rather than the salt shaker, and high intake is associated with raised blood pressure in many people.",
+    "foods": ["processed foods", "canned soup", "deli meat", "snack chips"],
+    "nutrients": ["sodium"],
+    "food_groups": ["ultra-processed foods", "processed meat"],
+    "tags": ["sodium", "blood-pressure", "processed"]
+  },
+  {
+    "id": "sodium-cooking-002",
+    "text": "Cooking more meals from whole ingredients and seasoning with herbs, spices, and citrus instead of extra salt is an effective way to lower sodium intake.",
+    "foods": ["herbs", "spices", "lemon", "garlic"],
+    "nutrients": ["sodium"],
+    "food_groups": ["vegetables"],
+    "tags": ["sodium", "cooking", "habits"]
+  },
+  {
+    "id": "sodium-potassium-003",
+    "text": "Eating more potassium-rich plants alongside lower sodium intake can help support healthy blood pressure, since the two minerals work in balance.",
+    "foods": ["bananas", "spinach", "beans", "potatoes"],
+    "nutrients": ["sodium", "potassium"],
+    "food_groups": ["fruits", "vegetables", "legumes"],
+    "tags": ["sodium", "potassium", "blood-pressure"]
+  },
+  {
+    "id": "ultra-processed-001",
+    "text": "Ultra-processed foods tend to be high in refined carbohydrate, added sugar, sodium, and unhealthy fat while low in fiber, and they are easy to overeat.",
+    "foods": ["packaged snacks", "instant noodles", "soda", "frozen pizza"],
+    "nutrients": ["added sugar", "sodium", "saturated fat"],
+    "food_groups": ["ultra-processed foods"],
+    "tags": ["ultra-processed", "overeating", "limit"]
+  },
+  {
+    "id": "ultra-processed-swap-002",
+    "text": "Replacing some ultra-processed items with minimally processed foods like fruit, nuts, yogurt, or whole grains usually improves fiber and nutrient intake.",
+    "foods": ["fruit", "nuts", "yogurt", "oats"],
+    "nutrients": ["fiber"],
+    "food_groups": ["fruits", "nuts and seeds", "whole grains"],
+    "tags": ["ultra-processed", "swap", "whole-foods"]
+  },
+  {
+    "id": "ultra-processed-satiety-003",
+    "text": "Whole and minimally processed foods generally take more chewing and digest more slowly than ultra-processed ones, which can make them more satisfying per calorie.",
+    "foods": ["whole grains", "vegetables", "fruit", "beans"],
+    "nutrients": ["fiber"],
+    "food_groups": ["whole grains", "vegetables", "legumes"],
+    "tags": ["ultra-processed", "satiety", "whole-foods"]
+  },
+  {
+    "id": "hydration-001",
+    "text": "Water supports digestion, temperature regulation, and concentration, and it has no calories, making it the default drink for staying hydrated.",
+    "foods": ["water"],
+    "nutrients": ["water"],
+    "food_groups": ["beverages"],
+    "tags": ["hydration", "water", "habits"]
+  },
+  {
+    "id": "hydration-foods-002",
+    "text": "Water-rich foods such as fruits, vegetables, and soups also contribute to daily hydration alongside what you drink.",
+    "foods": ["cucumber", "watermelon", "oranges", "soup"],
+    "nutrients": ["water"],
+    "food_groups": ["fruits", "vegetables"],
+    "tags": ["hydration", "fruits", "vegetables"]
+  },
+  {
+    "id": "hydration-thirst-003",
+    "text": "Mild dehydration can be mistaken for hunger or cause fatigue, so drinking water through the day can help with energy and appetite cues.",
+    "foods": ["water"],
+    "nutrients": ["water"],
+    "food_groups": ["beverages"],
+    "tags": ["hydration", "appetite", "energy"]
+  },
+  {
+    "id": "variety-001",
+    "text": "No single food provides every nutrient, so eating a wide variety of foods across groups is one of the most reliable ways to cover overall nutritional needs.",
+    "foods": ["vegetables", "fruits", "whole grains", "legumes"],
+    "nutrients": ["vitamins", "minerals", "fiber"],
+    "food_groups": ["vegetables", "fruits", "whole grains", "legumes"],
+    "tags": ["variety", "balance", "nutrient-coverage"]
+  },
+  {
+    "id": "variety-protein-002",
+    "text": "Rotating protein sources between poultry, fish, eggs, dairy, and legumes spreads out different nutrients and keeps any one source from dominating the diet.",
+    "foods": ["chicken", "fish", "eggs", "beans"],
+    "nutrients": ["protein"],
+    "food_groups": ["poultry", "fish", "eggs", "legumes"],
+    "tags": ["variety", "protein", "balance"]
+  },
+  {
+    "id": "variety-plants-003",
+    "text": "Aiming for many different plants over a week, rather than the same few, broadens fiber types and supports a more diverse gut microbiome.",
+    "foods": ["beans", "berries", "leafy greens", "whole grains"],
+    "nutrients": ["fiber"],
+    "food_groups": ["legumes", "fruits", "vegetables", "whole grains"],
+    "tags": ["variety", "gut-health", "fiber"]
+  },
+  {
+    "id": "balance-plate-001",
+    "text": "A balanced meal that combines a protein source, a whole-grain or starchy carbohydrate, and vegetables tends to be filling and nutritionally well-rounded.",
+    "foods": ["chicken", "brown rice", "broccoli", "beans"],
+    "nutrients": ["protein", "carbohydrate", "fiber"],
+    "food_groups": ["poultry", "whole grains", "vegetables", "legumes"],
+    "tags": ["balance", "plate-method", "meal-building"]
+  },
+  {
+    "id": "balance-calorie-density-002",
+    "text": "Building meals around lower-calorie-density foods like vegetables, fruit, beans, and whole grains lets you eat satisfying portions while keeping energy intake in check.",
+    "foods": ["vegetables", "beans", "fruit", "whole grains"],
+    "nutrients": ["fiber"],
+    "food_groups": ["vegetables", "legumes", "fruits", "whole grains"],
+    "tags": ["calorie-density", "satiety", "weight-management"]
+  },
+  {
+    "id": "breakfast-protein-001",
+    "text": "Including some protein and fiber at breakfast, for example eggs with whole-grain toast or yogurt with fruit, can steady energy and reduce mid-morning hunger.",
+    "foods": ["eggs", "whole grain toast", "yogurt", "fruit"],
+    "nutrients": ["protein", "fiber"],
+    "food_groups": ["eggs", "whole grains", "dairy", "fruits"],
+    "tags": ["breakfast", "protein", "satiety"]
+  },
+  {
+    "id": "snacking-quality-001",
+    "text": "Choosing snacks that pair protein or fiber with some fat, such as fruit with nuts or yogurt with berries, tends to satisfy hunger better than refined-carb snacks alone.",
+    "foods": ["fruit", "nuts", "yogurt", "berries"],
+    "nutrients": ["protein", "fiber", "unsaturated fat"],
+    "food_groups": ["fruits", "nuts and seeds", "dairy"],
+    "tags": ["snacking", "satiety", "quality"]
+  },
+  {
+    "id": "folate-001",
+    "text": "Folate, a B vitamin important for making new cells, is plentiful in leafy greens, legumes, and citrus, and many grain products are fortified with it.",
+    "foods": ["spinach", "lentils", "oranges", "fortified bread"],
+    "nutrients": ["folate", "b vitamins"],
+    "food_groups": ["leafy greens", "legumes", "fruits"],
+    "tags": ["folate", "b-vitamins", "cell-health"]
+  },
+  {
+    "id": "vitamin-b12-001",
+    "text": "Vitamin B12 occurs naturally almost only in animal foods, so people eating little or no animal product often rely on fortified foods or supplements to meet needs.",
+    "foods": ["meat", "fish", "eggs", "fortified plant milk"],
+    "nutrients": ["vitamin b12"],
+    "food_groups": ["red meat", "fish", "eggs"],
+    "tags": ["vitamin-b12", "plant-based", "fortified"]
+  },
+  {
+    "id": "antioxidants-001",
+    "text": "Colorful fruits and vegetables, along with herbs, spices, tea, and cocoa, supply antioxidant compounds that help protect cells from everyday oxidative stress.",
+    "foods": ["berries", "spinach", "green tea", "dark chocolate"],
+    "nutrients": ["antioxidants"],
+    "food_groups": ["fruits", "vegetables"],
+    "tags": ["antioxidants", "variety", "plant-foods"]
+  },
+  {
+    "id": "healthy-fat-swap-001",
+    "text": "Cooking with olive oil or other plant oils instead of butter or lard replaces saturated fat with unsaturated fat, a swap commonly recommended for heart health.",
+    "foods": ["olive oil", "butter", "canola oil"],
+    "nutrients": ["unsaturated fat", "saturated fat"],
+    "food_groups": ["nuts and seeds"],
+    "tags": ["healthy-fats", "swap", "heart-health"]
+  },
+  {
+    "id": "whole-fruit-vs-dessert-001",
+    "text": "Reaching for whole fruit to satisfy a sweet craving adds fiber and vitamins instead of the added sugar found in most desserts.",
+    "foods": ["fruit", "berries", "apple"],
+    "nutrients": ["fiber", "added sugar"],
+    "food_groups": ["fruits", "sweets"],
+    "tags": ["added-sugar", "swap", "fruit"]
+  },
+  {
+    "id": "fiber-gradual-001",
+    "text": "When raising fiber intake, doing so gradually and drinking enough water helps the digestive system adjust comfortably.",
+    "foods": ["beans", "whole grains", "vegetables", "water"],
+    "nutrients": ["fiber", "water"],
+    "food_groups": ["legumes", "whole grains", "vegetables"],
+    "tags": ["fiber", "digestion", "habits"]
+  },
+  {
+    "id": "protein-overnight-001",
+    "text": "Most people in well-fed populations already meet protein needs, so improving diet quality often hinges more on adding fiber and vegetables than on adding protein.",
+    "foods": ["vegetables", "beans", "whole grains", "fruit"],
+    "nutrients": ["protein", "fiber"],
+    "food_groups": ["vegetables", "legumes", "whole grains"],
+    "tags": ["protein", "fiber", "balance"]
+  },
+  {
+    "id": "calcium-vitd-pairing-001",
+    "text": "Calcium and vitamin D work together for bone health, so foods or routines that supply both, such as fortified dairy or plant milks plus some sunlight, are complementary.",
+    "foods": ["fortified milk", "yogurt", "salmon", "tofu"],
+    "nutrients": ["calcium", "vitamin d"],
+    "food_groups": ["dairy", "fish"],
+    "tags": ["calcium", "vitamin-d", "bone-health"]
+  },
+  {
+    "id": "leafy-greens-vitamin-k-001",
+    "text": "Leafy greens are the leading dietary source of vitamin K, which supports normal blood clotting and bone health.",
+    "foods": ["kale", "spinach", "collard greens", "broccoli"],
+    "nutrients": ["vitamin k"],
+    "food_groups": ["leafy greens", "vegetables"],
+    "tags": ["vitamin-k", "leafy-greens", "bone-health"]
+  },
+  {
+    "id": "wholegrain-fiber-blood-sugar-001",
+    "text": "The fiber in whole grains slows the rise in blood sugar after a meal compared with refined grains, helping provide steadier energy.",
+    "foods": ["oats", "barley", "brown rice", "whole wheat"],
+    "nutrients": ["fiber", "carbohydrate"],
+    "food_groups": ["whole grains"],
+    "tags": ["whole-grains", "blood-sugar", "fiber"]
+  },
+  {
+    "id": "beans-iron-fiber-001",
+    "text": "Beans are a standout food for plant-based eaters because they deliver iron, protein, and fiber together in one inexpensive ingredient.",
+    "foods": ["black beans", "kidney beans", "chickpeas"],
+    "nutrients": ["iron", "protein", "fiber"],
+    "food_groups": ["legumes"],
+    "tags": ["beans", "iron", "plant-protein"]
+  },
+  {
+    "id": "seeds-omega3-001",
+    "text": "Ground flaxseed and chia seeds are convenient plant sources of omega-3 ALA and fiber that can be stirred into oats, yogurt, or smoothies.",
+    "foods": ["flaxseed", "chia seeds", "oats", "yogurt"],
+    "nutrients": ["omega-3", "fiber"],
+    "food_groups": ["nuts and seeds"],
+    "tags": ["omega-3", "seeds", "fiber"]
+  },
+  {
+    "id": "vegetable-first-001",
+    "text": "Starting a meal with vegetables or a salad can increase total vegetable intake and add fiber that helps with fullness before the rest of the meal.",
+    "foods": ["salad", "vegetables", "greens"],
+    "nutrients": ["fiber"],
+    "food_groups": ["vegetables", "leafy greens"],
+    "tags": ["vegetables", "satiety", "habits"]
+  },
+  {
+    "id": "potassium-vs-processed-001",
+    "text": "Because processed foods are often high in sodium and low in potassium, shifting toward whole plant foods naturally improves the sodium-to-potassium balance.",
+    "foods": ["vegetables", "fruit", "beans", "potatoes"],
+    "nutrients": ["potassium", "sodium"],
+    "food_groups": ["vegetables", "fruits", "legumes"],
+    "tags": ["potassium", "sodium", "whole-foods"]
+  },
+  {
+    "id": "dairy-alternatives-001",
+    "text": "Fortified plant milks can stand in for dairy for calcium and vitamin D, but unfortified versions and many plant cheeses provide little, so checking fortification matters.",
+    "foods": ["fortified soy milk", "almond milk", "oat milk"],
+    "nutrients": ["calcium", "vitamin d"],
+    "food_groups": ["dairy"],
+    "tags": ["dairy-alternatives", "calcium", "fortified"]
+  },
+  {
+    "id": "fruit-fiber-sugar-001",
+    "text": "The natural sugar in whole fruit comes bundled with fiber and water, which is why whole fruit affects blood sugar far more gently than sugary snacks.",
+    "foods": ["apple", "berries", "orange", "pear"],
+    "nutrients": ["fiber", "added sugar"],
+    "food_groups": ["fruits"],
+    "tags": ["fruit", "blood-sugar", "fiber"]
+  },
+  {
+    "id": "lean-protein-001",
+    "text": "Leaner protein choices such as skinless poultry, fish, eggs, and legumes provide protein with less saturated fat than fattier cuts of red meat.",
+    "foods": ["chicken breast", "fish", "eggs", "lentils"],
+    "nutrients": ["protein", "saturated fat"],
+    "food_groups": ["poultry", "fish", "eggs", "legumes"],
+    "tags": ["lean-protein", "saturated-fat", "balance"]
+  },
+  {
+    "id": "magnesium-stress-energy-001",
+    "text": "Nuts, seeds, beans, and whole grains are dependable magnesium sources, a mineral that supports normal muscle and nerve function and energy metabolism.",
+    "foods": ["almonds", "black beans", "brown rice", "pumpkin seeds"],
+    "nutrients": ["magnesium"],
+    "food_groups": ["nuts and seeds", "legumes", "whole grains"],
+    "tags": ["magnesium", "energy", "muscle"]
+  },
+  {
+    "id": "cruciferous-001",
+    "text": "Cruciferous vegetables like broccoli, cauliflower, and Brussels sprouts add fiber, vitamin C, and beneficial plant compounds, and they count toward overall vegetable variety.",
+    "foods": ["broccoli", "cauliflower", "brussels sprouts", "cabbage"],
+    "nutrients": ["fiber", "vitamin c"],
+    "food_groups": ["vegetables"],
+    "tags": ["cruciferous", "vegetables", "variety"]
+  },
+  {
+    "id": "berries-001",
+    "text": "Berries are relatively low in sugar for fruit and high in fiber and antioxidants, making them a nutrient-dense way to satisfy a sweet craving.",
+    "foods": ["blueberries", "strawberries", "raspberries"],
+    "nutrients": ["fiber", "antioxidants", "vitamin c"],
+    "food_groups": ["fruits"],
+    "tags": ["berries", "antioxidants", "fiber"]
+  },
+  {
+    "id": "eggs-001",
+    "text": "Eggs are an inexpensive, high-quality protein source that also provides vitamin D, B12, and choline, and they fit into many balanced meals.",
+    "foods": ["eggs"],
+    "nutrients": ["protein", "vitamin d", "vitamin b12"],
+    "food_groups": ["eggs"],
+    "tags": ["eggs", "protein", "nutrient-dense"]
+  },
+  {
+    "id": "olive-oil-001",
+    "text": "Extra-virgin olive oil is rich in monounsaturated fat and plant compounds and is a cornerstone of Mediterranean-style eating patterns associated with heart health.",
+    "foods": ["olive oil"],
+    "nutrients": ["unsaturated fat"],
+    "food_groups": ["nuts and seeds"],
+    "tags": ["olive-oil", "healthy-fats", "heart-health"]
+  },
+  {
+    "id": "low-fiber-pattern-001",
+    "text": "A diet built mainly on refined grains, meat, and processed foods often falls short on fiber; adding beans, vegetables, fruit, or whole grains is a direct way to close that gap.",
+    "foods": ["beans", "vegetables", "fruit", "whole grains"],
+    "nutrients": ["fiber"],
+    "food_groups": ["legumes", "vegetables", "fruits", "whole grains"],
+    "tags": ["fiber", "diet-pattern", "improvement"]
+  },
+  {
+    "id": "high-saturated-fat-pattern-001",
+    "text": "When much of the fat in a diet comes from fatty meat, butter, and cheese, shifting some toward fish, nuts, seeds, and plant oils lowers saturated fat without cutting fat entirely.",
+    "foods": ["fish", "nuts", "olive oil", "seeds"],
+    "nutrients": ["saturated fat", "unsaturated fat"],
+    "food_groups": ["fish", "nuts and seeds"],
+    "tags": ["saturated-fat", "diet-pattern", "swap"]
+  },
+  {
+    "id": "vegetable-variety-pattern-001",
+    "text": "Relying on just one or two vegetables limits the range of nutrients you get; rotating in different vegetables each week broadens vitamin, mineral, and fiber intake.",
+    "foods": ["broccoli", "carrots", "peppers", "spinach"],
+    "nutrients": ["vitamins", "minerals", "fiber"],
+    "food_groups": ["vegetables"],
+    "tags": ["variety", "vegetables", "diet-pattern"]
+  },
+  {
+    "id": "carbs-quality-pattern-001",
+    "text": "Carbohydrate quality matters more than carbohydrate alone: emphasizing whole grains, legumes, fruit, and vegetables over refined grains and sugar improves fiber and nutrient intake.",
+    "foods": ["whole grains", "beans", "fruit", "vegetables"],
+    "nutrients": ["carbohydrate", "fiber", "added sugar"],
+    "food_groups": ["whole grains", "legumes", "fruits", "vegetables"],
+    "tags": ["carb-quality", "fiber", "diet-pattern"]
+  }
+]

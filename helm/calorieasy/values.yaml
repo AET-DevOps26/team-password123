@@ -77,9 +77,22 @@ genai:
   textOpenaiApiKey: ""
   nutritionDataProvider: local # use the bundled nutrition_db.json (no USDA key needed)
   usdaApiKey: ""
+  # RAG health-insights embedding provider: local (in-process fastembed, no key) or openai.
+  embedProvider: local
   resources:
     requests: { cpu: "100m", memory: "256Mi" }
     limits:   { cpu: "500m", memory: "512Mi" }
+
+# Vector store for the GenAI health-insights RAG (we supply vectors, vectorizer=none).
+weaviate:
+  enabled: true
+  url: "http://weaviate:8080"
+  image: cr.weaviate.io/semitechnologies/weaviate:1.27.0
+  storageClass: ""
+  storageSize: 2Gi
+  resources:
+    requests: { cpu: "100m", memory: "256Mi" }
+    limits:   { cpu: "750m", memory: "1Gi" }
 
 web:
   replicas: 2

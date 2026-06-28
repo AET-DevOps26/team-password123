@@ -149,12 +149,13 @@ jobs:
       - name: Lint (ruff)
         run: ruff check .
 
-      # Headless unit tests for the critical nutrition logic: curated-DB lookup and
-      # name-based portion estimation. They mock the LLM/HTTP and use the bundled
-      # nutrition_db.json (provider=local), so no API keys or a live :8084 are
-      # needed. test_smoke / test_image_expectations self-skip without a service.
+      # Headless unit tests for the critical nutrition + RAG logic: curated-DB
+      # lookup, name-based portion estimation, and the health-insight retrieve→
+      # augment→generate path. They mock the LLM/Weaviate/embedder, so no API
+      # keys, model downloads or a live :8084 are needed. test_smoke /
+      # test_image_expectations self-skip without a running service.
       - name: Unit tests
-        run: pytest tests/test_estimate.py tests/test_nutrition_lookup.py -v
+        run: pytest tests/test_estimate.py tests/test_nutrition_lookup.py tests/test_insight.py -v
 
   secret-scan:
     name: Secret scan (gitleaks)

@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { mealApi } from '../../../entities/meal/api/mealApi';
 import { analyticsApi } from '../../../entities/nutrition/api/analyticsApi';
 import { useProfileStore } from '../../../entities/user/model/profile';
+import { HealthInsightCard } from '../../../features/health-insight/ui/HealthInsightCard';
 import styles from './InsightsPage.module.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -624,6 +625,9 @@ export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
           delta={streak !== null ? 'Current streak' : 'No data'}
         />
       </div>
+
+      {/* ── RAG health insight ── */}
+      <HealthInsightCard />
 
       {/* ── Charts grid ── */}
       <div className={styles.grid}>

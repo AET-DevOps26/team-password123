@@ -6,7 +6,6 @@ These tests POST images to the running genai-service and assert a numeric
 Run with: pytest services/genai-service/tests/test_image_expectations.py -q
 """
 import os
-import io
 import requests
 import pytest
 from pathlib import Path

@@ -7,7 +7,6 @@ Run with: pytest tests/test_smoke.py -v
 
 import io
 import os
-import json
 import requests
 from PIL import Image
 import pytest

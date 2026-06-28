@@ -114,3 +114,35 @@ jobs:
           path: calorie-app/playwright-report/
           if-no-files-found: ignore
           retention-days: 7
+
+  genai:
+    name: GenAI service (Python)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/genai-service
+    steps:
+      - uses: actions/checkout@v4
+
+      # Match the service Dockerfile (python:3.11-slim) so the pinned deps resolve.
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: services/genai-service/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt ruff
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      # Headless unit tests for the critical nutrition logic: curated-DB lookup and
+      # name-based portion estimation. They mock the LLM/HTTP and use the bundled
+      # nutrition_db.json (provider=local), so no API keys or a live :8084 are
+      # needed. test_smoke / test_image_expectations self-skip without a service.
+      - name: Unit tests
+        run: pytest tests/test_estimate.py tests/test_nutrition_lookup.py -v

@@ -28,8 +28,6 @@ except Exception:  # Optional dependency.
     ChatGoogleGenerativeAI = None
 
 from config import (
-    GOOGLE_API_KEY,
-    GOOGLE_MODEL,
     LLM_PROVIDER,
     NUTRITION_DATA_PROVIDER,
     OLLAMA_BASE_URL,

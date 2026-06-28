@@ -14,7 +14,6 @@ To run locally:
 """
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, status
-from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_client import Counter, Histogram
 import base64

@@ -1,0 +1,5 @@
+# Lint config for genai-service (used by CI `ruff check .`).
+# The one-off data utilities in scripts/ deliberately set up sys.path before
+# importing, which is a legitimate E402 ("module-level import not at top").
+[lint.per-file-ignores]
+"scripts/*" = ["E402"]

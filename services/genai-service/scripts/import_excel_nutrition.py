@@ -20,7 +20,7 @@ import re
 
 try:
     import openpyxl
-except Exception as e:
+except Exception:
     print("openpyxl is required. Install via: pip install openpyxl")
     raise SystemExit(1)
 

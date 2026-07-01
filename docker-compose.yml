@@ -62,6 +62,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       APP_JWT_SECRET: ${APP_JWT_SECRET:?set APP_JWT_SECRET in .env}
       MEALS_SERVICE_URL: http://meals-service:8082
+      # RAG health-insights: analytics aggregates recent meals and asks genai
+      # to generate the grounded insight.
+      GENAI_URL: ${GENAI_URL:-http://genai-service:8084}
       SERVER_PORT: 8083
     ports:
       - "8083:8083"
@@ -69,6 +72,8 @@ services:
       postgres:
         condition: service_healthy
       meals-service:
+        condition: service_started
+      genai-service:
         condition: service_started
 
   web:
@@ -104,23 +109,48 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
-      # Optional dedicated text LLM for food-name estimation (e.g. Logos).
-      # When set, the estimate endpoint uses this instead of the vision LLM.
-      TEXT_OPENAI_BASE_URL: ${TEXT_OPENAI_BASE_URL:-}
+      # Dedicated text LLM for food-name estimation + the health-insight RAG
+      # generation. Defaults to AET Logos gpt-oss-120b; set TEXT_OPENAI_API_KEY
+      # (Logos key) in your gitignored .env to enable generation.
+      TEXT_OPENAI_BASE_URL: ${TEXT_OPENAI_BASE_URL:-https://logos.aet.cit.tum.de/v1}
       TEXT_OPENAI_API_KEY: ${TEXT_OPENAI_API_KEY:-}
       TEXT_OPENAI_MODEL: ${TEXT_OPENAI_MODEL:-openai/gpt-oss-120b}
       PORT: 8084
       DEBUG: "false"
+      # RAG health-insights: Weaviate vector store + embedding provider.
+      # local = in-process fastembed (no key); openai = cloud embeddings.
+      WEAVIATE_URL: ${WEAVIATE_URL:-http://weaviate:8080}
+      EMBED_PROVIDER: ${EMBED_PROVIDER:-local}
     ports:
       - "8084:8084"
     depends_on:
       postgres:
         condition: service_healthy
+      weaviate:
+        condition: service_started
     healthcheck:
       test: ["CMD", "python", "-c", "import requests; r = requests.get('http://localhost:8084/health', timeout=3); raise SystemExit(0 if r.status_code == 200 else 1)"]
       interval: 10s
       timeout: 5s
       retries: 3
+
+  # Vector store backing the GenAI health-insights RAG. We supply our own vectors
+  # (vectorizer=none), so no Weaviate inference modules are needed.
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.27.0
+    command: ["--host", "0.0.0.0", "--port", "8080", "--scheme", "http"]
+    environment:
+      PERSISTENCE_DATA_PATH: /var/lib/weaviate
+      DEFAULT_VECTORIZER_MODULE: none
+      ENABLE_MODULES: ""
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      QUERY_DEFAULTS_LIMIT: "25"
+      CLUSTER_HOSTNAME: node1
+      PROMETHEUS_MONITORING_ENABLED: "true"   # exposes /metrics on :2112
+    ports:
+      - "8080:8080"
+    volumes:
+      - weaviate-data:/var/lib/weaviate
 
   # Observability — same stack as the Helm chart, for local dev. Prometheus
   # scrapes the services (names match k8s); Grafana auto-provisions the datasource.
@@ -208,3 +238,4 @@ volumes:
   prometheus-data:
   grafana-data:
   loki-data:
+  weaviate-data:

@@ -41,6 +41,8 @@ app:
     secret: ${APP_JWT_SECRET}
   meals-service:
     base-url: ${MEALS_SERVICE_URL:http://localhost:8082}
+  genai:
+    base-url: ${GENAI_URL:http://genai-service:8084}
 
 springdoc:
   swagger-ui:

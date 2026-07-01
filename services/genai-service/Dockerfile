@@ -7,12 +7,20 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code
-COPY app.py config.py nutrition_analyzer.py nutrition_db.json ./
+# Copy the application code. health_rag.py + health_facts.json power the RAG
+# health-insight endpoint; build_health_index.py lets an init job/operator seed
+# Weaviate out of band.
+COPY app.py config.py nutrition_analyzer.py nutrition_db.json health_rag.py health_facts.json ./
+COPY scripts/build_health_index.py ./scripts/build_health_index.py
 
 # Run as a non-root, numeric UID so Kubernetes runAsNonRoot can verify it.
 RUN useradd -u 1001 -r -m -s /usr/sbin/nologin appuser && chown -R appuser /app
 USER 1001
+
+# Pre-bake the local embedding model (fastembed BAAI/bge-small-en-v1.5) so the
+# startup index build and the first /api/insight work offline with no cold-start
+# download. Runs as appuser so the cache lands in this user's home.
+RUN python -c "from fastembed import TextEmbedding; TextEmbedding('BAAI/bge-small-en-v1.5')"
 
 # Expose port
 EXPOSE 8084

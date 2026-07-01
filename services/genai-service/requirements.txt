@@ -10,11 +10,23 @@ langchain-ollama>=0.2.0,<1.0
 langchain-openai>=0.2.0,<1.0
 langchain-google-genai>=2.0.0,<3.0.0
 
+# RAG health insights: Weaviate vector store + local ONNX embeddings.
+# fastembed gives BAAI/bge-small-en-v1.5 (384-dim) with no torch dependency,
+# keeping the image light; the Weaviate v4 client talks to the vector DB.
+weaviate-client>=4.9,<5
+fastembed>=0.4,<1
+
 # Image processing
 pillow==10.4.0
 
 # HTTP requests
 requests==2.31.0
+
+# httpx is a transitive dep (openai, weaviate-client, ollama). Pin it into the
+# window every consumer allows AND that Starlette 0.27's TestClient supports:
+# httpx 0.28 dropped the `app=` shortcut that fastapi 0.104's TestClient relies
+# on, so the RAG insight tests need httpx<0.28 (weaviate needs >=0.26, ollama >=0.27).
+httpx>=0.27,<0.28
 
 # Prometheus metrics (6.1.0 is the newest that keeps starlette<0.28, matching the
 # pinned fastapi 0.104.1; 7.x requires starlette>=0.30 and breaks the image build)

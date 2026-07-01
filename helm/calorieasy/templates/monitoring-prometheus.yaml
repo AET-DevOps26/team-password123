@@ -34,6 +34,11 @@ data:
         metrics_path: /metrics
         static_configs:
           - targets: ['genai-service:8084']
+{{- if .Values.weaviate.enabled }}
+      - job_name: weaviate
+        static_configs:
+          - targets: ['weaviate:2112']
+{{- end }}
   # Alerting rules, mounted alongside prometheus.yml at /etc/prometheus. Canonical
   # source is the chart's alerts.yml (also mounted into docker-compose prometheus).
   alerts.yml: |

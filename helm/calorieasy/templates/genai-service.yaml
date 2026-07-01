@@ -56,6 +56,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "calorieasy.secretName" . }}
                   key: USDA_FDC_API_KEY
+            # RAG health-insights: vector store + embedding provider.
+            - name: WEAVIATE_URL
+              value: {{ .Values.weaviate.url | quote }}
+            - name: EMBED_PROVIDER
+              value: {{ .Values.genai.embedProvider | quote }}
           startupProbe:
             tcpSocket: { port: 8084 }
             failureThreshold: 30

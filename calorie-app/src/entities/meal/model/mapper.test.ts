@@ -3,9 +3,10 @@ import {
   mealResponseToEntry,
   entryToManualRequest,
   singleItemFromMacros,
+  foodEstimateResponseToEstimate,
   SLOT_TO_MEAL_TYPE,
 } from './mapper';
-import type { MealResponse, MealItemRequest } from '../api/backendTypes';
+import type { MealResponse, MealItemRequest, FoodEstimateResponse } from '../api/backendTypes';
 
 // Slot tones are private to the mapper; we assert the exact values it emits.
 const TONE = {
@@ -175,6 +176,51 @@ describe('entryToManualRequest', () => {
     const items: MealItemRequest[] = [];
     const req = entryToManualRequest('Breakfast', 'n', new Date('2026-05-29T00:00:00.000Z'), items);
     expect(req.items).toBe(items);
+  });
+});
+
+describe('foodEstimateResponseToEstimate', () => {
+  it('maps snake_case genai wire format (current meals-service passthrough)', () => {
+    const raw: FoodEstimateResponse = {
+      food_name: 'toast',
+      calories_per_100g: 279,
+      protein_grams_per_100g: 9,
+      carbs_grams_per_100g: 53,
+      fat_grams_per_100g: 3.5,
+      typical_portion_grams: 30,
+      typical_portion_label: '1 slice',
+      source: 'local',
+      confidence: 0.9,
+    };
+
+    expect(foodEstimateResponseToEstimate(raw)).toEqual({
+      foodName: 'toast',
+      caloriesPer100g: 279,
+      proteinPer100g: 9,
+      carbsPer100g: 53,
+      fatPer100g: 3.5,
+      typicalPortionGrams: 30,
+      typicalPortionLabel: '1 slice',
+      source: 'local',
+      confidence: 0.9,
+    });
+  });
+
+  it('maps camelCase when meals-service maps the response', () => {
+    const raw: FoodEstimateResponse = {
+      foodName: 'toast',
+      caloriesPer100g: 279,
+      proteinPer100g: 9,
+      carbsPer100g: 53,
+      fatPer100g: 3.5,
+      typicalPortionGrams: 30,
+      typicalPortionLabel: '1 slice',
+      source: 'local',
+      confidence: 0.9,
+    };
+
+    expect(foodEstimateResponseToEstimate(raw).foodName).toBe('toast');
+    expect(foodEstimateResponseToEstimate(raw).typicalPortionGrams).toBe(30);
   });
 });
 

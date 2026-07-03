@@ -64,13 +64,13 @@ export function entryToManualRequest(
 /** Convert a backend FoodEstimateResponse into a clean UI FoodEstimate */
 export function foodEstimateResponseToEstimate(r: FoodEstimateResponse): FoodEstimate {
   return {
-    foodName:            r.foodName,
-    caloriesPer100g:     r.caloriesPer100g,
-    proteinPer100g:      r.proteinPer100g,
-    carbsPer100g:        r.carbsPer100g,
-    fatPer100g:          r.fatPer100g,
-    typicalPortionGrams: r.typicalPortionGrams,
-    typicalPortionLabel: r.typicalPortionLabel,
+    foodName:            r.foodName ?? r.food_name ?? '',
+    caloriesPer100g:     r.caloriesPer100g ?? r.calories_per_100g ?? 0,
+    proteinPer100g:      r.proteinPer100g ?? r.protein_grams_per_100g ?? 0,
+    carbsPer100g:        r.carbsPer100g ?? r.carbs_grams_per_100g ?? 0,
+    fatPer100g:          r.fatPer100g ?? r.fat_grams_per_100g ?? 0,
+    typicalPortionGrams: r.typicalPortionGrams ?? r.typical_portion_grams ?? 100,
+    typicalPortionLabel: r.typicalPortionLabel ?? r.typical_portion_label ?? '100 g',
     source:              r.source,
     confidence:          r.confidence,
   };

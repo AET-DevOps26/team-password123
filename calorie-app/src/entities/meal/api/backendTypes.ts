@@ -58,15 +58,23 @@ export interface PhotoLogResponse {
   createdAt: string;
 }
 
-// meals-service serializes FoodEstimateResponse as camelCase.
+// Wire format from meals-service / genai — snake_case today; camelCase after
+// meals-service maps the genai payload on the next image rebuild.
 export interface FoodEstimateResponse {
-  foodName: string;
-  caloriesPer100g: number;
-  proteinPer100g: number;
-  carbsPer100g: number;
-  fatPer100g: number;
-  typicalPortionGrams: number;
-  typicalPortionLabel: string;
-  source: 'usda' | 'llm' | string;
+  foodName?: string;
+  food_name?: string;
+  caloriesPer100g?: number;
+  calories_per_100g?: number;
+  proteinPer100g?: number;
+  protein_grams_per_100g?: number;
+  carbsPer100g?: number;
+  carbs_grams_per_100g?: number;
+  fatPer100g?: number;
+  fat_grams_per_100g?: number;
+  typicalPortionGrams?: number;
+  typical_portion_grams?: number;
+  typicalPortionLabel?: string;
+  typical_portion_label?: string;
+  source: 'usda' | 'llm' | 'local' | string;
   confidence: number;
 }

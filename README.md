@@ -278,7 +278,8 @@ Gemini is reached via `LLM_PROVIDER=openai` plus a Gemini OpenAI-compatible `OPE
 | meals-service | `cd services/meals-service && mvn test` | JUnit 5 + Mockito, unit-only (MealService, MealMapper, GenAiMealAnalyzer mapping) |
 | analytics-service | `cd services/analytics-service && mvn test` | JUnit 5 + Mockito, unit-only (AnalyticsService, GoalService) |
 | genai-service (unit) | `cd services/genai-service && pytest tests/test_nutrition_lookup.py -v` | Pure unit tests, no running server |
-| genai-service (Nemotron) | `pytest tests/test_nemotron_integration.py -v -m integration` | OpenRouter backup vision tests (skips without key) |
+| genai-service (vision) | `pytest tests/test_vision_fallback.py -v -m "not integration"` | Gemini primary + backup fallback (mocked, no keys) |
+| genai-service (backup smoke) | `pytest tests/test_vision_fallback.py -v -m "integration and backup"` | OpenRouter backup smoke only (skips without key) |
 | genai-service (smoke) | `pytest tests/test_smoke.py -v` | HTTP smoke tests against a running service (auto-skips if down) |
 | iOS app | — | No tests (the xcodegen project defines no test target) |
 

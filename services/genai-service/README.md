@@ -126,8 +126,11 @@ pytest tests/test_image_expectations.py -v
 export GOOGLE_API_KEY=your-key
 pytest tests/test_genai_integration.py -v -m integration
 
-# Nemotron backup integration tests (requires OPENROUTER_API_KEY or BACKUP_OPENAI_API_KEY)
-pytest tests/test_nemotron_integration.py -v -m integration
+# Gemini primary + Nemotron backup fallback tests (unit tests need no keys)
+pytest tests/test_vision_fallback.py -v -m "not integration"
+
+# Optional backup smoke tests (OpenRouter; skips without key or on 429 quota)
+pytest tests/test_vision_fallback.py -v -m "integration and backup"
 ```
 
 | Test file | Needs service? | Needs API key? | Runs in CI? |
@@ -137,7 +140,7 @@ pytest tests/test_nemotron_integration.py -v -m integration
 | `test_smoke.py` | Yes (localhost:8084) | No | No |
 | `test_image_expectations.py` | Yes (localhost:8084) | No | No |
 | `test_genai_integration.py` | No | Yes (GOOGLE_API_KEY) | No (skip if no key) |
-| `test_nemotron_integration.py` | No | Yes (OPENROUTER_API_KEY) | Skips without key; runs when secret set |
+| `test_vision_fallback.py` | No | No (unit); optional OPENROUTER for backup smoke | Unit tests yes; backup smoke skips without key/quota |
 
 ## Troubleshooting
 

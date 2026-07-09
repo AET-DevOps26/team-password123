@@ -802,6 +802,30 @@ class NutritionAnalyzer:
             )
         return "No LLM response received"
 
+    @staticmethod
+    def _combined_analysis_failure(primary_error, fallback_error) -> str:
+        """Pick the operator-facing error when both providers were attempted."""
+        if fallback_error is None:
+            if primary_error is not None:
+                return f"vision analysis failed: {primary_error}"
+            return "No LLM response received"
+
+        fb_lower = str(fallback_error).lower()
+        backup_unreachable = any(
+            token in fb_lower
+            for token in (
+                "name or service not known",
+                "connection refused",
+                "connection error",
+                "failed to establish",
+                "errno -2",
+                "getaddrinfo failed",
+            )
+        )
+        if primary_error is not None and backup_unreachable:
+            return f"vision analysis failed: {primary_error}"
+        return f"backup vision analysis failed: {fallback_error}"
+
     def analyze(self, image_base64: str) -> NutritionResponse:
         """Analyze a base64-encoded food image and return nutrition estimates."""
         try:
@@ -836,11 +860,11 @@ class NutritionAnalyzer:
                     response = fallback_llm.invoke([message])
                 except Exception as exc:
                     logger.error("Fallback LLM also failed: %s", exc)
-                    # Surface the configured provider's real failure, not the
-                    # fallback's. In prod the backup endpoint usually doesn't
-                    # exist, so its connection error would otherwise mask the
-                    # actual cause — a 403 from the vision API, or an unset key.
-                    raise ValueError(self._analysis_failure(primary_error)) from (primary_error or exc)
+                    if self.llm is None and primary_error is None:
+                        raise ValueError(self._analysis_failure(primary_error)) from exc
+                    raise ValueError(
+                        self._combined_analysis_failure(primary_error, exc)
+                    ) from exc
 
             if not response:
                 raise ValueError(self._analysis_failure(primary_error))

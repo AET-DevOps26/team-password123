@@ -33,6 +33,7 @@ function validate(state: FormState, mode: AuthMode): FormErrors {
 export function useAuthForm() {
   const setSession  = useUserStore((s) => s.setSession);
   const patchProfile = useProfileStore((s) => s.patch);
+  const resetProfile = useProfileStore((s) => s.reset);
 
   const [mode, setMode]       = useState<AuthMode>('login');
   const [touched, setTouched] = useState(false);
@@ -82,6 +83,13 @@ export function useAuthForm() {
         displayName: response.displayName,
         createdAt:   response.expiresAt,
       });
+
+      // A freshly-created account must not inherit the prior local profile.
+      // Reset first so onboarding is shown even if this device was used by
+      // another account before the new registration.
+      if (mode === 'register') {
+        resetProfile();
+      }
 
       // Sync the profile name (the single source of truth for the greeting and
       // sidebar) to the freshly-authenticated account. Always set it so a

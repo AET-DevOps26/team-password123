@@ -59,7 +59,7 @@ export function App() {
 
       <main className={styles.main}>
         <div className={styles.content}>
-          {page === 'home'     && <HomePage  onScan={() => setShowScan(true)} />}
+          {page === 'home'     && <HomePage  onScan={() => setShowScan(true)} onOpenDiary={() => setPage('diary')} />}
           {page === 'diary'    && (
             <DiaryPage
               onScan={() => setShowScan(true)}

@@ -5,7 +5,8 @@ Multi-modal LLM-powered food image recognition and nutritional inference microse
 - **Port**: 8084
 - **Framework**: FastAPI (Python)
 - **Production LLM**: Google Gemini (`gemini-3.1-flash-lite`) via its OpenAI-compatible endpoint
-- **Local dev LLM**: Ollama (free, offline, no API key needed)
+- **Backup LLM**: OpenRouter Nemotron (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`)
+- **Text LLM**: AET Logos `gpt-oss-120b` for food-name estimation and RAG health insights
 - **Nutrition data**: Local `nutrition_db.json` cache (production); USDA FoodData Central optional (dev)
 
 ## How it works
@@ -25,6 +26,8 @@ Multi-modal LLM-powered food image recognition and nutritional inference microse
 | POST | `/api/analyze` | multipart image file | `NutritionResponse` |
 | POST | `/api/analyze/base64` | `{"image": "<base64>"}` | `NutritionResponse` |
 | POST | `/api/analyze/compare` | multipart image file | `NutritionComparisonResponse` |
+| POST | `/api/estimate` | JSON `{ "foodName": "..." }` | `FoodEstimateResponse` (per-100g macros) |
+| POST | `/api/insight` | JSON eating profile | `InsightResponse` (RAG health insight) |
 
 **Response shape (`NutritionResponse`):**
 ```json
@@ -43,39 +46,46 @@ Full request/response docs: [`docs/API Reference.md`](../../docs/API%20Reference
 
 ## Production configuration
 
-Production (Helm chart) routes through Google Gemini's OpenAI-compatible endpoint:
+Production (Helm chart) routes through Google Gemini's OpenAI-compatible endpoint and keeps
+OpenRouter Nemotron as automatic fallback for quota or rate-limit failures:
 
 ```
 LLM_PROVIDER=openai
 OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
 OPENAI_MODEL=gemini-3.1-flash-lite
-OPENAI_API_KEY=<Google AI Studio key>
+OPENAI_API_KEY=<Google AI Studio key>          # GitHub secret: GEMINI_API_KEY
+BACKUP_OPENAI_BASE_URL=https://openrouter.ai/api/v1
+BACKUP_OPENAI_MODEL=nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free
+BACKUP_OPENAI_API_KEY=<OpenRouter key>         # GitHub secret: OPENROUTER_API_KEY
+TEXT_OPENAI_BASE_URL=https://logos.aet.cit.tum.de/v1
+TEXT_OPENAI_MODEL=openai/gpt-oss-120b
+TEXT_OPENAI_API_KEY=<Logos key>                # GitHub secret: LOGOS_API_KEY
 NUTRITION_DATA_PROVIDER=local
 ```
 
-This uses LangChain's `ChatOpenAI` class pointed at Gemini — no Ollama or separate Google package needed in the Docker image.
+Primary and backup vision paths use LangChain `ChatOpenAI`. Text estimation and RAG insights use a separate text LLM (Logos).
 
 ## Local development
 
-### Option A — Ollama (recommended, no API key)
+### Option A — Gemini + OpenRouter Nemotron backup
 
 ```bash
-# 1. Install Ollama from https://ollama.ai and pull a vision model
-ollama pull llava
-
-# 2. Set environment
-export LLM_PROVIDER=ollama
-export OLLAMA_BASE_URL=http://localhost:11434
-export OLLAMA_MODEL=llava
+export LLM_PROVIDER=openai
+export OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+export OPENAI_MODEL=gemini-3.1-flash-lite
+export OPENAI_API_KEY=<your Google AI Studio key>
+export BACKUP_OPENAI_BASE_URL=https://openrouter.ai/api/v1
+export BACKUP_OPENAI_MODEL=nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free
+export BACKUP_OPENAI_API_KEY=<your OpenRouter key>
 export NUTRITION_DATA_PROVIDER=local
 
-# 3. Run
+# Run
 cd services/genai-service
 pip install -r requirements.txt
 uvicorn app:app --reload --port 8084
 ```
 
-### Option B — Gemini (matches production)
+### Option B — Gemini only
 
 ```bash
 export LLM_PROVIDER=openai
@@ -90,7 +100,7 @@ Get a free API key at [aistudio.google.com](https://aistudio.google.com/apikey).
 
 ### Docker Compose
 
-The service is included in the root `docker-compose.yml`. Set `LLM_PROVIDER`, `OLLAMA_BASE_URL` (or `OPENAI_API_KEY`), and `GENAI_URL` in your `.env` file and run:
+The service is included in the root `docker-compose.yml`. Set `LLM_PROVIDER`, `OPENAI_BASE_URL`, `OPENAI_API_KEY`, and the backup `BACKUP_OPENAI_*` values in your `.env` file and run:
 
 ```bash
 docker compose up --build
@@ -115,6 +125,9 @@ pytest tests/test_image_expectations.py -v
 # Gemini integration tests (requires GOOGLE_API_KEY env var)
 export GOOGLE_API_KEY=your-key
 pytest tests/test_genai_integration.py -v -m integration
+
+# Nemotron backup integration tests (requires OPENROUTER_API_KEY or BACKUP_OPENAI_API_KEY)
+pytest tests/test_nemotron_integration.py -v -m integration
 ```
 
 | Test file | Needs service? | Needs API key? | Runs in CI? |
@@ -124,6 +137,7 @@ pytest tests/test_genai_integration.py -v -m integration
 | `test_smoke.py` | Yes (localhost:8084) | No | No |
 | `test_image_expectations.py` | Yes (localhost:8084) | No | No |
 | `test_genai_integration.py` | No | Yes (GOOGLE_API_KEY) | No (skip if no key) |
+| `test_nemotron_integration.py` | No | Yes (OPENROUTER_API_KEY) | Skips without key; runs when secret set |
 
 ## Troubleshooting
 
@@ -133,4 +147,4 @@ pytest tests/test_genai_integration.py -v -m integration
 
 **Slow responses** — Vision LLM calls typically take 2–8 seconds. Gemini free tier may add latency under load.
 
-**Ollama not found** — Make sure Ollama is running (`ollama serve`) and the model is pulled before starting the service.
+**Backup model unavailable** — Make sure the OpenAI-compatible backup endpoint is reachable and the model name is correct.

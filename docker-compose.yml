@@ -42,7 +42,7 @@ services:
       # Points the photo-scan flow at the GenAI vision service. Setting this
       # activates GenAiMealAnalyzer; unset (e.g. local non-compose runs) the
       # deterministic HeuristicMealAnalyzer stays the safe default.
-      APP_GENAI_BASE_URL: http://genai-service:8084
+      APP_GENAI_BASE_URL: ${APP_GENAI_BASE_URL:-http://genai-service:8084}
       SERVER_PORT: 8082
     ports:
       - "8082:8082"
@@ -99,22 +99,22 @@ services:
   genai-service:
     build: ./services/genai-service
     environment:
-      # Default: free local Ollama (run `ollama pull llava` on the host first).
-      # For cloud vision, set LLM_PROVIDER=openai + OPENAI_* in your gitignored
-      # root .env (works with OpenAI or any OpenAI-compatible gateway). Never
-      # commit the key.
-      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-llava}
+      # Cloud vision primary plus an OpenAI-compatible backup endpoint.
+      # Set the keys in your gitignored root .env; never commit them.
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gemini-3.1-flash-lite}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}
+      BACKUP_OPENAI_BASE_URL: ${BACKUP_OPENAI_BASE_URL:-}
+      BACKUP_OPENAI_MODEL: ${BACKUP_OPENAI_MODEL:-}
+      BACKUP_OPENAI_API_KEY: ${BACKUP_OPENAI_API_KEY:-}
       # Dedicated text LLM for food-name estimation + the health-insight RAG
       # generation. Defaults to AET Logos gpt-oss-120b; set TEXT_OPENAI_API_KEY
       # (Logos key) in your gitignored .env to enable generation.
       TEXT_OPENAI_BASE_URL: ${TEXT_OPENAI_BASE_URL:-https://logos.aet.cit.tum.de/v1}
       TEXT_OPENAI_API_KEY: ${TEXT_OPENAI_API_KEY:-}
       TEXT_OPENAI_MODEL: ${TEXT_OPENAI_MODEL:-openai/gpt-oss-120b}
+      NUTRITION_DATA_PROVIDER: ${NUTRITION_DATA_PROVIDER:-local}
       PORT: 8084
       DEBUG: "false"
       # RAG health-insights: Weaviate vector store + embedding provider.

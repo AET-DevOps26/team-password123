@@ -49,6 +49,13 @@ export const IconFlame = ({ size }: IconProps) => (
   </IconSvg>
 );
 
+export const IconWater = ({ size }: IconProps) => (
+  <IconSvg size={size}>
+    <path d="M12 3c3 4 6 7.1 6 11.2A6 6 0 0 1 6 14.2C6 10.1 9 7 12 3z" />
+    <path d="M9.5 15.5c.5 1.1 1.5 1.8 2.5 1.8" />
+  </IconSvg>
+);
+
 export const IconBolt = ({ size }: IconProps) => (
   <IconSvg size={size}><path d="M13 3 5 13h6l-1 8 8-10h-6z" /></IconSvg>
 );

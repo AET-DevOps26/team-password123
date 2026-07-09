@@ -39,6 +39,7 @@
   grid-template-columns: 1.15fr .85fr;
   gap: 18px;
   margin-bottom: 34px;
+  align-items: start;
 }
 
 .card {
@@ -49,7 +50,6 @@
 }
 
 .summaryCard {
-  grid-row: span 2;
   display: flex;
   align-items: center;
   gap: 30px;
@@ -107,8 +107,90 @@
 .insightArrow { color: var(--text-3); flex-shrink: 0; }
 
 .stats {
-  display: flex;
+  display: grid;
   gap: 12px;
+  align-self: start;
+}
+
+.hydrationCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+
+.hydrationHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.hydrationIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--green-press);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hydrationTitle {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.hydrationText {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.hydrationBar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.hydrationFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--green-soft), var(--green));
+}
+
+.hydrationActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hydrationBtn,
+.hydrationBtnPrimary {
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hydrationBtn {
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.hydrationBtnPrimary {
+  background: var(--green);
+  color: #fff;
+}
+
+.hydrationBtnPrimary:hover {
+  background: var(--green-press);
 }
 
 /* ── Meals list ── */
@@ -138,6 +220,58 @@
   gap: 10px;
 }
 
+.emptyMeals {
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px dashed var(--border);
+  background: color-mix(in srgb, var(--surface) 75%, var(--green-tint) 25%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+.emptyActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.emptyAction {
+  background: var(--green);
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.emptyAction:hover {
+  background: var(--green-press);
+}
+
+.emptyLink {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--green-press);
+}
+
+.emptyLink:hover {
+  text-decoration: underline;
+}
+
 /* ── Responsive ── */
 @media (max-width: 860px) {
   .title { font-size: 25px; }
@@ -150,7 +284,6 @@
   }
 
   .summaryCard {
-    grid-row: auto;
     flex-direction: column;
     gap: 22px;
     padding: 24px;
@@ -159,5 +292,16 @@
 
   .macros { width: 100%; }
 
-  .stats { gap: 10px; }
+  .stats {
+    display: flex;
+    gap: 10px;
+  }
+
+  .hydrationCard {
+    padding: 16px;
+  }
+
+  .hydrationActions {
+    gap: 8px;
+  }
 }

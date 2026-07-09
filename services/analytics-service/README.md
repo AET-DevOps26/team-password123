@@ -16,6 +16,7 @@ Nutrition goals and daily/weekly progress reports.
 | GET | `/api/analytics/daily?date=YYYY-MM-DD` | Daily totals + delta vs. goal |
 | GET | `/api/analytics/weekly?weekStart=YYYY-MM-DD` | Weekly totals + delta vs. goal × 7 |
 | GET | `/api/analytics/streak` | Current consecutive-day meal logging streak |
+| GET | `/api/analytics/insight?window=week` | RAG health insight from recent meals (calls genai-service) |
 
 All endpoints require a bearer token issued by `auth-service`.
 
@@ -30,4 +31,5 @@ mvn spring-boot:run
 Requires:
 - Postgres with the `analytics` schema
 - `meals-service` reachable at `MEALS_SERVICE_URL` (default `http://localhost:8082`)
+- `genai-service` reachable for `/api/analytics/insight` (configured via `GENAI_URL`)
 - `APP_JWT_SECRET` matching `auth-service`

@@ -1,20 +1,21 @@
 import os
 
 # ============================================================================
-# LLM configuration: local, cloud, or Google Gemini.
+# LLM configuration: cloud primary plus optional backup provider.
 # ============================================================================
 
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama").lower()
-
-# Ollama configuration (local inference)
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llava")
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai").lower()
 
 # OpenAI configuration (cloud, or any OpenAI-compatible gateway such as AET Logos)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
 # Empty -> api.openai.com. Set to point at an OpenAI-compatible endpoint (e.g. Logos).
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "")
+
+# Backup OpenAI-compatible configuration (used when the primary provider fails).
+BACKUP_OPENAI_API_KEY = os.getenv("BACKUP_OPENAI_API_KEY", "")
+BACKUP_OPENAI_MODEL = os.getenv("BACKUP_OPENAI_MODEL", "")
+BACKUP_OPENAI_BASE_URL = os.getenv("BACKUP_OPENAI_BASE_URL", "")
 
 # Google Gemini configuration (cloud)
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
@@ -60,9 +61,9 @@ INSIGHT_TOPK = int(os.getenv("INSIGHT_TOPK", "5"))
 PORT = int(os.getenv("PORT", 8084))
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
-if LLM_PROVIDER not in ["ollama", "openai", "google"]:
+if LLM_PROVIDER not in ["openai", "google"]:
     raise ValueError(
-        f"Invalid LLM_PROVIDER: {LLM_PROVIDER}. Must be 'ollama', 'openai', or 'google'."
+        f"Invalid LLM_PROVIDER: {LLM_PROVIDER}. Must be 'openai' or 'google'."
     )
 
 if NUTRITION_DATA_PROVIDER not in ["auto", "usda", "local"]:
@@ -78,18 +79,11 @@ if EMBED_PROVIDER not in ["local", "openai"]:
 
 if DEBUG:
     print(f"[Config] LLM_PROVIDER: {LLM_PROVIDER}")
-    if LLM_PROVIDER == "ollama":
-        print(f"[Config] Ollama URL: {OLLAMA_BASE_URL}, Model: {OLLAMA_MODEL}")
-        print(f"[Config] OpenAI API Key set: {bool(OPENAI_API_KEY)} (fallback)")
-        print(f"[Config] Google API Key set: {bool(GOOGLE_API_KEY)} (fallback)")
-    elif LLM_PROVIDER == "openai":
+    if LLM_PROVIDER == "openai":
         print(f"[Config] OpenAI Model: {OPENAI_MODEL}")
-        print(f"[Config] Ollama URL: {OLLAMA_BASE_URL} (fallback)")
-        print(f"[Config] Google API Key set: {bool(GOOGLE_API_KEY)} (fallback)")
+        print(f"[Config] Backup OpenAI-compatible endpoint set: {bool(BACKUP_OPENAI_BASE_URL)}")
     elif LLM_PROVIDER == "google":
         print(f"[Config] Google Model: {GOOGLE_MODEL}")
-        print(f"[Config] Ollama URL: {OLLAMA_BASE_URL} (fallback)")
-        print(f"[Config] OpenAI API Key set: {bool(OPENAI_API_KEY)} (fallback)")
-
+        print(f"[Config] Backup OpenAI-compatible endpoint set: {bool(BACKUP_OPENAI_BASE_URL)}")
     print(f"[Config] NUTRITION_DATA_PROVIDER: {NUTRITION_DATA_PROVIDER}")
     print(f"[Config] USDA_FDC_API_KEY set: {bool(USDA_FDC_API_KEY)}")

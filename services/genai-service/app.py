@@ -2,15 +2,15 @@
 FastAPI microservice for nutrition analysis via GenAI.
 
 Architecture:
-- Ollama (local, default): Free, runs offline, good for development
-- OpenAI (cloud, fallback): Premium, higher accuracy, production-ready
+- Google Gemini (cloud, primary): OpenAI-compatible endpoint for production
+- OpenAI-compatible open-weight API (backup): Used when the primary path fails
 - LangChain abstracts the provider switching
 
 To run locally:
-  1. Start Ollama: download and run from https://ollama.ai
-  2. Pull a vision model: ollama pull llava-phi
-  3. uvicorn app:app --reload --port 8084
-  4. Visit http://localhost:8084/docs
+    1. Set OPENAI_BASE_URL to your Gemini endpoint
+    2. Set BACKUP_OPENAI_* to your backup model endpoint
+    3. uvicorn app:app --reload --port 8084
+    4. Visit http://localhost:8084/docs
 """
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, status
@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 # Create FastAPI app
 app = FastAPI(
     title="Nutrition GenAI Service",
-    description="Analyzes food images and returns nutritional estimates using Ollama, OpenAI, or Google Gemini",
+    description="Analyzes food images and returns nutritional estimates using Google Gemini with an OpenAI-compatible backup endpoint",
     version="0.1.0"
 )
 
@@ -121,7 +121,7 @@ async def health_check():
     }
     
     if not analyzer:
-        status_info["error"] = "NutritionAnalyzer not initialized. Check Ollama, OpenAI, or Google configuration."
+        status_info["error"] = "NutritionAnalyzer not initialized. Check Google Gemini, backup endpoint, or API key configuration."
     
     return status_info
 
@@ -200,7 +200,7 @@ async def analyze_meal(file: UploadFile = File(...)):
         GENAI_ANALYZE.labels(result="unavailable").inc()
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="GenAI service not initialized. Ensure Ollama is running, or set OPENAI_API_KEY / GOOGLE_API_KEY."
+            detail="GenAI service not initialized. Ensure Gemini or the backup endpoint is configured."
         )
 
     started = time.perf_counter()
@@ -280,7 +280,7 @@ async def compare_meal(file: UploadFile = File(...)):
     if not analyzer:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="GenAI service not initialized. Ensure Ollama is running, or set OPENAI_API_KEY / GOOGLE_API_KEY."
+            detail="GenAI service not initialized. Ensure Gemini or the backup endpoint is configured."
         )
 
     try:

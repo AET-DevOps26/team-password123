@@ -14,6 +14,7 @@ which writes locally (optimistic) and pushes/pulls the backend.
 - Daily progress vs goals, weekly analytics (Swift Charts), logging streak
 - Profile / goal editing (synced); water logging stays local (no backend endpoint)
 - Offline-first: works without network, queues changes, reconciles on next `sync()`
+- Home screen widget via WidgetKit
 
 ### Networking layer
 - `Networking/Backend.swift` — `AppConfig`, `KeychainStore`, `APIClient` (async/await)
@@ -29,31 +30,32 @@ Run with `--offline` for a no-network guest session.
 - Xcode 15.0+
 - iOS 17.0+ (SwiftData)
 - Swift 5.9+
+- [xcodegen](https://github.com/yonaskolb/XcodeGen) (to generate the Xcode project)
 
 ## Opening in Xcode
 
-This folder contains the Swift sources but no `.xcodeproj` (pbxproj files don't round-trip cleanly through hand editing). To get the app running:
+```bash
+cd ios-app
+xcodegen generate
+open NutritionApp.xcodeproj
+# select the NutritionApp scheme + an iOS 17 simulator, then Cmd-R
+```
 
-1. Open Xcode → **File → New → Project → iOS App**
-2. Product Name: `NutritionApp`, Interface: SwiftUI, Storage: SwiftData (or None — we set up our own container), Language: Swift
-3. Save the new project **inside `ios-app/`** so that the generated `NutritionApp/` folder either replaces or sits next to the one in this repo
-4. Delete Xcode's stub `ContentView.swift` and `Item.swift`
-5. Drag the contents of `NutritionApp/` (Models, Views, Components, `NutritionAppApp.swift`) into the Xcode project navigator with **"Create groups"** selected
-6. Build and run on the iOS simulator
+Optional scheme launch arguments: `--seed-sample-data` (7 days of meals/water), `--skip-onboarding`, `--offline`.
 
 ## Domain model (vs `docs/object-diagram.png`)
 
 | Doc class         | Implementation                                                              |
 |-------------------|-----------------------------------------------------------------------------|
-| `User`            | `UserProfile` — single local row, no auth in this phase                     |
+| `User`            | `UserProfile` — synced from auth-service; JWT in Keychain                   |
 | `FoodLog`         | `FoodLog` — id, timestamp, name, notes, isManual, imageData                 |
 | `NutritionData`   | **Inlined** onto `FoodLog` (calories, protein, carbs, fats, confidenceScore) |
-| `AnalyticsReport` | Computed in `AnalyticsView` from `@Query` results, not persisted            |
+| `AnalyticsReport` | Computed in `AnalyticsView` from synced data + `@Query`, not persisted      |
 
 The `NutritionData` 1:1 relationship from the class diagram is collapsed into `FoodLog` — SwiftData makes one-to-one relationships verbose with no real upside here, and analytics queries get cleaner.
 
-## Next steps (when API arrives)
+## Known gaps
 
-- Add a network layer (`AuthClient`, `MealsClient`, `AnalyticsClient`) targeting the Spring Boot endpoints listed in `api-service/README.md`
-- Replace SwiftData reads with API-backed views; keep SwiftData as an offline cache
-- Wire `POST /api/meals/photo` from `PhotoEntryForm` and consume the GenAI-derived nutrition response (the `confidenceScore` field already has a place to live)
+- No unit/UI test target in the xcodegen project
+- Water tracking is local-only (no backend endpoint)
+- Health-insight RAG card exists on web but not yet on iOS

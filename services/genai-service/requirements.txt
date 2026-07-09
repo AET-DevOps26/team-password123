@@ -1,12 +1,12 @@
 # FastAPI and async server
 fastapi==0.104.1
-uvicorn[standard]==0.24.0
+uvicorn==0.24.0
+websockets>=12.0,<14
 numpy==2.4.4
 
 # LangChain and LLM integrations
 langchain>=0.2.0,<1.0
 langchain-core>=0.2.0,<1.0
-langchain-ollama>=0.2.0,<1.0
 langchain-openai>=0.2.0,<1.0
 langchain-google-genai>=2.0.0,<3.0.0
 
@@ -22,10 +22,10 @@ pillow==10.4.0
 # HTTP requests
 requests==2.31.0
 
-# httpx is a transitive dep (openai, weaviate-client, ollama). Pin it into the
-# window every consumer allows AND that Starlette 0.27's TestClient supports:
-# httpx 0.28 dropped the `app=` shortcut that fastapi 0.104's TestClient relies
-# on, so the RAG insight tests need httpx<0.28 (weaviate needs >=0.26, ollama >=0.27).
+# httpx is a transitive dep (openai, weaviate-client). Pin it into the window
+# every consumer allows AND that Starlette 0.27's TestClient supports: httpx 0.28
+# dropped the `app=` shortcut that fastapi 0.104's TestClient relies on, so the
+# RAG insight tests need httpx<0.28 (weaviate needs >=0.26).
 httpx>=0.27,<0.28
 
 # Prometheus metrics (6.1.0 is the newest that keeps starlette<0.28, matching the

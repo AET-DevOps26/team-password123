@@ -35,7 +35,9 @@ keeps secrets out of `values.yaml` / shell history / the Helm release:
 kubectl -n team-password123 create secret generic calorieasy-secrets \
   --from-literal=APP_JWT_SECRET=$(openssl rand -hex 32) \
   --from-literal=POSTGRES_PASSWORD=$(openssl rand -hex 24) \
-  --from-literal=OPENAI_API_KEY=<logos-key> \
+  --from-literal=OPENAI_API_KEY=<gemini-key> \
+  --from-literal=BACKUP_OPENAI_API_KEY=<openrouter-key> \
+  --from-literal=TEXT_OPENAI_API_KEY=<logos-key> \
   --from-literal=USDA_FDC_API_KEY=
 # then install with: --set secrets.existingSecret=calorieasy-secrets
 ```
@@ -83,16 +85,17 @@ helm upgrade --install app . --namespace team-password123 \
   --set ingress.host=<your-host>.ase.cit.tum.de
 ```
 
-## GenAI / Logos
+## GenAI configuration
 
-The genai service defaults to the OpenAI-compatible provider so it can target the
-AET Logos gateway. Provide the endpoint and key at install time:
+**Vision (photo scan):** Gemini primary via `OPENAI_*` env vars; OpenRouter Nemotron backup via `BACKUP_OPENAI_*`. Keys come from GitHub Secrets (`GEMINI_API_KEY`, `OPENROUTER_API_KEY`) in CI.
+
+**Text (estimate + insights):** AET Logos via `TEXT_OPENAI_*` (`LOGOS_API_KEY` in CI).
 
 ```bash
 helm upgrade --install app . --namespace team-password123 \
-  --set genai.openaiBaseUrl=<logos-endpoint> \
-  --set genai.openaiModel=<model> \
-  --set genai.openaiApiKey=<logos-key>
+  --set genai.openaiApiKey=<gemini-key> \
+  --set genai.backupOpenaiApiKey=<openrouter-key> \
+  --set genai.textOpenaiApiKey=<logos-key>
 ```
 
-Without these the app still runs; photo analysis falls back to manual entry.
+Without vision keys the app still runs; photo analysis falls back to manual entry.

@@ -15,7 +15,6 @@ from PIL import Image
 from pydantic import BaseModel
 
 from langchain_core.messages import HumanMessage
-from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 
 from importlib import import_module
@@ -30,8 +29,9 @@ except Exception:  # Optional dependency.
 from config import (
     LLM_PROVIDER,
     NUTRITION_DATA_PROVIDER,
-    OLLAMA_BASE_URL,
-    OLLAMA_MODEL,
+    BACKUP_OPENAI_API_KEY,
+    BACKUP_OPENAI_BASE_URL,
+    BACKUP_OPENAI_MODEL,
     OPENAI_API_KEY,
     OPENAI_BASE_URL,
     OPENAI_MODEL,
@@ -42,6 +42,50 @@ from config import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Placeholder names models sometimes copy from the prompt template instead of real food.
+_PROMPT_PLACEHOLDER_FOODS = frozenset(
+    {
+        "item",
+        "food",
+        "unknown",
+        "test",
+        "test item",
+        "placeholder",
+        "something",
+        "example",
+        "dish",
+        "meal",
+    }
+)
+
+# Phrases that appear in Nemotron reasoning prose but are not food names.
+_PROSE_SKIP_PREFIXES = (
+    "wait",
+    "let's",
+    "lets",
+    "the problem",
+    "looking at",
+    "so ",
+    "now ",
+    "maybe",
+    "probably",
+    "typical",
+    "standard",
+    "need to",
+    "but ",
+    "if ",
+    "when ",
+    "each ",
+    "main ",
+    "visible",
+    "confirm",
+    "check ",
+    "think ",
+    "see ",
+    "list all",
+    "break down",
+)
 
 
 class LLMUnavailableError(RuntimeError):
@@ -448,7 +492,7 @@ class NutritionAnalyzer:
 
         if not self.llm and not self.fallback_llm:
             raise RuntimeError(
-                "No LLM provider available. Set LLM_PROVIDER to ollama, openai, or google and configure the matching API key or local model."
+                "No LLM provider available. Set LLM_PROVIDER to openai or google and configure the matching API key, plus optional backup OpenAI-compatible credentials."
             )
 
         if not self.llm and self.fallback_llm:
@@ -459,18 +503,6 @@ class NutritionAnalyzer:
             )
 
     def _build_llm(self, provider: str):
-        if provider == "ollama":
-            try:
-                logger.info("Initializing Ollama at %s with model %s", OLLAMA_BASE_URL, OLLAMA_MODEL)
-                return ChatOllama(
-                    base_url=OLLAMA_BASE_URL,
-                    model=OLLAMA_MODEL,
-                    temperature=0,
-                )
-            except Exception as exc:
-                logger.warning("Ollama initialization failed: %s", exc)
-                return None
-
         if provider == "openai":
             if not OPENAI_API_KEY:
                 logger.warning("OPENAI_API_KEY is not set.")
@@ -488,26 +520,24 @@ class NutritionAnalyzer:
                 logger.warning("OpenAI initialization failed: %s", exc)
                 return None
 
-        # Google/Gemini support temporarily disabled to avoid external quota and
-        # runtime dependency on langchain-google-genai. Re-enable if needed.
-        # if provider == "google":
-        #     if not GOOGLE_API_KEY:
-        #         logger.warning("GOOGLE_API_KEY is not set.")
-        #         return None
-        #     if ChatGoogleGenerativeAI is None:
-        #         logger.warning("langchain-google-genai is not installed.")
-        #         return None
-        #     try:
-        #         logger.info("Initializing Google Gemini with model %s", GOOGLE_MODEL)
-        #         return ChatGoogleGenerativeAI(
-        #             model=GOOGLE_MODEL,
-        #             google_api_key=GOOGLE_API_KEY,
-        #             temperature=0,
-        #             max_output_tokens=1024,
-        #         )
-        #     except Exception as exc:
-        #         logger.warning("Google Gemini initialization failed: %s", exc)
-        #         return None
+        if provider == "google":
+            if not GOOGLE_API_KEY:
+                logger.warning("GOOGLE_API_KEY is not set.")
+                return None
+            if ChatGoogleGenerativeAI is None:
+                logger.warning("langchain-google-genai is not installed.")
+                return None
+            try:
+                logger.info("Initializing Google Gemini with model %s", GOOGLE_MODEL)
+                return ChatGoogleGenerativeAI(
+                    model=GOOGLE_MODEL,
+                    google_api_key=GOOGLE_API_KEY,
+                    temperature=0,
+                    max_output_tokens=1024,
+                )
+            except Exception as exc:
+                logger.warning("Google Gemini initialization failed: %s", exc)
+                return None
 
         logger.warning("Unknown LLM provider: %s", provider)
         return None
@@ -532,22 +562,57 @@ class NutritionAnalyzer:
             return None
 
     def _build_fallback_llm(self, provider: str):
-        fallback_order = []
-        if provider != "ollama":
-            fallback_order.append("ollama")
-        if provider != "openai":
-            fallback_order.append("openai")
-        # Google fallback removed while focusing on Ollama + USDA
-        # if provider != "google":
-        #     fallback_order.append("google")
+        if provider == "openai":
+            if BACKUP_OPENAI_API_KEY and BACKUP_OPENAI_BASE_URL and BACKUP_OPENAI_MODEL:
+                try:
+                    logger.info(
+                        "Initializing backup OpenAI-compatible vision model at %s with model %s",
+                        BACKUP_OPENAI_BASE_URL,
+                        BACKUP_OPENAI_MODEL,
+                    )
+                    return ChatOpenAI(
+                        model=BACKUP_OPENAI_MODEL,
+                        api_key=BACKUP_OPENAI_API_KEY,
+                        base_url=BACKUP_OPENAI_BASE_URL,
+                        temperature=0,
+                        max_tokens=1024,
+                    )
+                except Exception as exc:
+                    logger.warning("Backup OpenAI-compatible initialization failed: %s", exc)
+                    return None
+            return None
 
-        for fallback_provider in fallback_order:
-            llm = self._build_llm(fallback_provider)
-            if llm:
-                logger.info("Configured %s as fallback LLM", fallback_provider)
-                return llm
+        if provider == "google":
+            if BACKUP_OPENAI_API_KEY and BACKUP_OPENAI_BASE_URL and BACKUP_OPENAI_MODEL:
+                try:
+                    logger.info(
+                        "Initializing backup OpenAI-compatible vision model at %s with model %s",
+                        BACKUP_OPENAI_BASE_URL,
+                        BACKUP_OPENAI_MODEL,
+                    )
+                    return ChatOpenAI(
+                        model=BACKUP_OPENAI_MODEL,
+                        api_key=BACKUP_OPENAI_API_KEY,
+                        base_url=BACKUP_OPENAI_BASE_URL,
+                        temperature=0,
+                        max_tokens=1024,
+                    )
+                except Exception as exc:
+                    logger.warning("Backup OpenAI-compatible initialization failed: %s", exc)
+                    return None
+            return None
 
         return None
+
+    def _get_fallback_llm(self):
+        """Return the fallback LLM, retrying initialization lazily.
+
+        This lets the service recover if the backup endpoint was still coming up
+        when NutritionAnalyzer booted."""
+        if self.fallback_llm:
+            return self.fallback_llm
+        self.fallback_llm = self._build_fallback_llm(self.provider)
+        return self.fallback_llm
 
     @staticmethod
     def _load_nutrition_db() -> Dict[str, Dict[str, Any]]:
@@ -623,6 +688,43 @@ class NutritionAnalyzer:
 
         return total_calories, total_protein, total_carbs, total_fat, total_fiber
 
+    @staticmethod
+    def _combine_two_foods_if_pair(foods_with_grams: list[Dict[str, Any]]) -> list[Dict[str, Any]]:
+        """Merge exactly two detected foods into one combined serving for display.
+
+        Macros are computed per-ingredient before this runs; here we only collapse
+        the portion (sum of grams) and name so the UI shows one dish like
+        "chicken and broccoli" instead of two separate line items.
+        """
+        if len(foods_with_grams) != 2:
+            return foods_with_grams
+
+        first, second = foods_with_grams[0], foods_with_grams[1]
+        name_a = str(first.get("food", "")).strip()
+        name_b = str(second.get("food", "")).strip()
+        grams_a = _coerce_float(first.get("grams", 0))
+        grams_b = _coerce_float(second.get("grams", 0))
+        if not name_a or not name_b or grams_a <= 0 or grams_b <= 0:
+            return foods_with_grams
+
+        return [{"food": f"{name_a} and {name_b}", "grams": grams_a + grams_b}]
+
+    def _foods_to_response(
+        self, foods_with_grams: list[Dict[str, Any]], confidence: float
+    ) -> tuple[list[str], float, float, float, float, float]:
+        """Calculate macros from parsed foods, then collapse pairs for the API."""
+        if not foods_with_grams:
+            return [], 0.0, 0.0, 0.0, 0.0, 0.0
+
+        calories, protein, carbs, fat, fiber = self._calculate_macros_from_foods(foods_with_grams)
+        combined = self._combine_two_foods_if_pair(foods_with_grams)
+        foods = [
+            str(item.get("food", "")).strip()
+            for item in combined
+            if isinstance(item, dict) and item.get("food")
+        ]
+        return foods, calories, protein, carbs, fat, fiber
+
     def estimate_from_name(self, food_name: str) -> dict:
         """Estimate nutrition per 100g for a food by name, plus a typical serving size.
         Returns per-100g values so the caller can scale to any portion.
@@ -645,7 +747,7 @@ class NutritionAnalyzer:
                 "confidence": 0.9,
             }
 
-        llm_to_use = self.text_llm or self.llm or self.fallback_llm
+        llm_to_use = self.text_llm or self.llm or self._get_fallback_llm()
         if not llm_to_use:
             raise LLMUnavailableError("No LLM available for text estimation")
 
@@ -725,14 +827,15 @@ class NutritionAnalyzer:
                     primary_error = exc
                     logger.warning("Primary (%s) LLM failed: %s", self.provider, exc)
 
-            if not response and self.fallback_llm:
+            fallback_llm = self._get_fallback_llm()
+            if not response and fallback_llm:
                 try:
                     logger.info("Calling fallback LLM")
-                    response = self.fallback_llm.invoke([message])
+                    response = fallback_llm.invoke([message])
                 except Exception as exc:
                     logger.error("Fallback LLM also failed: %s", exc)
                     # Surface the configured provider's real failure, not the
-                    # fallback's. In prod the ollama fallback usually doesn't
+                    # fallback's. In prod the backup endpoint usually doesn't
                     # exist, so its connection error would otherwise mask the
                     # actual cause — a 403 from the vision API, or an unset key.
                     raise ValueError(self._analysis_failure(primary_error)) from (primary_error or exc)
@@ -742,16 +845,9 @@ class NutritionAnalyzer:
 
             logger.debug("Raw LLM response: %s", response.content)
             foods_with_grams, confidence = self._parse_response(response.content)
-            foods = [
-                item.get("food", "")
-                for item in foods_with_grams
-                if isinstance(item, dict) and item.get("food")
-            ]
-
-            if foods_with_grams:
-                calories, protein, carbs, fat, fiber = self._calculate_macros_from_foods(foods_with_grams)
-            else:
-                calories, protein, carbs, fat, fiber = 0.0, 0.0, 0.0, 0.0, 0.0
+            foods, calories, protein, carbs, fat, fiber = self._foods_to_response(
+                foods_with_grams, confidence
+            )
 
             result = NutritionResponse(
                 foods=foods,
@@ -784,16 +880,9 @@ class NutritionAnalyzer:
 
         logger.debug("Raw %s response: %s", provider, response.content)
         foods_with_grams, confidence = self._parse_response(response.content)
-        foods = [
-            item.get("food", "")
-            for item in foods_with_grams
-            if isinstance(item, dict) and item.get("food")
-        ]
-
-        if foods_with_grams:
-            calories, protein, carbs, fat, fiber = self._calculate_macros_from_foods(foods_with_grams)
-        else:
-            calories, protein, carbs, fat, fiber = 0.0, 0.0, 0.0, 0.0, 0.0
+        foods, calories, protein, carbs, fat, fiber = self._foods_to_response(
+            foods_with_grams, confidence
+        )
 
         return NutritionAnalysisResult(
             provider=provider,
@@ -846,7 +935,7 @@ class NutritionAnalyzer:
 
     def _default_compare_provider(self) -> str:
         if self.provider == "google":
-            return "ollama"
+            return "openai"
         return "google"
 
     def _parse_response(self, response_content: str) -> tuple[list[Dict[str, Any]], float]:
@@ -869,6 +958,9 @@ class NutritionAnalyzer:
             foods_list, conf = self._extract_foods_from_malformed_json(raw_text)
             if foods_list:
                 return foods_list, conf
+            foods_list, conf = self._extract_foods_from_reasoning_prose(raw_text)
+            if foods_list:
+                return foods_list, conf
             logger.warning("Failed to parse LLM response as JSON")
             # Last-resort: simple global regex for "food":"name","grams":num
             simple_matches = re.findall(r'"food"\s*:\s*"([^\"]+)"\s*,\s*"grams"\s*:\s*([0-9]*\.?[0-9]+)', raw_text)
@@ -884,6 +976,9 @@ class NutritionAnalyzer:
                     if fname and g > 0:
                         parsed.append({"food": fname, "grams": g})
                 if parsed:
+                    parsed = NutritionAnalyzer._drop_placeholder_foods(parsed)
+                    if parsed and confidence <= 0.15:
+                        confidence = 0.6
                     return parsed, confidence
             return [], 0.1
 
@@ -894,15 +989,52 @@ class NutritionAnalyzer:
         parsed_foods: list[Dict[str, Any]] = []
         if isinstance(foods, list):
             for item in foods:
+                if isinstance(item, str):
+                    food_name = item.strip()
+                    if food_name:
+                        portion_grams, _ = _typical_portion(_normalize_food_name(food_name))
+                        parsed_foods.append({"food": food_name, "grams": portion_grams})
+                    continue
                 if not isinstance(item, dict):
                     continue
                 food_name = str(item.get("food", "")).strip()
                 grams = _coerce_float(item.get("grams", 0))
+                if food_name and grams <= 0:
+                    grams, _ = _typical_portion(_normalize_food_name(food_name))
                 grams = self._normalize_grams(food_name, grams)
                 if food_name and grams > 0:
                     parsed_foods.append({"food": food_name, "grams": grams})
 
+        if not parsed_foods:
+            salvaged, salv_conf = self._extract_foods_from_malformed_json(raw_text)
+            if salvaged:
+                parsed_foods = salvaged
+                confidence = max(confidence, salv_conf)
+
+        if not parsed_foods:
+            salvaged, salv_conf = self._extract_foods_from_reasoning_prose(raw_text)
+            if salvaged:
+                parsed_foods = salvaged
+                confidence = max(confidence, salv_conf)
+
+        parsed_foods = self._drop_placeholder_foods(parsed_foods)
+        if parsed_foods and confidence <= 0.15:
+            # Model often omits confidence; don't show 10% when we got usable foods.
+            confidence = 0.6
+
         return parsed_foods, confidence
+
+    @staticmethod
+    def _drop_placeholder_foods(foods: list[Dict[str, Any]]) -> list[Dict[str, Any]]:
+        """Remove template placeholders like 'item' when real food names are present."""
+        if not foods:
+            return foods
+        real = [
+            f
+            for f in foods
+            if str(f.get("food", "")).strip().lower() not in _PROMPT_PLACEHOLDER_FOODS
+        ]
+        return real if real else foods
 
     @staticmethod
     def _try_parse_json(text: str) -> Optional[Any]:
@@ -987,6 +1119,88 @@ class NutritionAnalyzer:
                 except Exception:
                     continue
 
+        foods_list = self._drop_placeholder_foods(foods_list)
+        if foods_list and confidence <= 0.15:
+            confidence = 0.6
+
+        return foods_list, confidence
+
+    @staticmethod
+    def _clean_prose_food_name(raw: str) -> str:
+        """Normalize a food label scraped from reasoning prose."""
+        text = raw.strip().strip('"').strip("'")
+        if not text:
+            return ""
+        quoted = re.search(r'"([^"]{2,60})"', text)
+        if quoted:
+            text = quoted.group(1)
+        elif " or " in text.lower():
+            text = re.split(r"\s+or\s+", text, maxsplit=1, flags=re.IGNORECASE)[0]
+        text = text.split("(", 1)[0].strip()
+        text = text.split(":", 1)[0].strip()
+        text = re.sub(r"\s+", " ", text).strip(" .,-")
+        return text
+
+    @staticmethod
+    def _is_prose_food_candidate(name: str) -> bool:
+        lowered = name.lower()
+        if len(lowered) < 3 or lowered in _PROMPT_PLACEHOLDER_FOODS:
+            return False
+        if any(lowered.startswith(prefix) for prefix in _PROSE_SKIP_PREFIXES):
+            return False
+        if lowered.endswith("?"):
+            return False
+        if re.fullmatch(r"[a-z ]+", lowered) is None:
+            return False
+        return True
+
+    def _extract_foods_from_reasoning_prose(self, raw_text: str) -> tuple[list[Dict[str, Any]], float]:
+        """Salvage food names when a reasoning model returns prose instead of JSON."""
+        if not raw_text:
+            return [], 0.1
+
+        candidates: list[tuple[str, float]] = []
+
+        for match in re.finditer(
+            r'^\s*(?:[-*]|\d+\.)\s+'
+            r'(?:"([^"]{2,60})"|\'([^\']{2,60})\'|([^:\n(]{3,60}))'
+            r'(?:\s*:\s*(\d+(?:\.\d+)?)\s*g\b)?',
+            raw_text,
+            flags=re.MULTILINE | re.IGNORECASE,
+        ):
+            name = self._clean_prose_food_name(match.group(1) or match.group(2) or match.group(3) or "")
+            grams = _coerce_float(match.group(4)) if match.group(4) else 0.0
+            if not self._is_prose_food_candidate(name):
+                continue
+            if grams <= 0:
+                grams, _ = _typical_portion(_normalize_food_name(name))
+            grams = self._normalize_grams(name, grams)
+            if grams > 0:
+                candidates.append((name, grams))
+
+        for match in re.finditer(
+            r'"food"\s*:\s*"([^"]{2,60})"[^\}]{0,80}?"grams"\s*:\s*(\d+(?:\.\d+)?)',
+            raw_text,
+            flags=re.IGNORECASE | re.DOTALL,
+        ):
+            name = self._clean_prose_food_name(match.group(1))
+            grams = self._normalize_grams(name, _coerce_float(match.group(2)))
+            if self._is_prose_food_candidate(name) and grams > 0:
+                candidates.append((name, grams))
+
+        foods_list: list[Dict[str, Any]] = []
+        seen: set[str] = set()
+        for name, grams in candidates:
+            key = _normalize_food_name(name)
+            if key in seen:
+                continue
+            seen.add(key)
+            foods_list.append({"food": name, "grams": grams})
+            if len(foods_list) >= 8:
+                break
+
+        foods_list = self._drop_placeholder_foods(foods_list)
+        confidence = 0.55 if foods_list else 0.1
         return foods_list, confidence
 
     def _normalize_grams(self, food_name: str, grams: float) -> float:
@@ -1080,11 +1294,20 @@ class NutritionAnalyzer:
     @staticmethod
     def _build_prompt() -> str:
         """Build the prompt for food image analysis."""
-        # Minimal prompt: instruct the model only to return the JSON object and nothing else.
-        # All examples and portion guidance have been removed so the model is not biased
-        # by any hardcoded gram or calorie hints.
         return (
-            "Return ONLY a single JSON object (no markdown, no extra text) in the exact shape:\n"
-            "{\"foods\": [{\"food\": \"item\", \"grams\": 123}], \"confidence\": 0.9}\n"
-            "If no food is visible, return {\"foods\": [], \"confidence\": 0.1}."
+            "You analyze photos of meals for a nutrition app.\n"
+            "Identify every visible edible item (ingredients, sides, drinks). "
+            "If the dish is unclear, name your best guess (e.g. 'pasta with sauce', 'mixed salad') "
+            "— never return an empty foods list when something edible is visible.\n"
+            "Estimate a realistic portion in grams for each item (typical serving, not per 100g).\n"
+            "Use simple common food names suitable for a nutrition database "
+            "(e.g. 'grilled chicken', 'white rice', 'broccoli', 'pizza slice').\n"
+            "Reply with ONLY one JSON object. No markdown, no explanation, no reasoning text.\n"
+            "Required shape:\n"
+            '{"foods": [{"food": "grilled chicken", "grams": 150}, {"food": "broccoli", "grams": 80}], '
+            '"confidence": 0.85}\n'
+            "Rules:\n"
+            "- Include 1–8 foods when multiple items are visible.\n"
+            "- Set confidence between 0.5 and 1.0 when you identify food; use 0.1 only if no food at all.\n"
+            "- Do NOT use placeholder words like 'item', 'food', or 'unknown' as a food name."
         )

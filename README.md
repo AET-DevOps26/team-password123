@@ -8,7 +8,7 @@ A nutrition and health companion that removes the friction from food logging, bu
 - **Analytics.** Daily and weekly aggregates with goal deltas and a logging streak.
 - **Goals.** Per-user nutrition goals (calories + macros), with Mifflin–St Jeor TDEE suggestions in onboarding.
 - **Auth.** Email/password registration and login with JWT; one shared signing secret validated by every service.
-- **iOS prototype.** A local-only SwiftUI + SwiftData app (manual logging, water tracking, Swift Charts analytics, and a home-screen widget).
+- **iOS app.** SwiftUI + SwiftData client with backend sync (auth, meals, goals, GenAI photo analyze). Water tracking and widget stay local-only.
 
 | Path | What's there |
 |------|--------------|
@@ -16,8 +16,8 @@ A nutrition and health companion that removes the friction from food logging, bu
 | [`services/auth-service/`](services/auth-service) | Identity, registration, login, JWT issuance. Port 8081, schema `auth`. |
 | [`services/meals-service/`](services/meals-service) | Manual meal logging + photo scan with GenAI analysis. Port 8082, schema `meals`. |
 | [`services/analytics-service/`](services/analytics-service) | Goals and daily/weekly aggregations. Port 8083, schema `analytics`. |
-| [`services/genai-service/`](services/genai-service) | Python FastAPI vision service (Gemini in prod, Ollama local). Port 8084. |
-| [`ios-app/`](ios-app) | SwiftUI + SwiftData iOS prototype (offline, networking planned). |
+| [`services/genai-service/`](services/genai-service) | Python FastAPI vision service (Gemini primary in prod, OpenAI-compatible backup API). Port 8084. |
+| [`ios-app/`](ios-app) | SwiftUI + SwiftData iOS client (offline cache + backend sync) |
 | [`helm/calorieasy/`](helm/calorieasy) | Kubernetes Helm chart for AET cluster deployment. |
 | [`infra/`](infra) | Terraform (Azure VM) + Ansible (Docker Compose deploy). |
 | [`docs/`](docs) | Problem statement, system architecture, API reference, sprint plan. |
@@ -50,8 +50,8 @@ A single-page web client and an iOS client talk to three Spring Boot REST micros
              │  (validate)└──►│   genai-service   │                  │
              │                │      :8084        │                  │
              │                │  FastAPI + vision │                  │
-             │                │  LLM (Ollama/     │                  │
-             │                │  OpenAI/Gemini)   │                  │
+             │                │  LLM (Gemini +   │                  │
+             │                │  Nemotron backup)│                  │
              │                └───────────────────┘                  │
              ▼                          ▼                            ▼
    ┌──────────────────────────────────────────────────────────────────────────┐
@@ -71,7 +71,7 @@ Design docs live in [`docs/`](docs/): [`Problem Statement.md`](docs/Problem%20St
 | Auth | JJWT 0.12.6 (HMAC-SHA), BCrypt, shared `APP_JWT_SECRET` |
 | Persistence | PostgreSQL 16, Flyway migrations, Hibernate `ddl-auto=validate` |
 | GenAI service | Python 3.11, FastAPI 0.104, uvicorn, LangChain, Pydantic 2 |
-| Vision LLMs | Ollama (`llava`, default in dev), OpenAI (`gpt-4o`), Google Gemini (via OpenAI-compatible endpoint) |
+| Vision LLMs | Google Gemini (primary, OpenAI-compatible), Nemotron via OpenRouter (backup) |
 | Nutrition data | USDA FoodData Central with a local `nutrition_db.json` cache fallback |
 | iOS | Swift 5, SwiftUI, SwiftData, WidgetKit, Swift Charts (xcodegen project) |
 | API docs | springdoc-openapi (Swagger UI) per Spring service; FastAPI `/docs` for GenAI |
@@ -82,7 +82,7 @@ Design docs live in [`docs/`](docs/): [`Problem Statement.md`](docs/Problem%20St
 ### Run locally without AI (seeded demo data)
 
 The fastest way to try the full web app. This skips the GenAI service entirely
-(no Ollama needed) — every feature works except photo recognition, which falls
+— every feature works except photo recognition, which falls
 back to manual entry. Demo data is loaded into the real database via the seed
 script, so the app runs against the real backend.
 
@@ -118,17 +118,13 @@ Brings up Postgres + the three Spring services + the GenAI service + the web cli
 
 ### Prerequisites
 - Docker + Docker Compose v2
-- For the **default GenAI provider (Ollama)**: a local [Ollama](https://ollama.com) running on `:11434` with the `llava` vision model pulled (`ollama pull llava`). The dev compose points the GenAI service at `host.docker.internal:11434`. Without Ollama, photo analysis degrades but the rest of the stack runs.
+- A **Google AI Studio** key for Gemini (primary) and optionally an **OpenRouter** key for the Nemotron backup — see [Configuration](#configuration)
 
 > The dev Compose stack does **not** wire `meals-service` to `genai-service` (no `APP_GENAI_BASE_URL`), so under Compose photo analysis uses a deterministic placeholder analyzer rather than the real GenAI link. The GenAI service still runs and is reachable directly on `:8084`. The GenAI link is wired only in the Helm/k8s path.
 
 ### Run
 ```bash
-# 1. Pull the vision model for local GenAI (first time only, ~4.7 GB)
-ollama pull llava
-
-# 2. Copy env template and start everything
-cp .env.example .env
+cp .env.example .env   # fill OPENAI_API_KEY + BACKUP_OPENAI_API_KEY
 docker compose up --build
 ```
 
@@ -140,10 +136,10 @@ node scripts/seed.mjs          # or: make seed
 ```
 After seeding, hard refresh the browser tab if the app is already open, then log in with `dev@local.com` / `password123`.
 
-Provider is selected with `LLM_PROVIDER` (`ollama` | `openai` | `google`); see [Configuration](#configuration).
+Provider is selected with `LLM_PROVIDER` (`openai` | `google`); see [Configuration](#configuration).
 
 ### iOS app — `ios-app/`
-Local-only prototype (no networking, auth, or GenAI; all data is on-device SwiftData). Requires macOS + Xcode 15+ (iOS 17 SDK) and `xcodegen`.
+SwiftUI + SwiftData client with backend sync (auth, meals, goals, GenAI analyze). Water tracking and widget stay local. Requires macOS + Xcode 15+ (iOS 17 SDK) and `xcodegen`.
 ```bash
 cd ios-app
 xcodegen generate           # regenerate NutritionApp.xcodeproj from project.yml
@@ -182,7 +178,8 @@ JWT subject is the user's email; the user id is a custom `userId` claim. The aut
 | `DELETE` | `/api/meals/{id}` | Delete an owned meal (204) |
 | `POST` | `/api/meals/photo` | Multipart `file`; stores image, status `AI_NOT_AVAILABLE` (no analysis) |
 | `POST` | `/api/meals/photo/{id}/convert-manual` | Attach manual macros to a photo log |
-| `POST` | `/api/meals/analyze` | Multipart `image`; runs the analyzer; `source=PHOTO_AI` |
+| `POST` | `/api/meals/analyze` | Multipart `image`; runs GenAI analyzer; `source=PHOTO_AI` |
+| `POST` | `/api/meals/estimate` | JSON `{ "foodName": "..." }`; per-100g nutrition estimate via genai |
 | `GET` | `/api/meals/photo/{id}/raw` | Stream stored photo bytes (owner only) |
 
 > `POST /api/meals/photo` only stores the file and never triggers AI. Image analysis happens only via `POST /api/meals/analyze`. When `app.genai.base-url` is set, that endpoint calls the GenAI service at `POST /api/analyze`; otherwise it uses a deterministic, non-AI placeholder analyzer. Multipart upload limit is 10 MB.
@@ -193,6 +190,7 @@ JWT subject is the user's email; the user id is a custom `userId` claim. The aut
 | `GET` | `/api/analytics/daily?date=YYYY-MM-DD` | Daily totals + per-macro goal deltas |
 | `GET` | `/api/analytics/weekly?weekStart=YYYY-MM-DD` | 7-day totals + deltas vs. (daily goal × 7) |
 | `GET` | `/api/analytics/streak` | Consecutive-days logging streak (~5-year window) |
+| `GET` | `/api/analytics/insight?window=week` | RAG health insight from recent meals (via genai) |
 | `GET` | `/api/goals` | Current user's goal, or `204` if none set |
 | `PUT` | `/api/goals` | Upsert nutrition goal (`GoalRequest`; includes `fiberGrams`) |
 ### Swagger UI (local)
@@ -208,7 +206,7 @@ JWT subject is the user's email; the user id is a custom `userId` claim. The aut
 
 Live at **https://team-password123-devops-ss26.stud.k8s.aet.cit.tum.de**
 
-Deployed automatically on every push to `main` via Helm. GenAI uses Google Gemini in production (no Ollama required).
+Deployed automatically on every push to `main` via Helm. GenAI uses Google Gemini in production with OpenRouter Nemotron as automatic fallback when Gemini fails.
 
 See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the full deployment guide.
 
@@ -221,6 +219,8 @@ Goal deltas are `actual − target`; with no goal set, target is treated as 0. I
 | `POST` | `/api/analyze` | Multipart `file` → `NutritionResponse` (foods, calories, protein/carbs/fat/fiber grams, confidence) |
 | `POST` | `/api/analyze/base64` | JSON `{ "image": "<base64>" }` → `NutritionResponse` |
 | `POST` | `/api/analyze/compare` | Run two providers and compare calorie estimates |
+| `POST` | `/api/estimate` | JSON `{ "foodName": "..." }` → per-100g nutrition estimate |
+| `POST` | `/api/insight` | JSON eating profile → RAG health insight |
 
 `meals-service` calls only `POST /api/analyze` (multipart field `file`) and ignores `fiber_grams` in its mapping.
 
@@ -248,18 +248,17 @@ Goal deltas are `actual − target`; with no goal set, target is treated as 0. I
 ### GenAI service ([`services/genai-service/.env.example`](services/genai-service/.env.example))
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `LLM_PROVIDER` | `ollama` | `ollama` \| `openai` \| `google` |
-| `OLLAMA_BASE_URL` / `OLLAMA_MODEL` | `http://localhost:11434` / `llava` | Ollama config |
-| `OPENAI_API_KEY` / `OPENAI_MODEL` / `OPENAI_BASE_URL` | _empty_ / `gpt-4o` / _empty_ | OpenAI (or OpenAI-compatible, e.g. Gemini) config |
-| `GOOGLE_API_KEY` / `GOOGLE_MODEL` | _empty_ / `gemini-2.0-flash` | Native Google path |
+| `LLM_PROVIDER` | `openai` | `openai` \| `google` |
+| `OPENAI_API_KEY` / `OPENAI_MODEL` / `OPENAI_BASE_URL` | _empty_ / `gemini-3.1-flash-lite` / Gemini OpenAI-compatible URL | Primary vision LLM (Gemini in prod) |
+| `BACKUP_OPENAI_API_KEY` / `BACKUP_OPENAI_MODEL` / `BACKUP_OPENAI_BASE_URL` | _empty_ | OpenRouter Nemotron fallback when primary fails |
+| `GOOGLE_API_KEY` / `GOOGLE_MODEL` | _empty_ / `gemini-2.0-flash` | Native Google path (optional) |
 | `NUTRITION_DATA_PROVIDER` | `usda` | `auto` \| `usda` \| `local` |
 | `USDA_FDC_API_KEY` | _empty_ | Without it, USDA lookups are skipped and only the local cache is used |
 | `PORT` / `DEBUG` | `8084` / `false` | Server port / debug logging |
 
-**GenAI provider by environment.** The default differs across deployments:
-- **Code / dev Compose** → `ollama` with `llava` (`host.docker.internal:11434`).
-- **Prod Compose** → `openai` with `gpt-4o`, `NUTRITION_DATA_PROVIDER=local`.
-- **Helm / AET k8s** → `openai` pointed at Google's Gemini OpenAI-compatible endpoint (`https://generativelanguage.googleapis.com/v1beta/openai/`, model `gemini-3.1-flash-lite`); the AET deploy workflow further overrides the base URL, model, and key with `LOGOS_*` secrets at deploy time.
+**GenAI provider by environment.**
+- **Dev / Compose / prod** → `openai` with Google Gemini primary plus OpenRouter Nemotron backup.
+- **Helm / AET k8s** → same; deploy workflow may override base URL, model, and key with cluster secrets.
 
 Gemini is reached via `LLM_PROVIDER=openai` plus a Gemini OpenAI-compatible `OPENAI_BASE_URL`, not the native `google` path.
 
@@ -268,20 +267,18 @@ Gemini is reached via `LLM_PROVIDER=openai` plus a Gemini OpenAI-compatible `OPE
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `VITE_MOCK_MODE` | `false` | Seeded mock data, no backend needed |
-| `VITE_OFFLINE_MODE` | `false` | All API calls return typed empty responses, no network |
-| `VITE_API_URL` | `http://localhost:8081` | Legacy base URL — unused; the Vite dev proxy handles routing |
-| `VITE_AUTH_API_URL` / `VITE_MEALS_API_URL` / `VITE_ANALYTICS_API_URL` | `:8081` / `:8082` / `:8083` | Per-service dev proxy targets, read by `vite.config.ts` (not in `.env.example`) |
+| `VITE_AUTH_API_URL` / `VITE_MEALS_API_URL` / `VITE_ANALYTICS_API_URL` | `:8081` / `:8082` / `:8083` | Per-service dev proxy targets, read by `vite.config.ts` |
 
 ## Testing
 
 | Component | Command | Coverage |
 |-----------|---------|----------|
-| Web client | `cd calorie-app && npm test` | Vitest, 31 unit tests (pure functions: `calculateGoals`, mappers). No DOM/component tests. |
+| Web client | `cd calorie-app && npm test` | Vitest, 39 unit tests (profile goals, mappers, health insight card). No full-page component tests. |
 | auth-service | `cd services/auth-service && mvn test` | JUnit 5 + Mockito, unit-only (JwtService, AuthService, UserService) |
 | meals-service | `cd services/meals-service && mvn test` | JUnit 5 + Mockito, unit-only (MealService, MealMapper, GenAiMealAnalyzer mapping) |
 | analytics-service | `cd services/analytics-service && mvn test` | JUnit 5 + Mockito, unit-only (AnalyticsService, GoalService) |
 | genai-service (unit) | `cd services/genai-service && pytest tests/test_nutrition_lookup.py -v` | Pure unit tests, no running server |
+| genai-service (Nemotron) | `pytest tests/test_nemotron_integration.py -v -m integration` | OpenRouter backup vision tests (skips without key) |
 | genai-service (smoke) | `pytest tests/test_smoke.py -v` | HTTP smoke tests against a running service (auto-skips if down) |
 | iOS app | — | No tests (the xcodegen project defines no test target) |
 
@@ -330,17 +327,22 @@ ansible-playbook -i inventory.ini playbook.yml \
 The prod Compose stack ([`docker-compose.prod.yml`](docker-compose.prod.yml)) pulls prebuilt GHCR images and serves the web client via nginx on `:80` (Postgres is not published externally). See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the full operator runbook, secrets, and variables.
 
 > **Security note:** default secrets (`APP_JWT_SECRET`, `POSTGRES_PASSWORD`, Helm `jwt.secret`/`postgres.password`) are placeholders and must be overridden for any real deployment. The prod Compose stack enforces this via required (`:?`) variables.
+
+## Roadmap
+
 - [x] Three Spring Boot microservices (auth, meals, analytics) with schema-per-service isolation
-- [x] Python FastAPI GenAI service (Ollama local / Gemini cloud)
+- [x] Python FastAPI GenAI service (Gemini primary, OpenRouter Nemotron backup)
 - [x] React web client — all pages (diary, scan, insights, profile, onboarding)
-- [x] iOS SwiftUI prototype (offline, SwiftData)
+- [x] iOS SwiftUI client with backend sync (auth, meals, goals, GenAI analyze)
 - [x] Docker Compose (dev + prod) — one-command local setup
 - [x] GitHub Actions CI — build + test all services, Vitest, Playwright e2e, genai pytest
 - [x] GHCR image build & push (5 images, immutable SHA tags)
 - [x] Helm chart + Kubernetes deployment (AET cluster, Traefik, TLS via cert-manager)
 - [x] Terraform (Azure VM) + Ansible IaC
 - [x] Prometheus + Grafana observability (metrics, dashboard, alert rules)
-- [ ] iOS networking layer wired to the services
+- [ ] Wire `APP_GENAI_BASE_URL` in dev Compose so photo scan hits genai locally (k8s already wired)
+- [ ] iOS unit/UI test target
+- [ ] Resilience4j circuit-breaker on analytics → meals call (Sprint 5 stretch)
 
 ## Observability
 

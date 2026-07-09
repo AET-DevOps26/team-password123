@@ -32,12 +32,29 @@ class GenAiMealAnalyzerTest {
     }
 
     @Test
+    void joinsMultipleFoodsIntoDishName() {
+        GenAiNutrition nutrition = new GenAiNutrition(
+                List.of("chicken", "broccoli"),
+                new BigDecimal("464.0"),
+                new BigDecimal("82.0"),
+                new BigDecimal("10.0"),
+                new BigDecimal("10.0"),
+                new BigDecimal("2.6"),
+                new BigDecimal("0.9")
+        );
+
+        MealAnalysis analysis = GenAiMealAnalyzer.toMealAnalysis(nutrition);
+
+        assertThat(analysis.dishName()).isEqualTo("Chicken and Broccoli");
+    }
+
+    @Test
     void fallsBackToPlaceholdersWhenFieldsMissing() {
         GenAiNutrition nutrition = new GenAiNutrition(List.of(), null, null, null, null, null, null);
 
         MealAnalysis analysis = GenAiMealAnalyzer.toMealAnalysis(nutrition);
 
-        assertThat(analysis.dishName()).isEqualTo("Analyzed meal");
+        assertThat(analysis.dishName()).isEqualTo("Photo meal");
         assertThat(analysis.calories()).isEqualByComparingTo("0");
         assertThat(analysis.confidence()).isEqualTo(0.0);
     }

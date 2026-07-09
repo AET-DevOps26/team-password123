@@ -401,7 +401,7 @@ Number of consecutive days the user has logged at least one meal.
 
 ## genai-service — port 8084
 
-> **Production config:** The deployed service uses Google Gemini (`gemini-3.1-flash-lite`) via its OpenAI-compatible endpoint. `LLM_PROVIDER=openai`, `OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/`. Ollama is used for local development only.
+> **Production config:** The deployed service uses Google Gemini (`gemini-3.1-flash-lite`) via its OpenAI-compatible endpoint. `LLM_PROVIDER=openai`, `OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/`. OpenRouter Nemotron is the automatic fallback when Gemini fails.
 
 ### GET `/health` · public
 
@@ -414,7 +414,7 @@ Number of consecutive days the user has logged at least one meal.
   "timestamp": "2026-06-18T09:30:00Z"
 }
 ```
-`status` is `"degraded"` if the LLM failed to initialise (Ollama not running, missing API key, etc.).
+`status` is `"degraded"` if the LLM failed to initialise (missing API key, etc.).
 
 ---
 
@@ -479,7 +479,7 @@ Analyze the same image with two providers and compare calorie estimates.
     "confidence": 0.82
   },
   "secondary": {
-    "provider": "ollama",
+    "provider": "google",
     "foods": ["pizza"],
     "calories": 310.0,
     "protein_grams": 12.0,

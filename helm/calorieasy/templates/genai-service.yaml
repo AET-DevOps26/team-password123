@@ -40,6 +40,15 @@ spec:
                 secretKeyRef:
                   name: {{ include "calorieasy.secretName" . }}
                   key: OPENAI_API_KEY
+            - name: BACKUP_OPENAI_BASE_URL
+              value: {{ .Values.genai.backupOpenaiBaseUrl | quote }}
+            - name: BACKUP_OPENAI_MODEL
+              value: {{ .Values.genai.backupOpenaiModel | quote }}
+            - name: BACKUP_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "calorieasy.secretName" . }}
+                  key: BACKUP_OPENAI_API_KEY
             - name: TEXT_OPENAI_BASE_URL
               value: {{ .Values.genai.textOpenaiBaseUrl | quote }}
             - name: TEXT_OPENAI_MODEL

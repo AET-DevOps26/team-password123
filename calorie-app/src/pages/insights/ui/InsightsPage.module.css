@@ -132,6 +132,13 @@
 
 @media (max-width: 780px) { .grid { grid-template-columns: 1fr; } }
 
+.analysisStack {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .card {
   background: var(--surface);
   border-radius: var(--radius);

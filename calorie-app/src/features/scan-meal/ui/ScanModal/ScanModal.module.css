@@ -97,7 +97,7 @@
   font-size: 14px;
 }
 
-.tagConf {
+.tagMeta {
   font-size: 11px;
   opacity: .85;
   font-weight: 500;
@@ -197,6 +197,75 @@
   font-size: 12.5px;
   color: var(--text-2);
   margin-top: 3px;
+}
+
+.portionControl {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.portionLabel {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.portionInput {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px 6px;
+}
+
+.portionStep {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s;
+  line-height: 1;
+}
+
+.portionStep:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.portionField {
+  width: 52px;
+  border: none;
+  outline: none;
+  background: none;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.portionField::-webkit-outer-spin-button,
+.portionField::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.portionUnit {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 500;
+  margin-right: 2px;
 }
 
 .macros {

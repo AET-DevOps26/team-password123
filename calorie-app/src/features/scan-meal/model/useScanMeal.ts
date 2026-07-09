@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { mealApi, useMealStore } from '../../../entities/meal';
 import { mealResponseToEntry, entryToManualRequest, singleItemFromMacros } from '../../../entities/meal/model/mapper';
+import { scaleMealNutrition } from '../../../entities/meal/lib/scaleEstimate';
+import { isPersistedMealId } from '../../meal-detail/model/useMealDetail';
 import type { Meal, MealEntry } from '../../../entities/meal';
+import type { NutritionInfo } from '../../../entities/nutrition';
 import type { PhotoLogResponse } from '../../../entities/meal/api/backendTypes';
 
 export type ScanStage = 'idle' | 'scanning' | 'result' | 'manual_required' | 'error';
@@ -25,6 +28,8 @@ export interface ScanState {
   manualForm: ManualForm;
   errorMessage: string | null;
   slot: MealSlot;
+  portionGrams: number;
+  scaledNutrition: NutritionInfo | null;
 }
 
 export interface ScanActions {
@@ -32,6 +37,7 @@ export interface ScanActions {
   clearFile: () => void;
   analyze: () => Promise<void>;
   setSlot: (slot: MealSlot) => void;
+  setPortionGrams: (grams: number) => void;
   patchManualForm: (patch: Partial<ManualForm>) => void;
   addToDiary: () => Promise<void>;
   retry: () => void;
@@ -45,6 +51,16 @@ const SLOT_TONES: Record<MealSlot, string> = {
 };
 
 const EMPTY_FORM: ManualForm = { name: '', calories: '', protein: '', carbs: '', fat: '' };
+const DEFAULT_PORTION_GRAMS = 250;
+
+function clampPortionGrams(grams: number): number {
+  return Math.min(9999, Math.max(1, Math.round(grams)));
+}
+
+function initialPortionGrams(meal: Meal): number {
+  const grams = meal.portionGrams ?? 0;
+  return grams > 0 ? clampPortionGrams(grams) : DEFAULT_PORTION_GRAMS;
+}
 
 /** Read a File into a data: URL so the scanned photo renders instantly in the diary. */
 function fileToDataUrl(file: File): Promise<string> {
@@ -65,19 +81,32 @@ export function useScanMeal(): ScanState & ScanActions {
   const [manualForm,  setManualForm]  = useState<ManualForm>(EMPTY_FORM);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [slot,        setSlot]        = useState<MealSlot>('Lunch');
+  const [basePortionGrams, setBasePortionGrams] = useState(DEFAULT_PORTION_GRAMS);
+  const [portionGrams, setPortionGramsState] = useState(DEFAULT_PORTION_GRAMS);
 
   const addEntry = useMealStore((s) => s.addEntry);
+
+  const scaledNutrition = useMemo(() => {
+    if (!result) return null;
+    return scaleMealNutrition(result.nutrition, basePortionGrams, portionGrams);
+  }, [result, basePortionGrams, portionGrams]);
 
   function setFile(f: File) {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFileState(f);
     setPreviewUrl(URL.createObjectURL(f));
+    setResult(null);
   }
 
   function clearFile() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFileState(null);
     setPreviewUrl(null);
+    setResult(null);
+  }
+
+  function setPortionGrams(grams: number) {
+    setPortionGramsState(clampPortionGrams(grams));
   }
 
   async function analyze() {
@@ -85,19 +114,18 @@ export function useScanMeal(): ScanState & ScanActions {
     setStage('scanning');
     setErrorMessage(null);
 
-    // Send the photo to the GenAI vision model.
     try {
       const response = await mealApi.analyzePhoto(file);
       if (response?.meal) {
+        const grams = initialPortionGrams(response.meal);
+        setBasePortionGrams(grams);
+        setPortionGramsState(grams);
         setResult(response.meal);
         setStage('result');
       } else {
-        // No AI result — fall back to manual entry.
         fallbackToManual(file);
       }
     } catch {
-      // AI unavailable (service down, quota exhausted, …) — degrade gracefully
-      // to manual entry rather than dead-ending the user.
       fallbackToManual(file);
     }
   }
@@ -115,30 +143,47 @@ export function useScanMeal(): ScanState & ScanActions {
   async function addToDiary() {
     const now  = new Date();
     const time = now.toTimeString().slice(0, 5);
-    // The user's own photo, as a data URL — shown immediately in the diary thumbnail.
-    // A read failure is non-fatal: the photo is cosmetic and must never block logging.
     const imageUrl = file ? await fileToDataUrl(file).catch(() => undefined) : undefined;
 
-    if (result) {
-      // A `result` means the GenAI path already recognized and persisted the meal
-      // via /meals/analyze. Just reflect it in the local store — no second save.
+    if (result && scaledNutrition) {
+      const mealId = String(result.id);
+      const item = {
+        ...singleItemFromMacros(
+          result.dishName,
+          scaledNutrition.calories,
+          scaledNutrition.protein,
+          scaledNutrition.carbs,
+          scaledNutrition.fat,
+        ),
+        quantity: portionGrams,
+        unit: 'g',
+      };
+      const request = entryToManualRequest(slot, result.dishName, now, [item]);
+
+      if (isPersistedMealId(mealId)) {
+        try {
+          await mealApi.update(mealId, request);
+        } catch {
+          // Still add locally if the portion update fails.
+        }
+      }
+
       const entry: MealEntry = {
-        id:       `scan-${Date.now()}`,
+        id:       isPersistedMealId(mealId) ? mealId : `scan-${Date.now()}`,
         slot,
         time,
         name:     result.dishName,
-        calories: result.nutrition.calories,
-        protein:  result.nutrition.protein,
-        carbs:    result.nutrition.carbs,
-        fat:      result.nutrition.fat,
+        calories: scaledNutrition.calories,
+        protein:  scaledNutrition.protein,
+        carbs:    scaledNutrition.carbs,
+        fat:      scaledNutrition.fat,
         tone:     SLOT_TONES[slot],
-        imageUrl,
+        imageUrl: result.imageUrl || imageUrl,
       };
       addEntry(entry);
       return;
     }
 
-    // Real backend path — save via convert-manual or plain manual
     const cal  = parseInt(manualForm.calories, 10) || 0;
     const prot = parseInt(manualForm.protein,  10) || 0;
     const carb = parseInt(manualForm.carbs,    10) || 0;
@@ -154,12 +199,9 @@ export function useScanMeal(): ScanState & ScanActions {
         : await mealApi.saveManual(request);
 
       if (response) {
-        // Show the user's local photo instantly; on reload the same image is served
-        // from the backend via the entry's mapped photoUrl.
         addEntry({ ...mealResponseToEntry(response), imageUrl });
       }
     } catch {
-      // Save failed — still add locally so user doesn't lose the entry
       addEntry({ id: `scan-${Date.now()}`, slot, time, name, calories: cal, protein: prot, carbs: carb, fat, tone: SLOT_TONES[slot], imageUrl });
     }
   }
@@ -169,10 +211,12 @@ export function useScanMeal(): ScanState & ScanActions {
     setErrorMessage(null);
     setPhotoLog(null);
     setManualForm(EMPTY_FORM);
+    setResult(null);
   }
 
   return {
     stage, file, previewUrl, result, photoLog, manualForm, errorMessage, slot,
-    setFile, clearFile, analyze, setSlot, patchManualForm, addToDiary, retry,
+    portionGrams, scaledNutrition,
+    setFile, clearFile, analyze, setSlot, setPortionGrams, patchManualForm, addToDiary, retry,
   };
 }

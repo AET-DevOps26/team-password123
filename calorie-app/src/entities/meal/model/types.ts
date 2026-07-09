@@ -1,12 +1,14 @@
 import type { NutritionInfo } from '../../nutrition';
 
 export interface Meal {
-  id: number;
+  id: string | number;
   userId: number;
   dishName: string;
   imageUrl: string;
   nutrition: NutritionInfo;
   confidence: number;
+  visionModel?: string;
+  portionGrams?: number;
   analyzedAt: string;
 }
 

@@ -186,6 +186,8 @@ class NutritionResponse(BaseModel):
     fat_grams: float
     fiber_grams: float
     confidence: float
+    vision_model: str = ""
+    portion_grams: float = 0.0
 
 
 class NutritionAnalysisResult(BaseModel):
@@ -711,21 +713,32 @@ class NutritionAnalyzer:
 
         return [{"food": f"{name_a} and {name_b}", "grams": grams_a + grams_b}]
 
+    @staticmethod
+    def _total_portion_grams(foods_with_grams: list[Dict[str, Any]]) -> float:
+        total = 0.0
+        for item in foods_with_grams:
+            if isinstance(item, dict):
+                total += _coerce_float(item.get("grams", 0))
+        return total
+
     def _foods_to_response(
         self, foods_with_grams: list[Dict[str, Any]], confidence: float
-    ) -> tuple[list[str], float, float, float, float, float]:
+    ) -> tuple[list[str], float, float, float, float, float, float]:
         """Calculate macros from parsed foods, then collapse pairs for the API."""
         if not foods_with_grams:
-            return [], 0.0, 0.0, 0.0, 0.0, 0.0
+            return [], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
         calories, protein, carbs, fat, fiber = self._calculate_macros_from_foods(foods_with_grams)
+        portion_grams = self._total_portion_grams(foods_with_grams)
         combined = self._combine_two_foods_if_pair(foods_with_grams)
+        if len(combined) == 1 and len(foods_with_grams) == 2:
+            portion_grams = _coerce_float(combined[0].get("grams", portion_grams))
         foods = [
             str(item.get("food", "")).strip()
             for item in combined
             if isinstance(item, dict) and item.get("food")
         ]
-        return foods, calories, protein, carbs, fat, fiber
+        return foods, calories, protein, carbs, fat, fiber, portion_grams
 
     def estimate_from_name(self, food_name: str) -> dict:
         """Estimate nutrition per 100g for a food by name, plus a typical serving size.
@@ -826,6 +839,20 @@ class NutritionAnalyzer:
             return f"vision analysis failed: {primary_error}"
         return f"backup vision analysis failed: {fallback_error}"
 
+    @staticmethod
+    def _vision_model_label(*, primary: bool) -> str:
+        """User-facing label for which vision model produced the analysis."""
+        if primary:
+            model = (OPENAI_MODEL or "").lower()
+            base = (OPENAI_BASE_URL or "").lower()
+            if "gemini" in model or "generativelanguage.googleapis.com" in base:
+                return "Gemini"
+            return "Primary"
+        model = (BACKUP_OPENAI_MODEL or "").lower()
+        if "nemotron" in model:
+            return "Nemotron"
+        return "Backup"
+
     def analyze(self, image_base64: str) -> NutritionResponse:
         """Analyze a base64-encoded food image and return nutrition estimates."""
         try:
@@ -845,10 +872,12 @@ class NutritionAnalyzer:
 
             response = None
             primary_error = None
+            used_primary = False
             if self.llm:
                 try:
                     logger.info("Calling %s for image analysis", self.provider)
                     response = self.llm.invoke([message])
+                    used_primary = bool(response)
                 except Exception as exc:
                     primary_error = exc
                     logger.warning("Primary (%s) LLM failed: %s", self.provider, exc)
@@ -858,6 +887,7 @@ class NutritionAnalyzer:
                 try:
                     logger.info("Calling fallback LLM")
                     response = fallback_llm.invoke([message])
+                    used_primary = False
                 except Exception as exc:
                     logger.error("Fallback LLM also failed: %s", exc)
                     if self.llm is None and primary_error is None:
@@ -871,7 +901,7 @@ class NutritionAnalyzer:
 
             logger.debug("Raw LLM response: %s", response.content)
             foods_with_grams, confidence = self._parse_response(response.content)
-            foods, calories, protein, carbs, fat, fiber = self._foods_to_response(
+            foods, calories, protein, carbs, fat, fiber, portion_grams = self._foods_to_response(
                 foods_with_grams, confidence
             )
 
@@ -883,13 +913,16 @@ class NutritionAnalyzer:
                 fat_grams=fat,
                 fiber_grams=fiber,
                 confidence=confidence,
+                vision_model=self._vision_model_label(primary=used_primary),
+                portion_grams=portion_grams,
             )
 
             logger.info(
-                "Analysis complete: %.0f cal, %d foods, confidence %.2f",
+                "Analysis complete: %.0f cal, %d foods, confidence %.2f, model %s",
                 result.calories,
                 len(result.foods),
                 result.confidence,
+                result.vision_model,
             )
             return result
         except ValueError:
@@ -906,7 +939,7 @@ class NutritionAnalyzer:
 
         logger.debug("Raw %s response: %s", provider, response.content)
         foods_with_grams, confidence = self._parse_response(response.content)
-        foods, calories, protein, carbs, fat, fiber = self._foods_to_response(
+        foods, calories, protein, carbs, fat, fiber, _portion = self._foods_to_response(
             foods_with_grams, confidence
         )
 

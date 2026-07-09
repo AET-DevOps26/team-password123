@@ -42,330 +42,333 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class MealService {
 
-    private static final Logger log = LoggerFactory.getLogger(MealService.class);
+  private static final Logger log = LoggerFactory.getLogger(MealService.class);
 
-    private final MealLogRepository meals;
-    private final PhotoLogRepository photos;
-    private final MealAnalyzer analyzer;
-    private final Path uploadDir;
-    private final MeterRegistry metrics;
+  private final MealLogRepository meals;
+  private final PhotoLogRepository photos;
+  private final MealAnalyzer analyzer;
+  private final Path uploadDir;
+  private final MeterRegistry metrics;
 
-    public MealService(
-            MealLogRepository meals,
-            PhotoLogRepository photos,
-            MealAnalyzer analyzer,
-            StorageProperties storageProperties,
-            MeterRegistry metrics
-    ) {
-        this.meals = meals;
-        this.photos = photos;
-        this.analyzer = analyzer;
-        this.uploadDir = Path.of(storageProperties.getUploadDir()).toAbsolutePath().normalize();
-        this.metrics = metrics;
+  public MealService(
+      MealLogRepository meals,
+      PhotoLogRepository photos,
+      MealAnalyzer analyzer,
+      StorageProperties storageProperties,
+      MeterRegistry metrics) {
+    this.meals = meals;
+    this.photos = photos;
+    this.analyzer = analyzer;
+    this.uploadDir = Path.of(storageProperties.getUploadDir()).toAbsolutePath().normalize();
+    this.metrics = metrics;
+  }
+
+  @Transactional
+  public MealResponse createManual(UUID userId, ManualMealRequest request) {
+    MealLog meal = buildMeal(userId, request, SourceType.MANUAL);
+    MealLog saved = meals.save(meal);
+    recordLogged(saved, "manual");
+    return MealMapper.toMealResponse(saved);
+  }
+
+  /** Bumps the meals-logged counter + calorie distribution and emits a business log line. */
+  private void recordLogged(MealLog meal, String source) {
+    metrics.counter("calorieasy.meals.logged", "source", source).increment();
+    if (meal.getCalories() != null) {
+      metrics.summary("calorieasy.meals.calories").record(meal.getCalories().doubleValue());
+    }
+    log.info(
+        "Meal logged id={} user={} source={} kcal={} type={}",
+        meal.getId(),
+        meal.getUserId(),
+        source,
+        meal.getCalories(),
+        meal.getMealType());
+  }
+
+  @Transactional(readOnly = true)
+  public List<MealResponse> list(UUID userId, LocalDate from, LocalDate to) {
+    if (from.isAfter(to)) {
+      throw new BadRequestException("from must be on or before to");
+    }
+    List<MealLog> mealLogs =
+        meals.findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(userId, start(from), end(to));
+
+    // Resolve every linked photo in one query, then map without per-meal lookups.
+    Map<UUID, PhotoLog> photosByMeal =
+        photos.findByLinkedMealLogIdIn(mealLogs.stream().map(MealLog::getId).toList()).stream()
+            .collect(Collectors.toMap(p -> p.getLinkedMealLog().getId(), p -> p, (a, b) -> a));
+
+    return mealLogs.stream()
+        .map(meal -> MealMapper.toMealResponse(meal, photosByMeal.get(meal.getId())))
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public MealResponse get(UUID userId, UUID mealId) {
+    MealLog meal = findOwnedMeal(userId, mealId);
+    return MealMapper.toMealResponse(meal, photos.findByLinkedMealLogId(mealId).orElse(null));
+  }
+
+  @Transactional
+  public MealResponse update(UUID userId, UUID mealId, ManualMealRequest request) {
+    MealLog meal = findOwnedMeal(userId, mealId);
+    applyMealRequest(meal, request);
+    meals.save(meal);
+    return MealMapper.toMealResponse(meal, photos.findByLinkedMealLogId(mealId).orElse(null));
+  }
+
+  @Transactional
+  public void delete(UUID userId, UUID mealId) {
+    MealLog meal = findOwnedMeal(userId, mealId);
+    meals.delete(meal);
+    metrics.counter("calorieasy.meals.deleted").increment();
+    log.info("Meal deleted id={} user={}", mealId, userId);
+  }
+
+  @Transactional
+  public PhotoLogResponse createPhoto(UUID userId, MultipartFile file) {
+    if (file.isEmpty()) {
+      throw new BadRequestException("Photo file is required");
     }
 
-    @Transactional
-    public MealResponse createManual(UUID userId, ManualMealRequest request) {
-        MealLog meal = buildMeal(userId, request, SourceType.MANUAL);
-        MealLog saved = meals.save(meal);
-        recordLogged(saved, "manual");
-        return MealMapper.toMealResponse(saved);
+    StoredFile stored = storePhoto(file);
+
+    PhotoLog photo = new PhotoLog();
+    photo.setUserId(userId);
+    photo.setOriginalFilename(stored.originalFilename());
+    photo.setStoredFilename(stored.storedFilename());
+    photo.setContentType(file.getContentType());
+    photo.setStatus(PhotoStatus.AI_NOT_AVAILABLE);
+    photo.setCreatedAt(OffsetDateTime.now());
+    metrics.counter("calorieasy.meals.photo_uploads").increment();
+    log.info("Photo uploaded user={} file={}", userId, stored.originalFilename());
+    return MealMapper.toPhotoResponse(photos.save(photo));
+  }
+
+  @Transactional
+  public MealAnalysisResponse analyzePhoto(UUID userId, MultipartFile image) {
+    if (image.isEmpty()) {
+      throw new BadRequestException("Photo file is required");
     }
 
-    /** Bumps the meals-logged counter + calorie distribution and emits a business log line. */
-    private void recordLogged(MealLog meal, String source) {
-        metrics.counter("calorieasy.meals.logged", "source", source).increment();
-        if (meal.getCalories() != null) {
-            metrics.summary("calorieasy.meals.calories").record(meal.getCalories().doubleValue());
-        }
-        log.info("Meal logged id={} user={} source={} kcal={} type={}",
-                meal.getId(), meal.getUserId(), source, meal.getCalories(), meal.getMealType());
+    byte[] bytes;
+    try {
+      bytes = image.getBytes();
+    } catch (IOException exception) {
+      throw new BadRequestException("Could not read uploaded photo");
     }
 
-    @Transactional(readOnly = true)
-    public List<MealResponse> list(UUID userId, LocalDate from, LocalDate to) {
-        if (from.isAfter(to)) {
-            throw new BadRequestException("from must be on or before to");
-        }
-        List<MealLog> mealLogs =
-                meals.findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(userId, start(from), end(to));
+    StoredFile stored = storePhoto(image);
+    MealAnalysis analysis;
+    try {
+      analysis = analyzer.analyze(bytes, stored.originalFilename());
+    } catch (RuntimeException e) {
+      metrics.counter("calorieasy.meals.analyze", "result", "error").increment();
+      log.error(
+          "Photo analysis failed user={} file={}: {}",
+          userId,
+          stored.originalFilename(),
+          e.toString());
+      throw e;
+    }
+    metrics.counter("calorieasy.meals.analyze", "result", "success").increment();
 
-        // Resolve every linked photo in one query, then map without per-meal lookups.
-        Map<UUID, PhotoLog> photosByMeal = photos
-                .findByLinkedMealLogIdIn(mealLogs.stream().map(MealLog::getId).toList())
-                .stream()
-                .collect(Collectors.toMap(p -> p.getLinkedMealLog().getId(), p -> p, (a, b) -> a));
+    OffsetDateTime now = OffsetDateTime.now();
+    MealLog meal = meals.save(buildAnalyzedMeal(userId, analysis, now));
+    recordLogged(meal, "photo_ai");
 
-        return mealLogs.stream()
-                .map(meal -> MealMapper.toMealResponse(meal, photosByMeal.get(meal.getId())))
-                .toList();
+    PhotoLog photo = new PhotoLog();
+    photo.setUserId(userId);
+    photo.setOriginalFilename(stored.originalFilename());
+    photo.setStoredFilename(stored.storedFilename());
+    photo.setContentType(image.getContentType());
+    photo.setStatus(PhotoStatus.ANALYZED);
+    photo.setCreatedAt(now);
+    photo.setAnalyzedAt(now);
+    photo.setLinkedMealLog(meal);
+    photos.save(photo);
+
+    String imageUrl = MealMapper.photoRawUrl(photo.getId());
+    AnalyzedMeal analyzedMeal =
+        new AnalyzedMeal(
+            meal.getId(),
+            analysis.dishName(),
+            imageUrl,
+            new NutritionSummary(
+                analysis.calories(), analysis.protein(), analysis.carbs(), analysis.fat()),
+            analysis.confidence(),
+            analysis.visionModel(),
+            analysis.portionGrams() == null ? 0.0 : analysis.portionGrams().doubleValue(),
+            photo.getAnalyzedAt());
+    return new MealAnalysisResponse(analyzedMeal, "Analysis complete");
+  }
+
+  @Transactional(readOnly = true)
+  public StoredPhoto loadPhoto(UUID userId, UUID photoId) {
+    PhotoLog photo =
+        photos
+            .findByIdAndUserId(photoId, userId)
+            .orElseThrow(() -> new NotFoundException("Photo log not found"));
+
+    Path file = uploadDir.resolve(photo.getStoredFilename());
+    Resource resource;
+    try {
+      resource = new UrlResource(file.toUri());
+    } catch (MalformedURLException exception) {
+      throw new NotFoundException("Photo file not found");
+    }
+    if (!resource.exists() || !resource.isReadable()) {
+      throw new NotFoundException("Photo file not found");
+    }
+    return new StoredPhoto(resource, photo.getContentType());
+  }
+
+  @Transactional
+  public MealResponse convertPhotoToManual(UUID userId, UUID photoId, ManualMealRequest request) {
+    PhotoLog photo =
+        photos
+            .findByIdAndUserId(photoId, userId)
+            .orElseThrow(() -> new NotFoundException("Photo log not found"));
+    if (photo.getLinkedMealLog() != null) {
+      throw new BadRequestException("Photo log has already been converted");
     }
 
-    @Transactional(readOnly = true)
-    public MealResponse get(UUID userId, UUID mealId) {
-        MealLog meal = findOwnedMeal(userId, mealId);
-        return MealMapper.toMealResponse(meal, photos.findByLinkedMealLogId(mealId).orElse(null));
+    MealLog meal = meals.save(buildMeal(userId, request, SourceType.PHOTO_MANUAL));
+    recordLogged(meal, "photo_manual");
+    photo.setLinkedMealLog(meal);
+    photo.setStatus(PhotoStatus.MANUALLY_COMPLETED);
+    photos.save(photo);
+    return MealMapper.toMealResponse(meal, photo);
+  }
+
+  private StoredFile storePhoto(MultipartFile file) {
+    String originalFilename =
+        StringUtils.cleanPath(
+            file.getOriginalFilename() == null ? "meal-photo" : file.getOriginalFilename());
+    String storedFilename =
+        UUID.randomUUID() + "-" + originalFilename.replaceAll("[^A-Za-z0-9._-]", "_");
+
+    try {
+      Files.createDirectories(uploadDir);
+      file.transferTo(uploadDir.resolve(storedFilename));
+    } catch (IOException exception) {
+      throw new BadRequestException("Could not store uploaded photo");
     }
+    return new StoredFile(originalFilename, storedFilename);
+  }
 
-    @Transactional
-    public MealResponse update(UUID userId, UUID mealId, ManualMealRequest request) {
-        MealLog meal = findOwnedMeal(userId, mealId);
-        applyMealRequest(meal, request);
-        meals.save(meal);
-        return MealMapper.toMealResponse(meal, photos.findByLinkedMealLogId(mealId).orElse(null));
+  private MealLog buildAnalyzedMeal(UUID userId, MealAnalysis analysis, OffsetDateTime loggedAt) {
+    MealItem item = new MealItem();
+    item.setName(analysis.dishName());
+    item.setQuantity(analysis.portionGrams() == null ? BigDecimal.ONE : analysis.portionGrams());
+    item.setUnit("g");
+    item.setCalories(analysis.calories());
+    item.setProteinGrams(analysis.protein());
+    item.setCarbsGrams(analysis.carbs());
+    item.setFatGrams(analysis.fat());
+    item.setFiberGrams(BigDecimal.ZERO);
+
+    MealLog meal = new MealLog();
+    meal.setUserId(userId);
+    meal.setSourceType(SourceType.PHOTO_AI);
+    meal.setMealType(pickMealType(loggedAt));
+    meal.setLoggedAt(loggedAt);
+    meal.setDishName(analysis.dishName());
+    meal.setConfidence(BigDecimal.valueOf(analysis.confidence()));
+    meal.setCalories(analysis.calories());
+    meal.setProteinGrams(analysis.protein());
+    meal.setCarbsGrams(analysis.carbs());
+    meal.setFatGrams(analysis.fat());
+    meal.setFiberGrams(BigDecimal.ZERO);
+    meal.replaceItems(List.of(item));
+    return meal;
+  }
+
+  private MealType pickMealType(OffsetDateTime loggedAt) {
+    int hour = loggedAt.getHour();
+    if (hour < 11) {
+      return MealType.BREAKFAST;
     }
-
-    @Transactional
-    public void delete(UUID userId, UUID mealId) {
-        MealLog meal = findOwnedMeal(userId, mealId);
-        meals.delete(meal);
-        metrics.counter("calorieasy.meals.deleted").increment();
-        log.info("Meal deleted id={} user={}", mealId, userId);
+    if (hour < 16) {
+      return MealType.LUNCH;
     }
-
-    @Transactional
-    public PhotoLogResponse createPhoto(UUID userId, MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new BadRequestException("Photo file is required");
-        }
-
-        StoredFile stored = storePhoto(file);
-
-        PhotoLog photo = new PhotoLog();
-        photo.setUserId(userId);
-        photo.setOriginalFilename(stored.originalFilename());
-        photo.setStoredFilename(stored.storedFilename());
-        photo.setContentType(file.getContentType());
-        photo.setStatus(PhotoStatus.AI_NOT_AVAILABLE);
-        photo.setCreatedAt(OffsetDateTime.now());
-        metrics.counter("calorieasy.meals.photo_uploads").increment();
-        log.info("Photo uploaded user={} file={}", userId, stored.originalFilename());
-        return MealMapper.toPhotoResponse(photos.save(photo));
+    if (hour < 21) {
+      return MealType.DINNER;
     }
+    return MealType.SNACK;
+  }
 
-    @Transactional
-    public MealAnalysisResponse analyzePhoto(UUID userId, MultipartFile image) {
-        if (image.isEmpty()) {
-            throw new BadRequestException("Photo file is required");
-        }
+  private MealLog findOwnedMeal(UUID userId, UUID mealId) {
+    return meals
+        .findByIdAndUserId(mealId, userId)
+        .orElseThrow(() -> new NotFoundException("Meal log not found"));
+  }
 
-        byte[] bytes;
-        try {
-            bytes = image.getBytes();
-        } catch (IOException exception) {
-            throw new BadRequestException("Could not read uploaded photo");
-        }
+  private MealLog buildMeal(UUID userId, ManualMealRequest request, SourceType sourceType) {
+    MealLog meal = new MealLog();
+    meal.setUserId(userId);
+    meal.setSourceType(sourceType);
+    applyMealRequest(meal, request);
+    return meal;
+  }
 
-        StoredFile stored = storePhoto(image);
-        MealAnalysis analysis;
-        try {
-            analysis = analyzer.analyze(bytes, stored.originalFilename());
-        } catch (RuntimeException e) {
-            metrics.counter("calorieasy.meals.analyze", "result", "error").increment();
-            log.error("Photo analysis failed user={} file={}: {}", userId, stored.originalFilename(), e.toString());
-            throw e;
-        }
-        metrics.counter("calorieasy.meals.analyze", "result", "success").increment();
+  private void applyMealRequest(MealLog meal, ManualMealRequest request) {
+    meal.setMealType(request.mealType());
+    meal.setLoggedAt(request.loggedAt() == null ? OffsetDateTime.now() : request.loggedAt());
+    meal.setNotes(request.notes());
+    List<MealItem> items = request.items().stream().map(MealMapper::toItem).toList();
+    meal.replaceItems(items);
+    meal.setCalories(sum(items, Nutrient.CALORIES));
+    meal.setProteinGrams(sum(items, Nutrient.PROTEIN));
+    meal.setCarbsGrams(sum(items, Nutrient.CARBS));
+    meal.setFatGrams(sum(items, Nutrient.FAT));
+    meal.setFiberGrams(sum(items, Nutrient.FIBER));
+  }
 
-        OffsetDateTime now = OffsetDateTime.now();
-        MealLog meal = meals.save(buildAnalyzedMeal(userId, analysis, now));
-        recordLogged(meal, "photo_ai");
+  private BigDecimal sum(List<MealItem> items, Nutrient nutrient) {
+    return items.stream().map(nutrient::value).reduce(BigDecimal.ZERO, BigDecimal::add);
+  }
 
-        PhotoLog photo = new PhotoLog();
-        photo.setUserId(userId);
-        photo.setOriginalFilename(stored.originalFilename());
-        photo.setStoredFilename(stored.storedFilename());
-        photo.setContentType(image.getContentType());
-        photo.setStatus(PhotoStatus.ANALYZED);
-        photo.setCreatedAt(now);
-        photo.setAnalyzedAt(now);
-        photo.setLinkedMealLog(meal);
-        photos.save(photo);
+  private OffsetDateTime start(LocalDate date) {
+    return date.atStartOfDay().atOffset(ZoneOffset.UTC);
+  }
 
-        String imageUrl = MealMapper.photoRawUrl(photo.getId());
-        AnalyzedMeal analyzedMeal = new AnalyzedMeal(
-                meal.getId(),
-                analysis.dishName(),
-                imageUrl,
-                new NutritionSummary(
-                        analysis.calories(),
-                        analysis.protein(),
-                        analysis.carbs(),
-                        analysis.fat()
-                ),
-                analysis.confidence(),
-                analysis.visionModel(),
-                analysis.portionGrams() == null ? 0.0 : analysis.portionGrams().doubleValue(),
-                photo.getAnalyzedAt()
-        );
-        return new MealAnalysisResponse(analyzedMeal, "Analysis complete");
-    }
+  private OffsetDateTime end(LocalDate date) {
+    return date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC).minusNanos(1);
+  }
 
-    @Transactional(readOnly = true)
-    public StoredPhoto loadPhoto(UUID userId, UUID photoId) {
-        PhotoLog photo = photos.findByIdAndUserId(photoId, userId)
-                .orElseThrow(() -> new NotFoundException("Photo log not found"));
+  private record StoredFile(String originalFilename, String storedFilename) {}
 
-        Path file = uploadDir.resolve(photo.getStoredFilename());
-        Resource resource;
-        try {
-            resource = new UrlResource(file.toUri());
-        } catch (MalformedURLException exception) {
-            throw new NotFoundException("Photo file not found");
-        }
-        if (!resource.exists() || !resource.isReadable()) {
-            throw new NotFoundException("Photo file not found");
-        }
-        return new StoredPhoto(resource, photo.getContentType());
-    }
+  public record StoredPhoto(Resource resource, String contentType) {}
 
-    @Transactional
-    public MealResponse convertPhotoToManual(UUID userId, UUID photoId, ManualMealRequest request) {
-        PhotoLog photo = photos.findByIdAndUserId(photoId, userId)
-                .orElseThrow(() -> new NotFoundException("Photo log not found"));
-        if (photo.getLinkedMealLog() != null) {
-            throw new BadRequestException("Photo log has already been converted");
-        }
+  private enum Nutrient {
+    CALORIES {
+      BigDecimal value(MealItem item) {
+        return item.getCalories();
+      }
+    },
+    PROTEIN {
+      BigDecimal value(MealItem item) {
+        return item.getProteinGrams();
+      }
+    },
+    CARBS {
+      BigDecimal value(MealItem item) {
+        return item.getCarbsGrams();
+      }
+    },
+    FAT {
+      BigDecimal value(MealItem item) {
+        return item.getFatGrams();
+      }
+    },
+    FIBER {
+      BigDecimal value(MealItem item) {
+        return item.getFiberGrams();
+      }
+    };
 
-        MealLog meal = meals.save(buildMeal(userId, request, SourceType.PHOTO_MANUAL));
-        recordLogged(meal, "photo_manual");
-        photo.setLinkedMealLog(meal);
-        photo.setStatus(PhotoStatus.MANUALLY_COMPLETED);
-        photos.save(photo);
-        return MealMapper.toMealResponse(meal, photo);
-    }
-
-    private StoredFile storePhoto(MultipartFile file) {
-        String originalFilename = StringUtils.cleanPath(
-                file.getOriginalFilename() == null ? "meal-photo" : file.getOriginalFilename()
-        );
-        String storedFilename = UUID.randomUUID() + "-" + originalFilename.replaceAll("[^A-Za-z0-9._-]", "_");
-
-        try {
-            Files.createDirectories(uploadDir);
-            file.transferTo(uploadDir.resolve(storedFilename));
-        } catch (IOException exception) {
-            throw new BadRequestException("Could not store uploaded photo");
-        }
-        return new StoredFile(originalFilename, storedFilename);
-    }
-
-    private MealLog buildAnalyzedMeal(UUID userId, MealAnalysis analysis, OffsetDateTime loggedAt) {
-        MealItem item = new MealItem();
-        item.setName(analysis.dishName());
-        item.setQuantity(analysis.portionGrams() == null ? BigDecimal.ONE : analysis.portionGrams());
-        item.setUnit("g");
-        item.setCalories(analysis.calories());
-        item.setProteinGrams(analysis.protein());
-        item.setCarbsGrams(analysis.carbs());
-        item.setFatGrams(analysis.fat());
-        item.setFiberGrams(BigDecimal.ZERO);
-
-        MealLog meal = new MealLog();
-        meal.setUserId(userId);
-        meal.setSourceType(SourceType.PHOTO_AI);
-        meal.setMealType(pickMealType(loggedAt));
-        meal.setLoggedAt(loggedAt);
-        meal.setDishName(analysis.dishName());
-        meal.setConfidence(BigDecimal.valueOf(analysis.confidence()));
-        meal.setCalories(analysis.calories());
-        meal.setProteinGrams(analysis.protein());
-        meal.setCarbsGrams(analysis.carbs());
-        meal.setFatGrams(analysis.fat());
-        meal.setFiberGrams(BigDecimal.ZERO);
-        meal.replaceItems(List.of(item));
-        return meal;
-    }
-
-    private MealType pickMealType(OffsetDateTime loggedAt) {
-        int hour = loggedAt.getHour();
-        if (hour < 11) {
-            return MealType.BREAKFAST;
-        }
-        if (hour < 16) {
-            return MealType.LUNCH;
-        }
-        if (hour < 21) {
-            return MealType.DINNER;
-        }
-        return MealType.SNACK;
-    }
-
-    private MealLog findOwnedMeal(UUID userId, UUID mealId) {
-        return meals.findByIdAndUserId(mealId, userId)
-                .orElseThrow(() -> new NotFoundException("Meal log not found"));
-    }
-
-    private MealLog buildMeal(UUID userId, ManualMealRequest request, SourceType sourceType) {
-        MealLog meal = new MealLog();
-        meal.setUserId(userId);
-        meal.setSourceType(sourceType);
-        applyMealRequest(meal, request);
-        return meal;
-    }
-
-    private void applyMealRequest(MealLog meal, ManualMealRequest request) {
-        meal.setMealType(request.mealType());
-        meal.setLoggedAt(request.loggedAt() == null ? OffsetDateTime.now() : request.loggedAt());
-        meal.setNotes(request.notes());
-        List<MealItem> items = request.items().stream()
-                .map(MealMapper::toItem)
-                .toList();
-        meal.replaceItems(items);
-        meal.setCalories(sum(items, Nutrient.CALORIES));
-        meal.setProteinGrams(sum(items, Nutrient.PROTEIN));
-        meal.setCarbsGrams(sum(items, Nutrient.CARBS));
-        meal.setFatGrams(sum(items, Nutrient.FAT));
-        meal.setFiberGrams(sum(items, Nutrient.FIBER));
-    }
-
-    private BigDecimal sum(List<MealItem> items, Nutrient nutrient) {
-        return items.stream()
-                .map(nutrient::value)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private OffsetDateTime start(LocalDate date) {
-        return date.atStartOfDay().atOffset(ZoneOffset.UTC);
-    }
-
-    private OffsetDateTime end(LocalDate date) {
-        return date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC).minusNanos(1);
-    }
-
-    private record StoredFile(String originalFilename, String storedFilename) {
-    }
-
-    public record StoredPhoto(Resource resource, String contentType) {
-    }
-
-    private enum Nutrient {
-        CALORIES {
-            BigDecimal value(MealItem item) {
-                return item.getCalories();
-            }
-        },
-        PROTEIN {
-            BigDecimal value(MealItem item) {
-                return item.getProteinGrams();
-            }
-        },
-        CARBS {
-            BigDecimal value(MealItem item) {
-                return item.getCarbsGrams();
-            }
-        },
-        FAT {
-            BigDecimal value(MealItem item) {
-                return item.getFatGrams();
-            }
-        },
-        FIBER {
-            BigDecimal value(MealItem item) {
-                return item.getFiberGrams();
-            }
-        };
-
-        abstract BigDecimal value(MealItem item);
-    }
+    abstract BigDecimal value(MealItem item);
+  }
 }

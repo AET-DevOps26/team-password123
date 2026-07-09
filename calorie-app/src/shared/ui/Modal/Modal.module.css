@@ -5,8 +5,10 @@
   background: rgba(28, 29, 26, .42);
   backdrop-filter: blur(3px);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  padding: 24px 16px;
+  box-sizing: border-box;
   animation: fadeIn .2s ease;
 }
 
@@ -20,7 +22,7 @@
   max-width: 520px;
   max-height: 94vh;
   background: var(--bg);
-  border-radius: 24px 24px 0 0;
+  border-radius: 24px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -85,6 +87,11 @@
 }
 
 @media (max-width: 860px) {
+  .overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
   .sheet,
   .sheet.narrow {
     max-width: 100%;

@@ -66,11 +66,39 @@ public class GenAiMealAnalyzer implements MealAnalyzer {
     }
 
     private static String dishName(List<String> foods) {
-        if (foods == null || foods.isEmpty() || foods.get(0).isBlank()) {
-            return "Analyzed meal";
+        if (foods == null || foods.isEmpty()) {
+            return "Photo meal";
         }
-        String first = foods.get(0).trim();
-        return Character.toUpperCase(first.charAt(0)) + first.substring(1);
+        List<String> names = foods.stream()
+                .filter(food -> food != null && !food.isBlank())
+                .map(String::trim)
+                .distinct()
+                .limit(4)
+                .toList();
+        if (names.isEmpty()) {
+            return "Photo meal";
+        }
+        return formatFoodList(names);
+    }
+
+    private static String formatFoodList(List<String> names) {
+        List<String> titled = names.stream().map(GenAiMealAnalyzer::capitalize).toList();
+        if (titled.size() == 1) {
+            return titled.get(0);
+        }
+        if (titled.size() == 2) {
+            return titled.get(0) + " and " + titled.get(1);
+        }
+        return String.join(", ", titled.subList(0, titled.size() - 1))
+                + ", and "
+                + titled.get(titled.size() - 1);
+    }
+
+    private static String capitalize(String value) {
+        if (value.isEmpty()) {
+            return value;
+        }
+        return Character.toUpperCase(value.charAt(0)) + value.substring(1);
     }
 
     private static BigDecimal orZero(BigDecimal value) {

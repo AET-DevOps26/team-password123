@@ -61,7 +61,7 @@ class TestGenAIService:
         response = requests.post(
             f"{BASE_URL}/api/analyze",
             files=files,
-            timeout=30  # Analysis can take time with Ollama
+            timeout=120  # Vision LLM calls can take time (especially free-tier backup)
         )
         
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"

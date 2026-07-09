@@ -10,14 +10,15 @@ import { useProfileStore } from '../../../entities/user/model/profile';
 import { ScanMealButton } from '../../../features/scan-meal';
 import { MealDetailModal } from '../../../features/meal-detail';
 import { StatPill } from '../../../shared/ui/StatPill/StatPill';
-import { IconFlame, IconTarget, IconTrend, IconBolt, IconChevR } from '../../../shared/ui/icons';
+import { IconFlame, IconTarget, IconTrend, IconWater } from '../../../shared/ui/icons';
 import styles from './HomePage.module.css';
 
 interface HomePageProps {
   onScan: () => void;
+  onOpenDiary: () => void;
 }
 
-export function HomePage({ onScan }: HomePageProps) {
+export function HomePage({ onScan, onOpenDiary }: HomePageProps) {
   const entries     = useMealStore((s) => s.entries);
   const setEntries  = useMealStore((s) => s.setEntries);
   const goals       = useProfileStore((s) => s.goals);
@@ -28,6 +29,33 @@ export function HomePage({ onScan }: HomePageProps) {
   const [weeklyAnalytics, setWeeklyAnalytics] = useState<AnalyticsResponse | null>(null);
   const [streak, setStreak] = useState<number | null>(null);
   const [selectedMeal, setSelectedMeal] = useState<MealEntry | null>(null);
+  const [waterIntake, setWaterIntake] = useState(0);
+
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const waterStorageKey = `waterIntake:${todayKey}`;
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(waterStorageKey);
+      setWaterIntake(saved ? Number(saved) || 0 : 0);
+    } catch {
+      setWaterIntake(0);
+    }
+  }, [waterStorageKey]);
+
+  function setWater(next: number) {
+    const clamped = Math.max(0, next);
+    setWaterIntake(clamped);
+    try {
+      localStorage.setItem(waterStorageKey, String(clamped));
+    } catch {
+      /* ignore storage failures */
+    }
+  }
+
+  function adjustWater(delta: number) {
+    setWater(waterIntake + delta);
+  }
 
   const refreshToday = useCallback(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -82,6 +110,8 @@ export function HomePage({ onScan }: HomePageProps) {
     ? (((dailyAnalytics.calorieGoalDelta ?? 0) <= 0) ? 'On track' : 'Over goal')
     : (entries.length > 0 ? 'Logged' : '—');
   const weekAvg = weeklyAnalytics ? Math.round(weeklyAnalytics.calories / 7).toLocaleString() : '—';
+  const waterGoal = goals.water || 2000;
+  const waterPct = Math.min(100, Math.round((waterIntake / waterGoal) * 100));
 
   return (
     <div className={styles.screen}>
@@ -105,18 +135,6 @@ export function HomePage({ onScan }: HomePageProps) {
           </div>
         </section>
 
-        <section className={`${styles.card} ${styles.insightCard}`} onClick={onScan}>
-          <div className={styles.insightIcon}><IconBolt size={20} /></div>
-          <div className={styles.insightBody}>
-            <div className={styles.insightTitle}>Log your dinner in one snap</div>
-            <div className={styles.insightText}>
-              Point your camera at the plate — calorieasy reads the ingredients and
-              estimates calories &amp; macros for you.
-            </div>
-          </div>
-          <span className={styles.insightArrow}><IconChevR size={18} /></span>
-        </section>
-
         <div className={styles.stats}>
           <StatPill icon={<IconFlame size={18} />}  label="day streak" value={streakValue} />
           <StatPill icon={<IconTarget size={18} />} label="goal hit"   value={goalHit} />
@@ -124,15 +142,52 @@ export function HomePage({ onScan }: HomePageProps) {
         </div>
       </div>
 
+      <section className={styles.hydrationCard}>
+        <div className={styles.hydrationHead}>
+          <div className={styles.hydrationIcon}><IconWater size={20} /></div>
+          <div>
+            <div className={styles.hydrationTitle}>Water</div>
+            <div className={styles.hydrationText}>{waterIntake.toLocaleString()} of {waterGoal.toLocaleString()} ml today</div>
+          </div>
+        </div>
+
+        <div className={styles.hydrationBar} aria-label="Water intake progress">
+          <div className={styles.hydrationFill} style={{ width: `${waterPct}%` }} />
+        </div>
+
+        <div className={styles.hydrationActions}>
+          <button className={styles.hydrationBtn} onClick={() => adjustWater(-250)} type="button">-250 ml</button>
+          <button className={styles.hydrationBtnPrimary} onClick={() => adjustWater(250)} type="button">+250 ml</button>
+          <button className={styles.hydrationBtn} onClick={() => adjustWater(500)} type="button">+500 ml</button>
+        </div>
+      </section>
+
       <section className={styles.mealsSection}>
         <div className={styles.sectionHead}>
           <h2 className={styles.sectionTitle}>Today's meals</h2>
           <span className={styles.sectionMeta}>{entries.length} logged</span>
         </div>
         <div className={styles.mealsList}>
-          {entries.map((meal) => (
-            <MealRow key={meal.id} meal={meal} onSelect={setSelectedMeal} />
-          ))}
+          {entries.length > 0 ? (
+            entries.map((meal) => (
+              <MealRow key={meal.id} meal={meal} onSelect={setSelectedMeal} />
+            ))
+          ) : (
+            <div className={styles.emptyMeals}>
+              <div className={styles.emptyTitle}>No meals logged yet</div>
+              <div className={styles.emptyText}>
+                Add your first meal to start tracking calories and macros.
+              </div>
+              <div className={styles.emptyActions}>
+                <button className={styles.emptyAction} onClick={onOpenDiary} type="button">
+                  Add a new meal
+                </button>
+                <button className={styles.emptyLink} onClick={onScan} type="button">
+                  or scan one now
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

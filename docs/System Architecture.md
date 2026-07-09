@@ -21,7 +21,7 @@ Calorieasy is a nutrition tracking platform that uses GenAI to reduce the fricti
 ```
 ┌──────────────────────┐     ┌──────────────────────┐
 │   React Web Client   │     │   iOS SwiftUI App     │
-│  (Vite + TypeScript) │     │  (SwiftData, offline) │
+│  (Vite + TypeScript) │     │  (SwiftData + sync) │
 └────────┬─────────────┘     └──────────────────────┘
          │  JWT  (all API calls)
          ▼
@@ -42,9 +42,8 @@ Calorieasy is a nutrition tracking platform that uses GenAI to reduce the fricti
        │           │  FastAPI     │             │
        │           │  port 8084   │             │
        │           │              │             │
-       │           │  Ollama /    │             │
-       │           │  OpenAI /    │             │
-       │           │  Gemini      │             │
+       │           │  Gemini +    │             │
+       │           │  Nemotron    │             │
        │           └──────┬───────┘             │
        │                  │                     │
        └──────────────────┴─────────────────────┘
@@ -61,25 +60,25 @@ Calorieasy is a nutrition tracking platform that uses GenAI to reduce the fricti
 ## Services
 
 ### auth-service (port 8081)
-Handles user registration, login, and JWT issuance. Uses a shared JWT secret so the other services can verify tokens locally without a round-trip to auth. Stores users and goals in the `auth` schema.
+Handles user registration, login, and JWT issuance. Uses a shared JWT secret so the other services can verify tokens locally without a round-trip to auth. Stores users and profile fields (body metrics, activity, goal kind) in the `auth` schema. Nutrition targets (calories/macros) live in `analytics-service`.
 
 **Key endpoints:** `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/users/me`, `PUT /api/users/me`
 
 ### meals-service (port 8082)
 Manages meal logs. Accepts manual meal entries and photo uploads. When a photo is submitted, the service forwards it to genai-service and stores the result. Uses the `meals` schema.
 
-**Key endpoints:** `GET/POST /api/meals`, `POST /api/meals/analyze` (photo → GenAI), `GET /api/meals/logs`
+**Key endpoints:** `GET/POST /api/meals`, `POST /api/meals/analyze` (photo → GenAI), `POST /api/meals/estimate`
 
 ### analytics-service (port 8083)
-Provides daily and weekly nutrition summaries, goal progress, and streak calculations. Calls meals-service internally (with bearer token forwarding) to aggregate meal data. Uses the `analytics` schema.
+Provides daily and weekly nutrition summaries, goal progress, streak calculations, and RAG health insights. Calls meals-service internally (with bearer token forwarding) to aggregate meal data; calls genai-service for `/api/insight`. Uses the `analytics` schema.
 
-**Key endpoints:** `GET /api/analytics/daily`, `GET /api/analytics/weekly`, `GET /api/goals`, `POST /api/goals`
+**Key endpoints:** `GET /api/analytics/daily`, `GET /api/analytics/weekly`, `GET /api/analytics/insight`, `GET /api/goals`, `PUT /api/goals`
 
 ### genai-service (port 8084)
-Python FastAPI microservice that powers photo-based meal analysis. It accepts an image, sends it to a configurable vision LLM, parses the structured food-item response, and resolves nutritional data from the USDA FDC API (with a local fallback cache). Returns calories, protein, carbs, fat, fiber, and a confidence score.
+Python FastAPI microservice that powers photo-based meal analysis, food-name estimation, and RAG health insights. It accepts an image or food name, sends it to a configurable vision/text LLM, parses the structured response, and resolves nutritional data from the USDA FDC API (with a local fallback cache). Returns calories, protein, carbs, fat, fiber, and a confidence score.
 
-**Supported LLM providers:** Ollama (local, default for dev), OpenAI GPT-4o Vision, Google Gemini  
-**Key endpoints:** `POST /api/analyze` (file upload), `POST /api/analyze/base64`, `POST /api/analyze/compare`
+**Supported LLM providers:** Google Gemini (primary vision), OpenRouter Nemotron (backup vision), AET Logos gpt-oss-120b (text estimate + RAG)  
+**Key endpoints:** `POST /api/analyze`, `POST /api/analyze/base64`, `POST /api/estimate`, `POST /api/insight`
 
 ## Database
 
@@ -103,11 +102,11 @@ src/
 └── shared/     API client, config flags, reusable UI primitives
 ```
 
-State is managed via Zustand stores. The app includes a mock mode (`VITE_MOCK_MODE`) that intercepts API calls with realistic fixtures, enabling frontend development and e2e testing without a running backend.
+State is managed via Zustand stores. Playwright e2e tests mock API responses so frontend flows can run without a live backend.
 
 ## iOS App
 
-SwiftUI prototype using SwiftData for fully offline persistence. Covers all screens (Today, Log, Analytics, History, Profile) and a home screen widget via WidgetKit. Networking to the REST API is planned for a future sprint.
+SwiftUI client using SwiftData as an offline cache with backend sync (`SyncService`) for auth, meals, goals, and GenAI photo analysis. Water tracking and the home-screen widget remain local-only. Generated via xcodegen (`project.yml`).
 
 ## Deployment
 

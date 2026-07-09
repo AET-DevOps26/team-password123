@@ -1,12 +1,12 @@
 # Meals Service
 
-Manual meal logging and photo-log placeholders.
+Manual meal logging, photo analysis, and food-name estimation.
 
 - **Port**: 8082
 - **DB schema**: `meals` (tables: `meal_logs`, `meal_items`, `photo_logs`)
 - **Auth**: validates JWTs issued by `auth-service` using the shared `APP_JWT_SECRET`. Does not own users.
 
-Photo uploads via `POST /api/meals/analyze` are routed to the genai-service vision endpoint (configured by `GENAI_SERVICE_URL`). In production, the genai-service uses Google Gemini via its OpenAI-compatible endpoint. Photo logs without analysis can be converted to manual meals via `POST /api/meals/photo/{id}/convert-manual`.
+Photo uploads via `POST /api/meals/analyze` are routed to genai-service when `APP_GENAI_BASE_URL` / `GENAI_SERVICE_URL` is set (Helm/k8s). Otherwise a deterministic placeholder analyzer is used for local dev. Photo logs without analysis can be converted to manual meals via `POST /api/meals/photo/{id}/convert-manual`.
 
 ## Endpoints
 
@@ -17,8 +17,9 @@ Photo uploads via `POST /api/meals/analyze` are routed to the genai-service visi
 | GET | `/api/meals/{id}` | Get a meal |
 | PUT | `/api/meals/{id}` | Update a meal |
 | DELETE | `/api/meals/{id}` | Delete a meal |
-| POST | `/api/meals/photo` | Upload a photo (placeholder until GenAI lands) |
-| POST | `/api/meals/analyze` | Upload a photo, estimate the dish + macros, and log the meal (deterministic placeholder analyzer until GenAI lands) |
+| POST | `/api/meals/photo` | Upload a photo (stores file; no AI analysis) |
+| POST | `/api/meals/analyze` | Upload a photo, run GenAI analyzer, and log the meal |
+| POST | `/api/meals/estimate` | Estimate per-100g nutrition for a food name (via genai) |
 | GET | `/api/meals/photo/{id}/raw` | Stream a stored photo image (owner only) |
 | POST | `/api/meals/photo/{id}/convert-manual` | Attach manual macros to a photo log |
 
@@ -32,4 +33,4 @@ Swagger UI: <http://localhost:8082/swagger-ui.html>
 mvn spring-boot:run
 ```
 
-Requires Postgres running with the `meals` schema. Set `APP_JWT_SECRET` to the same value as `auth-service`.
+Requires Postgres running with the `meals` schema. Set `APP_JWT_SECRET` to the same value as `auth-service`. Set `APP_GENAI_BASE_URL=http://localhost:8084` to use the real GenAI analyzer locally.

@@ -3,7 +3,6 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 22px 24px;
-  margin-bottom: 16px;
 }
 
 .title {

@@ -26,9 +26,9 @@ RUN python -c "from fastembed import TextEmbedding; TextEmbedding('BAAI/bge-smal
 EXPOSE 8084
 
 # Environment defaults (override in docker-compose.yml or .env)
-ENV LLM_PROVIDER=ollama \
-    OLLAMA_BASE_URL=http://ollama:11434 \
-    OLLAMA_MODEL=llava \
+ENV LLM_PROVIDER=openai \
+    OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/ \
+    OPENAI_MODEL=gemini-3.1-flash-lite \
     NUTRITION_DATA_PROVIDER=usda \
     PORT=8084 \
     DEBUG=false

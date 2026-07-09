@@ -105,13 +105,13 @@ def test_lookup_food_nutrition_returns_none_for_unknown_food():
 
 def test_compare_providers_returns_calorie_difference(monkeypatch):
     analyzer = NutritionAnalyzer.__new__(NutritionAnalyzer)
-    analyzer.provider = "ollama"
+    analyzer.provider = "openai"
     analyzer.nutrition_db = NutritionAnalyzer._load_nutrition_db()
     analyzer.fallback_llm = None
     analyzer.llm = None
 
     responses = {
-        "ollama": '{"foods": [{"food": "chicken", "grams": 100}], "confidence": 0.9}',
+        "openai": '{"foods": [{"food": "chicken", "grams": 100}], "confidence": 0.9}',
         "google": '{"foods": [{"food": "rice", "grams": 100}], "confidence": 0.8}',
     }
 
@@ -138,7 +138,7 @@ def test_compare_providers_returns_calorie_difference(monkeypatch):
 
     comparison = analyzer.compare_providers(image_base64)
 
-    assert comparison.primary.provider == "ollama"
+    assert comparison.primary.provider == "openai"
     assert comparison.secondary.provider == "google"
     assert comparison.primary.calories == 165
     assert comparison.secondary.calories == 130
@@ -162,7 +162,7 @@ class _RaisingLLM:
 
 def test_analyze_unconfigured_provider_reports_key_not_fallback_error():
     """When the configured provider never initialized (e.g. empty OPENAI_API_KEY),
-    the dead ollama fallback's connection error must NOT mask the real cause."""
+    the dead backup fallback's connection error must NOT mask the real cause."""
     analyzer = NutritionAnalyzer.__new__(NutritionAnalyzer)
     analyzer.provider = "openai"
     analyzer.llm = None  # provider failed to build — no API key
@@ -174,6 +174,87 @@ def test_analyze_unconfigured_provider_reports_key_not_fallback_error():
     msg = str(exc_info.value)
     assert "OPENAI_API_KEY" in msg
     assert "Name or service not known" not in msg
+
+
+def test_parse_response_drops_placeholder_item():
+    analyzer = NutritionAnalyzer.__new__(NutritionAnalyzer)
+    foods, conf = analyzer._parse_response(
+        '{"foods": [{"food": "item", "grams": 100}, {"food": "chicken", "grams": 150}], "confidence": 0.9}'
+    )
+    assert len(foods) == 1
+    assert foods[0]["food"] == "chicken"
+    assert conf == 0.9
+
+
+def test_parse_response_boosts_confidence_when_foods_found_but_low():
+    analyzer = NutritionAnalyzer.__new__(NutritionAnalyzer)
+    foods, conf = analyzer._parse_response(
+        '{"foods": [{"food": "pizza", "grams": 120}]}'
+    )
+    assert foods[0]["food"] == "pizza"
+    assert conf == 0.6
+
+
+def test_parse_response_accepts_string_food_list():
+    analyzer = NutritionAnalyzer.__new__(NutritionAnalyzer)
+    foods, conf = analyzer._parse_response(
+        '{"foods": ["oatmeal", "blueberries", "banana"], "confidence": 0.8}'
+    )
+    names = [f["food"] for f in foods]
+    assert "oatmeal" in names
+    assert len(foods) >= 2
+    assert conf == 0.8
+
+
+def test_parse_response_salvages_foods_from_reasoning_prose():
+    analyzer = NutritionAnalyzer.__new__(NutritionAnalyzer)
+    raw = (
+        'Let me analyze... {"foods": [], "confidence": 0.1} '
+        'but I see {"food": "oatmeal", "grams": 200} and {"food": "banana", "grams": 80}'
+    )
+    foods, _conf = analyzer._parse_response(raw)
+    names = [f["food"] for f in foods]
+    assert "oatmeal" in names or "banana" in names
+
+
+def test_parse_response_salvages_foods_from_pure_reasoning_prose():
+    analyzer = NutritionAnalyzer.__new__(NutritionAnalyzer)
+    raw = (
+        "So, let's look at the burger. The visible edible items are:\n"
+        "- Sesame seed bun (top and bottom)\n"
+        "- Beef patty\n"
+        "- Cheese (melted)\n"
+        "- Red onion slices\n"
+        "1. Sesame bun: 100g (typical burger bun weight)\n"
+        "2. Beef patty: 120g (standard size)\n"
+    )
+    foods, conf = analyzer._parse_response(raw)
+    names = [f["food"].lower() for f in foods]
+    assert any("patty" in n or "beef" in n for n in names)
+    assert conf >= 0.5
+
+
+def test_combine_two_foods_if_pair_merges_name_and_portions():
+    merged = NutritionAnalyzer._combine_two_foods_if_pair(
+        [{"food": "chicken", "grams": 150}, {"food": "broccoli", "grams": 80}]
+    )
+    assert len(merged) == 1
+    assert merged[0]["food"] == "chicken and broccoli"
+    assert merged[0]["grams"] == 230
+
+
+def test_combine_two_foods_if_pair_leaves_other_counts_unchanged():
+    items = [{"food": "pizza", "grams": 120}]
+    assert NutritionAnalyzer._combine_two_foods_if_pair(items) == items
+
+    items = [{"food": "a", "grams": 50}, {"food": "b", "grams": 40}, {"food": "c", "grams": 30}]
+    assert NutritionAnalyzer._combine_two_foods_if_pair(items) == items
+
+
+def test_build_prompt_discourages_empty_and_placeholders():
+    prompt = NutritionAnalyzer._build_prompt()
+    assert "Do NOT use placeholder" in prompt
+    assert "never return an empty foods list" in prompt
 
 
 def test_analyze_surfaces_primary_error_over_fallback():

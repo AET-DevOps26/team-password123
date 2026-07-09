@@ -77,6 +77,7 @@ jobs:
             --set postgres.password="${{ secrets.POSTGRES_PASSWORD }}" \
             --set monitoring.grafana.adminPassword="${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
             --set genai.openaiApiKey="${{ secrets.GEMINI_API_KEY }}" \
+            --set genai.backupOpenaiApiKey="${{ secrets.OPENROUTER_API_KEY }}" \
             --set genai.textOpenaiBaseUrl="${{ secrets.LOGOS_BASE_URL }}" \
             --set genai.textOpenaiModel="${{ vars.LOGOS_MODEL || 'openai/gpt-oss-120b' }}" \
             --set genai.textOpenaiApiKey="${{ secrets.LOGOS_API_KEY }}" \

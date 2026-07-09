@@ -42,9 +42,14 @@ Secrets / vars (repo → Settings → Secrets and variables → Actions):
 |------|------|---------|
 | `KUBECONFIG_B64` | secret | `base64 -w0 ~/.kube/config` of the `stud` kubeconfig |
 | `GHCR_PULL_TOKEN` | secret | token with `read:packages` for the pull secret |
-| `LOGOS_BASE_URL` | secret | AET Logos OpenAI-compatible endpoint |
+| `LOGOS_BASE_URL` | secret | AET Logos OpenAI-compatible endpoint (text LLM + insights) |
 | `LOGOS_API_KEY` | secret | Logos API key |
-| `LOGOS_MODEL` | var | model name (default `gpt-4o`) |
+| `GEMINI_API_KEY` | secret | Google AI Studio key → genai primary vision (Gemini) |
+| `OPENROUTER_API_KEY` | secret | OpenRouter key → genai backup vision (Nemotron) |
+| `APP_JWT_SECRET` | secret | Shared JWT signing key |
+| `POSTGRES_PASSWORD` | secret | Postgres password |
+| `GRAFANA_ADMIN_PASSWORD` | secret | Grafana admin login |
+| `LOGOS_MODEL` | var | Text LLM model name (default `openai/gpt-oss-120b`) |
 
 ## Azure VM
 

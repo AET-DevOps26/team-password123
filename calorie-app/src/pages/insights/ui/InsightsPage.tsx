@@ -626,31 +626,32 @@ export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
         />
       </div>
 
-      {/* ── RAG health insight ── */}
-      <HealthInsightCard />
-
       {/* ── Charts grid ── */}
       <div className={styles.grid}>
+        <section className={styles.analysisStack}>
+          <HealthInsightCard />
+
         {/* Bar chart */}
-        <section className={`${styles.card} ${styles.wide}`}>
-          <div className={styles.sectionHead}>
-            <div>
-              <h2 className={styles.h2}>{chartTitle}</h2>
-              <span className={styles.muted}>{chartHint}</span>
+          <section className={`${styles.card} ${styles.wide}`}>
+            <div className={styles.sectionHead}>
+              <div>
+                <h2 className={styles.h2}>{chartTitle}</h2>
+                <span className={styles.muted}>{chartHint}</span>
+              </div>
+              <div className={styles.periodNav}>
+                <button className={styles.navBtn} onClick={goPrev}
+                  disabled={!canPrev(range, weekStart, monthDate, yearNum)}>
+                  <ChevLeft />
+                </button>
+                <span className={styles.periodLabel}>{label}</span>
+                <button className={styles.navBtn} onClick={goNext}
+                  disabled={!canNext(range, weekStart, monthDate, yearNum)}>
+                  <ChevRight />
+                </button>
+              </div>
             </div>
-            <div className={styles.periodNav}>
-              <button className={styles.navBtn} onClick={goPrev}
-                disabled={!canPrev(range, weekStart, monthDate, yearNum)}>
-                <ChevLeft />
-              </button>
-              <span className={styles.periodLabel}>{label}</span>
-              <button className={styles.navBtn} onClick={goNext}
-                disabled={!canNext(range, weekStart, monthDate, yearNum)}>
-                <ChevRight />
-              </button>
-            </div>
-          </div>
-          <BarChart bars={bars} goal={calGoal} onClickBar={handleBarClick} />
+            <BarChart bars={bars} goal={calGoal} onClickBar={handleBarClick} />
+          </section>
         </section>
 
         {/* Macro donut */}

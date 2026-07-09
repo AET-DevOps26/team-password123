@@ -61,7 +61,9 @@ public class GenAiMealAnalyzer implements MealAnalyzer {
                 orZero(nutrition.protein()),
                 orZero(nutrition.carbs()),
                 orZero(nutrition.fat()),
-                nutrition.confidence() == null ? 0.0 : nutrition.confidence().doubleValue()
+                nutrition.confidence() == null ? 0.0 : nutrition.confidence().doubleValue(),
+                nutrition.visionModel(),
+                orZero(nutrition.portionGrams())
         );
     }
 
@@ -129,7 +131,9 @@ public class GenAiMealAnalyzer implements MealAnalyzer {
             @JsonProperty("carbs_grams") BigDecimal carbs,
             @JsonProperty("fat_grams") BigDecimal fat,
             @JsonProperty("fiber_grams") BigDecimal fiber,
-            BigDecimal confidence
+            BigDecimal confidence,
+            @JsonProperty("vision_model") String visionModel,
+            @JsonProperty("portion_grams") BigDecimal portionGrams
     ) {
     }
 }

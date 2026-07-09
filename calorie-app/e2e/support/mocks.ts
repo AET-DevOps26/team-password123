@@ -153,6 +153,8 @@ export function buildAnalysis(
       imageUrl: '',
       nutrition: { calories: 420, protein: 35, fat: 26, carbs: 12 },
       confidence: 0.87,
+      visionModel: 'Gemini',
+      portionGrams: 320,
       analyzedAt: '2026-06-10T12:00:00',
       ...meal,
     },

@@ -37,7 +37,9 @@ public class HeuristicMealAnalyzer implements MealAnalyzer {
                 dish.protein(),
                 dish.carbs(),
                 dish.fat(),
-                deriveConfidence(positive)
+                deriveConfidence(positive),
+                null,
+                BigDecimal.valueOf(300)
         );
     }
 

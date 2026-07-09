@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Modal } from '../../../../shared/ui/Modal/Modal';
 import { MacroBar } from '../../../../entities/nutrition';
 import { ScanProgress } from '../ScanProgress/ScanProgress';
@@ -36,7 +36,7 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
     await scan.addToDiary();
     const kcal =
       scan.stage === 'result'
-        ? (scan.result?.nutrition.calories ?? 0)
+        ? (scan.scaledNutrition?.calories ?? 0)
         : parseInt(scan.manualForm.calories, 10) || 0;
     onAdded(kcal);
   }
@@ -56,7 +56,7 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
           {SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
         <button className={`${styles.btn} ${styles.primary} ${styles.grow}`} onClick={handleAdd}>
-          <CheckIcon /> Add {scan.result?.nutrition.calories ?? 0} kcal to diary
+          <CheckIcon /> Add {scan.scaledNutrition?.calories ?? scan.result?.nutrition.calories ?? 0} kcal to diary
         </button>
       </>
     ) : scan.stage === 'manual_required' ? (
@@ -112,7 +112,10 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
         {scan.stage === 'result' && scan.result && (
           <div className={styles.resultTag}>
             <span className={styles.tagName}>{scan.result.dishName}</span>
-            <span className={styles.tagConf}>{Math.round(scan.result.confidence * 100)}% match</span>
+            <span className={styles.tagMeta}>
+              {Math.round(scan.result.confidence * 100)}% match
+              {scan.result.visionModel ? ` · ${scan.result.visionModel}` : ''}
+            </span>
           </div>
         )}
 
@@ -163,18 +166,22 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
         <ScanProgress onDone={() => { /* handled inside useScanMeal */ }} />
       )}
 
-      {scan.stage === 'result' && scan.result && (
+      {scan.stage === 'result' && scan.result && scan.scaledNutrition && (
         <div className={styles.result}>
           <div className={styles.resultSummary}>
             <div className={styles.kcalBlock}>
-              <span className={styles.kcalNum}>{scan.result.nutrition.calories}</span>
-              <span className={styles.kcalLabel}>kcal · 1 portion</span>
+              <span className={styles.kcalNum}>{scan.scaledNutrition.calories}</span>
+              <span className={styles.kcalLabel}>kcal</span>
             </div>
+            <PortionControl
+              grams={scan.portionGrams}
+              onChange={scan.setPortionGrams}
+            />
           </div>
           <div className={styles.macros}>
-            <MacroBar label="Protein" value={scan.result.nutrition.protein} goal={120} color="var(--protein)" />
-            <MacroBar label="Carbs"   value={scan.result.nutrition.carbs}   goal={220} color="var(--carbs)" />
-            <MacroBar label="Fat"     value={scan.result.nutrition.fat}     goal={65}  color="var(--fat)" />
+            <MacroBar label="Protein" value={scan.scaledNutrition.protein} goal={120} color="var(--protein)" />
+            <MacroBar label="Carbs"   value={scan.scaledNutrition.carbs}   goal={220} color="var(--carbs)" />
+            <MacroBar label="Fat"     value={scan.scaledNutrition.fat}     goal={65}  color="var(--fat)" />
           </div>
         </div>
       )}
@@ -237,6 +244,54 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
 }
 
 /* ── Inline icons ── */
+function PortionControl({ grams, onChange }: { grams: number; onChange: (g: number) => void }) {
+  const [raw, setRaw] = useState(String(grams));
+  useEffect(() => { setRaw(String(grams)); }, [grams]);
+
+  function commit(value: string) {
+    const n = parseInt(value, 10);
+    const clamped = Number.isNaN(n) ? grams : Math.min(9999, Math.max(1, n));
+    onChange(clamped);
+    setRaw(String(clamped));
+  }
+
+  return (
+    <div className={styles.portionControl}>
+      <span className={styles.portionLabel}>Portion</span>
+      <div className={styles.portionInput}>
+        <button
+          type="button"
+          className={styles.portionStep}
+          onClick={() => onChange(Math.max(1, grams - 10))}
+          aria-label="Decrease portion"
+        >
+          −
+        </button>
+        <input
+          className={styles.portionField}
+          type="number"
+          min={1}
+          max={9999}
+          value={raw}
+          onChange={(e) => setRaw(e.target.value)}
+          onBlur={() => commit(raw)}
+          onKeyDown={(e) => { if (e.key === 'Enter') commit(raw); }}
+          aria-label="Portion size in grams"
+        />
+        <span className={styles.portionUnit}>g</span>
+        <button
+          type="button"
+          className={styles.portionStep}
+          onClick={() => onChange(Math.min(9999, grams + 10))}
+          aria-label="Increase portion"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function CameraIcon() {
   return (
     <svg width={36} height={36} viewBox="0 0 24 24" fill="none"

@@ -9,6 +9,8 @@ public record AnalyzedMeal(
         String imageUrl,
         NutritionSummary nutrition,
         double confidence,
+        String visionModel,
+        double portionGrams,
         OffsetDateTime analyzedAt
 ) {
 }

@@ -114,6 +114,7 @@ def test_analyze_uses_gemini_primary_without_calling_backup():
     assert backup.calls == 0
     assert any("pizza" in food.lower() for food in result.foods)
     assert result.calories > 0
+    assert result.vision_model == NutritionAnalyzer._vision_model_label(primary=True)
 
 
 def test_analyze_falls_back_to_nemotron_when_gemini_fails():
@@ -128,6 +129,7 @@ def test_analyze_falls_back_to_nemotron_when_gemini_fails():
     foods_text = " ".join(result.foods).lower()
     assert "chicken" in foods_text or "broccoli" in foods_text
     assert result.calories > 0
+    assert result.vision_model == NutritionAnalyzer._vision_model_label(primary=False)
 
 
 def test_gemini_failure_surfaces_when_backup_unreachable():

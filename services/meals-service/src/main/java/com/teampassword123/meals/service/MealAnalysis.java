@@ -8,6 +8,8 @@ public record MealAnalysis(
         BigDecimal protein,
         BigDecimal carbs,
         BigDecimal fat,
-        double confidence
+        double confidence,
+        String visionModel,
+        BigDecimal portionGrams
 ) {
 }

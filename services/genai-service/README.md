@@ -38,7 +38,9 @@ Multi-modal LLM-powered food image recognition and nutritional inference microse
   "carbs_grams": 12.0,
   "fat_grams": 9.0,
   "fiber_grams": 4.5,
-  "confidence": 0.87
+  "confidence": 0.87,
+  "vision_model": "Gemini",
+  "portion_grams": 320.0
 }
 ```
 

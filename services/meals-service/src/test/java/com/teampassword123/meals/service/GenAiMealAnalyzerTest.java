@@ -18,7 +18,9 @@ class GenAiMealAnalyzerTest {
                 new BigDecimal("49.5"),
                 new BigDecimal("15.0"),
                 new BigDecimal("3.75"),
-                new BigDecimal("0.95")
+                new BigDecimal("0.95"),
+                "Gemini",
+                new BigDecimal("120")
         );
 
         MealAnalysis analysis = GenAiMealAnalyzer.toMealAnalysis(nutrition);
@@ -29,6 +31,7 @@ class GenAiMealAnalyzerTest {
         assertThat(analysis.carbs()).isEqualByComparingTo("49.5");
         assertThat(analysis.fat()).isEqualByComparingTo("15.0");
         assertThat(analysis.confidence()).isEqualTo(0.95);
+        assertThat(analysis.visionModel()).isEqualTo("Gemini");
     }
 
     @Test
@@ -40,7 +43,9 @@ class GenAiMealAnalyzerTest {
                 new BigDecimal("10.0"),
                 new BigDecimal("10.0"),
                 new BigDecimal("2.6"),
-                new BigDecimal("0.9")
+                new BigDecimal("0.9"),
+                "Nemotron",
+                new BigDecimal("230")
         );
 
         MealAnalysis analysis = GenAiMealAnalyzer.toMealAnalysis(nutrition);
@@ -50,7 +55,7 @@ class GenAiMealAnalyzerTest {
 
     @Test
     void fallsBackToPlaceholdersWhenFieldsMissing() {
-        GenAiNutrition nutrition = new GenAiNutrition(List.of(), null, null, null, null, null, null);
+        GenAiNutrition nutrition = new GenAiNutrition(List.of(), null, null, null, null, null, null, null, null);
 
         MealAnalysis analysis = GenAiMealAnalyzer.toMealAnalysis(nutrition);
 

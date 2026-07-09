@@ -194,6 +194,8 @@ public class MealService {
                         analysis.fat()
                 ),
                 analysis.confidence(),
+                analysis.visionModel(),
+                analysis.portionGrams() == null ? 0.0 : analysis.portionGrams().doubleValue(),
                 photo.getAnalyzedAt()
         );
         return new MealAnalysisResponse(analyzedMeal, "Analysis complete");
@@ -251,8 +253,8 @@ public class MealService {
     private MealLog buildAnalyzedMeal(UUID userId, MealAnalysis analysis, OffsetDateTime loggedAt) {
         MealItem item = new MealItem();
         item.setName(analysis.dishName());
-        item.setQuantity(BigDecimal.ONE);
-        item.setUnit("serving");
+        item.setQuantity(analysis.portionGrams() == null ? BigDecimal.ONE : analysis.portionGrams());
+        item.setUnit("g");
         item.setCalories(analysis.calories());
         item.setProteinGrams(analysis.protein());
         item.setCarbsGrams(analysis.carbs());

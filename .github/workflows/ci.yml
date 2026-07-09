@@ -152,17 +152,17 @@ jobs:
       # Headless unit tests for the critical nutrition + RAG logic: curated-DB
       # lookup, name-based portion estimation, and the health-insight retrieve→
       # augment→generate path. They mock the LLM/Weaviate/embedder, so no API
-      # keys, model downloads or a live :8084 are needed. Nemotron integration
-      # tests (test_nemotron_integration.py) self-skip without OPENROUTER_API_KEY.
+      # keys, model downloads or a live :8084 are needed. Vision fallback unit
+      # tests (test_vision_fallback.py) mock Gemini primary + Nemotron backup.
       # test_smoke / test_image_expectations self-skip without a running service.
       - name: Unit tests
-        run: pytest tests/test_estimate.py tests/test_nutrition_lookup.py tests/test_insight.py -v
+        run: pytest tests/test_estimate.py tests/test_nutrition_lookup.py tests/test_insight.py tests/test_vision_fallback.py -v -m "not integration"
 
-      - name: Nemotron integration tests
+      - name: Backup vision smoke (OpenRouter)
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           BACKUP_OPENAI_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        run: pytest tests/test_nemotron_integration.py -v -m integration
+        run: pytest tests/test_vision_fallback.py -v -m "integration and backup"
 
   secret-scan:
     name: Secret scan (gitleaks)

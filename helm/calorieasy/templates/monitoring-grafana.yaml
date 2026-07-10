@@ -18,6 +18,20 @@ data:
         access: proxy
         url: http://prometheus:9090
         isDefault: true
+      {{- if .Values.monitoring.loki.enabled }}
+      - name: Loki
+        uid: loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+      {{- end }}
+      {{- if .Values.tracing.enabled }}
+      - name: Tempo
+        uid: tempo
+        type: tempo
+        access: proxy
+        url: http://tempo:3200
+      {{- end }}
   dashboards.yml: |
     apiVersion: 1
     providers:

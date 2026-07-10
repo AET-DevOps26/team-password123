@@ -50,6 +50,12 @@ spec:
                   key: APP_JWT_SECRET
             - name: APP_JWT_EXPIRATION
               value: {{ .Values.jwt.expiration | quote }}
+            {{- if .Values.tracing.enabled }}
+            - name: MANAGEMENT_TRACING_ENABLED
+              value: "true"
+            - name: MANAGEMENT_OTLP_TRACING_ENDPOINT
+              value: {{ .Values.tracing.otlpEndpoint | quote }}
+            {{- end }}
           startupProbe:
             httpGet: { path: /actuator/health, port: 8081 }
             failureThreshold: 30

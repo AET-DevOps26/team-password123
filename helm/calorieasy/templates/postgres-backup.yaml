@@ -1,0 +1,74 @@
+{{- if .Values.postgres.backup.enabled }}
+# Scheduled logical backups of Postgres: a CronJob runs pg_dump into a dedicated
+# PVC and prunes dumps older than retentionDays. Opt-in via postgres.backup.enabled.
+# Restore: docs/runbooks/restore.md.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-backup
+  labels:
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  accessModes: ["ReadWriteOnce"]
+  {{- if .Values.postgres.backup.storageClass }}
+  storageClassName: {{ .Values.postgres.backup.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.postgres.backup.storageSize | quote }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  labels:
+    app: postgres-backup
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.postgres.backup.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: postgres-backup
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: pg-dump
+              image: {{ .Values.postgres.image }}
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eu
+                  ts=$(date +%Y%m%d-%H%M%S)
+                  out="/backup/nutrition-${ts}.sql.gz"
+                  echo "Dumping ${POSTGRES_DB} to ${out}"
+                  pg_dump -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DB" | gzip > "$out"
+                  echo "Pruning dumps older than {{ .Values.postgres.backup.retentionDays }} day(s)"
+                  find /backup -name 'nutrition-*.sql.gz' -mtime +{{ .Values.postgres.backup.retentionDays }} -delete
+                  ls -lh /backup
+              env:
+                - name: POSTGRES_DB
+                  value: {{ .Values.postgres.db | quote }}
+                - name: POSTGRES_USER
+                  value: {{ .Values.postgres.user | quote }}
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "calorieasy.secretName" . }}
+                      key: POSTGRES_PASSWORD
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+              resources:
+                {{- toYaml .Values.postgres.backup.resources | nindent 16 }}
+          volumes:
+            - name: backup
+              persistentVolumeClaim:
+                claimName: postgres-backup
+{{- end }}

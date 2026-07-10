@@ -60,3 +60,7 @@ jobs:
             ghcr.io/${{ steps.repo.outputs.name }}/${{ matrix.name }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Supply-chain attestations attached to each GHCR image: an SBOM of the
+          # image contents and SLSA build provenance.
+          sbom: true
+          provenance: mode=max

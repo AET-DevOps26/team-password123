@@ -76,6 +76,12 @@ spec:
             - name: APP_GENAI_BASE_URL
               value: {{ .Values.meals.genaiUrl | quote }}
             {{- end }}
+            {{- if .Values.tracing.enabled }}
+            - name: MANAGEMENT_TRACING_ENABLED
+              value: "true"
+            - name: MANAGEMENT_OTLP_TRACING_ENDPOINT
+              value: {{ .Values.tracing.otlpEndpoint | quote }}
+            {{- end }}
           volumeMounts:
             - name: uploads
               mountPath: /app/uploads

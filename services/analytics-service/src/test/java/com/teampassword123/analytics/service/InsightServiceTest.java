@@ -15,6 +15,7 @@ import com.teampassword123.analytics.dto.GenAiInsightResponse;
 import com.teampassword123.analytics.dto.InsightResponse;
 import com.teampassword123.analytics.dto.MealItemSummary;
 import com.teampassword123.analytics.dto.MealSummary;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -22,10 +23,10 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -39,7 +40,12 @@ class InsightServiceTest {
 
   @Mock private GenAiInsightClient genAiInsightClient;
 
-  @InjectMocks private InsightService service;
+  private InsightService service;
+
+  @BeforeEach
+  void setUp() {
+    service = new InsightService(mealsClient, genAiInsightClient, new SimpleMeterRegistry());
+  }
 
   private static MealItemSummary item(String name, double grams) {
     return new MealItemSummary(name, BigDecimal.valueOf(grams));

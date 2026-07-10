@@ -9,6 +9,8 @@ import com.teampassword123.analytics.dto.GenAiInsightResponse;
 import com.teampassword123.analytics.dto.InsightResponse;
 import com.teampassword123.analytics.dto.MealItemSummary;
 import com.teampassword123.analytics.dto.MealSummary;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -34,13 +36,31 @@ public class InsightService {
 
   private final MealsClient mealsClient;
   private final GenAiInsightClient genAiInsightClient;
+  private final MeterRegistry metrics;
 
-  public InsightService(MealsClient mealsClient, GenAiInsightClient genAiInsightClient) {
+  public InsightService(
+      MealsClient mealsClient, GenAiInsightClient genAiInsightClient, MeterRegistry metrics) {
     this.mealsClient = mealsClient;
     this.genAiInsightClient = genAiInsightClient;
+    this.metrics = metrics;
   }
 
+  // Times the whole retrieve->genai insight path and tags each sample with the
+  // outcome, so calorieasy_analytics_insight_duration_seconds{result=...} yields
+  // both latency and per-outcome throughput for the business dashboard.
   public InsightResponse getInsight(UUID userId, String bearerToken, String window) {
+    Timer.Sample sample = Timer.start(metrics);
+    String result = RESULT_UNAVAILABLE;
+    try {
+      InsightResponse response = computeInsight(userId, bearerToken, window);
+      result = response.result() == null ? RESULT_UNAVAILABLE : response.result();
+      return response;
+    } finally {
+      sample.stop(metrics.timer("calorieasy.analytics.insight.duration", "result", result));
+    }
+  }
+
+  private InsightResponse computeInsight(UUID userId, String bearerToken, String window) {
     String normalizedWindow =
         (window == null || window.isBlank()) ? DEFAULT_WINDOW : window.toLowerCase(Locale.ROOT);
 

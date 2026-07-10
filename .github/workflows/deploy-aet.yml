@@ -81,7 +81,10 @@ jobs:
             --set genai.textOpenaiBaseUrl="${{ secrets.LOGOS_BASE_URL }}" \
             --set genai.textOpenaiModel="${{ vars.LOGOS_MODEL || 'openai/gpt-oss-120b' }}" \
             --set genai.textOpenaiApiKey="${{ secrets.LOGOS_API_KEY }}" \
-            --wait --timeout 8m
+            --atomic --timeout 8m
+          # --atomic implies --wait and auto-rolls-back to the last good release if
+          # the rollout fails within the timeout, so a broken deploy self-heals
+          # instead of leaving half-updated pods.
 
       - name: Show rollout
         run: kubectl get pods -n team-password123

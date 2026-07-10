@@ -18,6 +18,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_client import Counter, Histogram, Summary
 import base64
 import logging
+import os
 import time
 from datetime import datetime, timezone
 
@@ -49,6 +50,35 @@ app = FastAPI(
 
 # Expose Prometheus metrics at /metrics for scraping.
 Instrumentator().instrument(app).expose(app)
+
+
+def _setup_tracing(fastapi_app: FastAPI) -> None:
+    """Export FastAPI request spans over OTLP when OTEL_EXPORTER_OTLP_ENDPOINT is
+    set, so genai appears in the cross-service trace (analytics -> genai). A no-op
+    when unset, so local dev and unit tests emit no spans and need no collector."""
+    if not os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT"):
+        return
+    try:
+        from opentelemetry import trace
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+        from opentelemetry.sdk.resources import Resource
+        from opentelemetry.sdk.trace import TracerProvider
+        from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+        resource = Resource.create(
+            {"service.name": os.getenv("OTEL_SERVICE_NAME", "genai-service")}
+        )
+        provider = TracerProvider(resource=resource)
+        provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+        trace.set_tracer_provider(provider)
+        FastAPIInstrumentor.instrument_app(fastapi_app)
+        logger.info("Tracing enabled -> %s", os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT"))
+    except Exception as exc:  # never let tracing setup break the app
+        logger.warning("Tracing setup skipped: %s", exc)
+
+
+_setup_tracing(app)
 
 # Custom business metrics — these live alongside the HTTP metrics above and
 # capture signal the request metrics can't (which provider answered, success vs

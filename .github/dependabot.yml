@@ -1,0 +1,54 @@
+# Automated dependency-update PRs. Weekly per ecosystem; capped so it never floods
+# the queue. Java/pip/npm track library CVEs; docker tracks base-image updates;
+# github-actions keeps the pinned action versions fresh.
+version: 2
+updates:
+  # --- Java services (Maven) ---
+  - package-ecosystem: maven
+    directory: /services/auth-service
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: maven
+    directory: /services/meals-service
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: maven
+    directory: /services/analytics-service
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # --- GenAI service (pip) ---
+  - package-ecosystem: pip
+    directory: /services/genai-service
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # --- Web client (npm) ---
+  - package-ecosystem: npm
+    directory: /calorie-app
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # --- Container base images (one entry per Dockerfile location) ---
+  - package-ecosystem: docker
+    directories:
+      - /services/auth-service
+      - /services/meals-service
+      - /services/analytics-service
+      - /services/genai-service
+      - /calorie-app
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # --- GitHub Actions ---
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

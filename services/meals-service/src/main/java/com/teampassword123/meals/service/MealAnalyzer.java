@@ -2,5 +2,8 @@ package com.teampassword123.meals.service;
 
 public interface MealAnalyzer {
 
-    MealAnalysis analyze(byte[] image, String filename);
+  /**
+   * @param visionProvider {@code auto}, {@code gemini}, or {@code nemotron}
+   */
+  MealAnalysis analyze(byte[] image, String filename, String visionProvider);
 }

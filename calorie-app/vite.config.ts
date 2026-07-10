@@ -29,6 +29,10 @@ export default defineConfig(({ mode }) => {
           target: authTarget,
           changeOrigin: true,
         },
+        '/api/features': {
+          target: authTarget,
+          changeOrigin: true,
+        },
         '/api/meals': {
           target: mealsTarget,
           changeOrigin: true,

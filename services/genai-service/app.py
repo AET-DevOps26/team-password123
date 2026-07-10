@@ -13,9 +13,9 @@ To run locally:
     4. Visit http://localhost:8084/docs
 """
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, status
+from fastapi import FastAPI, File, UploadFile, HTTPException, status, Query
 from prometheus_fastapi_instrumentator import Instrumentator
-from prometheus_client import Counter, Histogram
+from prometheus_client import Counter, Histogram, Summary
 import base64
 import logging
 import time
@@ -54,13 +54,23 @@ Instrumentator().instrument(app).expose(app)
 # capture signal the request metrics can't (which provider answered, success vs
 # fallback vs hard failure, model latency).
 GENAI_ANALYZE = Counter(
-    "calorieasy_genai_analyze_total", "Meal-image analyses", ["result"]
+    "calorieasy_genai_analyze_total",
+    "Meal-image analyses",
+    ["result", "vision_model"],
 )
 GENAI_ESTIMATE = Counter(
     "calorieasy_genai_estimate_total", "Food-name nutrition estimates", ["result", "source"]
 )
 GENAI_LATENCY = Histogram(
-    "calorieasy_genai_analyze_seconds", "Wall-clock seconds per image analysis"
+    "calorieasy_genai_analyze_seconds",
+    "Wall-clock seconds per image analysis",
+    ["vision_model"],
+    buckets=(0.5, 1, 2, 3, 5, 10, 20, 30, 45, 60, 90, 120),
+)
+GENAI_CONFIDENCE = Summary(
+    "calorieasy_genai_analyze_confidence",
+    "Model-reported confidence score (0–1)",
+    ["vision_model"],
 )
 GENAI_INSIGHT = Counter(
     "calorieasy_genai_insight_total", "RAG health insights", ["result"]
@@ -68,6 +78,17 @@ GENAI_INSIGHT = Counter(
 GENAI_INSIGHT_LATENCY = Histogram(
     "calorieasy_genai_insight_seconds", "Wall-clock seconds per health insight"
 )
+
+
+def _metrics_model_label(*, result: NutritionResponse | None, vision_provider: str) -> str:
+    if result and result.vision_model:
+        return result.vision_model
+    preference = (vision_provider or "auto").strip().lower()
+    if preference == "gemini":
+        return "Gemini"
+    if preference == "nemotron":
+        return "Nemotron"
+    return "Auto"
 
 # Initialize the analyzer
 analyzer = None
@@ -186,7 +207,10 @@ async def estimate_food(request: FoodEstimateRequest):
 
 
 @app.post("/api/analyze", response_model=NutritionResponse)
-async def analyze_meal(file: UploadFile = File(...)):
+async def analyze_meal(
+    file: UploadFile = File(...),
+    vision_provider: str = Query(default="auto", alias="vision_provider"),
+):
     """
     Analyze a meal image and return nutritional estimates.
     
@@ -197,7 +221,7 @@ async def analyze_meal(file: UploadFile = File(...)):
         NutritionResponse with estimated macros and confidence score
     """
     if not analyzer:
-        GENAI_ANALYZE.labels(result="unavailable").inc()
+        GENAI_ANALYZE.labels(result="unavailable", vision_model="unknown").inc()
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="GenAI service not initialized. Ensure Gemini or the backup endpoint is configured."
@@ -218,21 +242,30 @@ async def analyze_meal(file: UploadFile = File(...)):
         image_base64 = base64.b64encode(image_data).decode("utf-8")
 
         # Analyze
-        logger.info(f"Analyzing image: {file.filename}")
-        result = analyzer.analyze(image_base64)
+        logger.info(f"Analyzing image: {file.filename} (vision_provider={vision_provider})")
+        result = analyzer.analyze(image_base64, vision_provider=vision_provider)
 
-        GENAI_LATENCY.observe(time.perf_counter() - started)
-        GENAI_ANALYZE.labels(result="success").inc()
-        logger.info(f"Analysis result: {result.calories} cal, confidence {result.confidence}")
+        elapsed = time.perf_counter() - started
+        model_label = _metrics_model_label(result=result, vision_provider=vision_provider)
+        GENAI_LATENCY.labels(vision_model=model_label).observe(elapsed)
+        GENAI_CONFIDENCE.labels(vision_model=model_label).observe(result.confidence)
+        GENAI_ANALYZE.labels(result="success", vision_model=model_label).inc()
+        logger.info(
+            f"Analysis result: {result.calories} cal, confidence {result.confidence}, "
+            f"model {model_label}, {elapsed:.2f}s"
+        )
         return result
 
     except ValueError as e:
-        GENAI_ANALYZE.labels(result="bad_request").inc()
+        model_label = _metrics_model_label(result=None, vision_provider=vision_provider)
+        GENAI_ANALYZE.labels(result="bad_request", vision_model=model_label).inc()
         logger.error(f"Validation error: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        GENAI_LATENCY.observe(time.perf_counter() - started)
-        GENAI_ANALYZE.labels(result="error").inc()
+        elapsed = time.perf_counter() - started
+        model_label = _metrics_model_label(result=None, vision_provider=vision_provider)
+        GENAI_LATENCY.labels(vision_model=model_label).observe(elapsed)
+        GENAI_ANALYZE.labels(result="error", vision_model=model_label).inc()
         logger.error(f"Analysis error: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

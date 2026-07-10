@@ -66,7 +66,7 @@ genai:
   # URL + model are committed here; only the key is a secret (CI:
   # --set genai.backupOpenaiApiKey=${{ secrets.OPENROUTER_API_KEY }}).
   backupOpenaiBaseUrl: "https://openrouter.ai/api/v1"
-  backupOpenaiModel: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"
+  backupOpenaiModel: "nvidia/nemotron-nano-12b-v2-vl:free"
   backupOpenaiApiKey: ""
   # STAGED swap → Logos gemma-4 (once AET grants google/gemma-4-26B-A4B-it to the
   # key; until then it 404s). To cut over, set these three — gemma-4 reuses the

@@ -1,9 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
 import { Modal } from '../../../../shared/ui/Modal/Modal';
 import { MacroBar } from '../../../../entities/nutrition';
+import { FEATURES, useFeatureToggle, useFeatureToggleStore } from '../../../../entities/feature';
 import { ScanProgress } from '../ScanProgress/ScanProgress';
 import { useScanMeal } from '../../model/useScanMeal';
-import type { MealSlot } from '../../model/useScanMeal';
+import type { MealSlot, VisionProvider } from '../../model/useScanMeal';
 import styles from './ScanModal.module.css';
 
 interface ScanModalProps {
@@ -23,8 +24,14 @@ const SLOTS: MealSlot[] = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
 export function ScanModal({ onClose, onAdded }: ScanModalProps) {
   const scan = useScanMeal();
+  const loadFeatureToggles = useFeatureToggleStore((s) => s.load);
+  const visionPickerEnabled = useFeatureToggle(FEATURES.SCAN_VISION_MODEL_PICKER);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+
+  useEffect(() => {
+    void loadFeatureToggles();
+  }, [loadFeatureToggles]);
 
   function handleFile(file: File) {
     if (!file.type.startsWith('image/')) return;
@@ -138,6 +145,12 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
 
       {scan.stage === 'idle' && (
         <div className={styles.idleBody}>
+          {visionPickerEnabled && (
+            <VisionProviderPicker
+              value={scan.visionProvider}
+              onChange={scan.setVisionProvider}
+            />
+          )}
           <p className={styles.hint}>
             Snap your plate or upload a photo. Our model identifies each ingredient and
             estimates the nutrition — no manual searching.
@@ -188,6 +201,9 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
 
       {scan.stage === 'manual_required' && (
         <div className={styles.idleBody}>
+          {scan.errorMessage && (
+            <p className={styles.errorMsg}>{scan.errorMessage}</p>
+          )}
           <p className={styles.hint}>
             We couldn't read this photo automatically — enter the nutrition info below.
           </p>
@@ -244,6 +260,32 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
 }
 
 /* ── Inline icons ── */
+function VisionProviderPicker({
+  value,
+  onChange,
+}: {
+  value: VisionProvider;
+  onChange: (provider: VisionProvider) => void;
+}) {
+  return (
+    <div className={styles.visionPicker}>
+      <span className={styles.visionPickerLabel}>Vision model</span>
+      <div className={styles.visionPickerOptions} role="group" aria-label="Vision model">
+        {(['auto', 'gemini', 'nemotron'] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            className={`${styles.visionOption} ${value === option ? styles.visionOptionActive : ''}`}
+            onClick={() => onChange(option)}
+          >
+            {option === 'auto' ? 'Auto' : option === 'gemini' ? 'Gemini' : 'Nemotron'}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PortionControl({ grams, onChange }: { grams: number; onChange: (g: number) => void }) {
   const [raw, setRaw] = useState(String(grams));
   useEffect(() => { setRaw(String(grams)); }, [grams]);

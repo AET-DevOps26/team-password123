@@ -54,6 +54,13 @@ class GenAiMealAnalyzerTest {
   }
 
   @Test
+  void normalizeVisionProviderDefaultsBlankToAuto() {
+    assertThat(GenAiMealAnalyzer.normalizeVisionProvider(null)).isEqualTo("auto");
+    assertThat(GenAiMealAnalyzer.normalizeVisionProvider("  ")).isEqualTo("auto");
+    assertThat(GenAiMealAnalyzer.normalizeVisionProvider("Gemini")).isEqualTo("gemini");
+  }
+
+  @Test
   void fallsBackToPlaceholdersWhenFieldsMissing() {
     GenAiNutrition nutrition =
         new GenAiNutrition(List.of(), null, null, null, null, null, null, null, null);

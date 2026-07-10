@@ -27,7 +27,7 @@ public class HeuristicMealAnalyzer implements MealAnalyzer {
   private static final double MAX_CONFIDENCE = 0.95;
 
   @Override
-  public MealAnalysis analyze(byte[] image, String filename) {
+  public MealAnalysis analyze(byte[] image, String filename, String visionProvider) {
     int positive = Arrays.hashCode(image) & Integer.MAX_VALUE;
     Dish dish = CATALOG.get(positive % CATALOG.size());
     return new MealAnalysis(

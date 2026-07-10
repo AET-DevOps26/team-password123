@@ -5,7 +5,7 @@ Multi-modal LLM-powered food image recognition and nutritional inference microse
 - **Port**: 8084
 - **Framework**: FastAPI (Python)
 - **Production LLM**: Google Gemini (`gemini-3.1-flash-lite`) via its OpenAI-compatible endpoint
-- **Backup LLM**: OpenRouter Nemotron (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`)
+- **Backup LLM**: OpenRouter Nemotron (`nvidia/nemotron-nano-12b-v2-vl:free` recommended)
 - **Text LLM**: AET Logos `gpt-oss-120b` for food-name estimation and RAG health insights
 - **Nutrition data**: Local `nutrition_db.json` cache (production); USDA FoodData Central optional (dev)
 
@@ -57,7 +57,7 @@ OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
 OPENAI_MODEL=gemini-3.1-flash-lite
 OPENAI_API_KEY=<Google AI Studio key>          # GitHub secret: GEMINI_API_KEY
 BACKUP_OPENAI_BASE_URL=https://openrouter.ai/api/v1
-BACKUP_OPENAI_MODEL=nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free
+BACKUP_OPENAI_MODEL=nvidia/nemotron-nano-12b-v2-vl:free
 BACKUP_OPENAI_API_KEY=<OpenRouter key>         # GitHub secret: OPENROUTER_API_KEY
 TEXT_OPENAI_BASE_URL=https://logos.aet.cit.tum.de/v1
 TEXT_OPENAI_MODEL=openai/gpt-oss-120b
@@ -77,7 +77,7 @@ export OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
 export OPENAI_MODEL=gemini-3.1-flash-lite
 export OPENAI_API_KEY=<your Google AI Studio key>
 export BACKUP_OPENAI_BASE_URL=https://openrouter.ai/api/v1
-export BACKUP_OPENAI_MODEL=nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free
+export BACKUP_OPENAI_MODEL=nvidia/nemotron-nano-12b-v2-vl:free
 export BACKUP_OPENAI_API_KEY=<your OpenRouter key>
 export NUTRITION_DATA_PROVIDER=local
 

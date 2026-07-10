@@ -11,6 +11,8 @@ export type ScanStage = 'idle' | 'scanning' | 'result' | 'manual_required' | 'er
 
 export type MealSlot = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
 
+export type VisionProvider = 'auto' | 'gemini' | 'nemotron';
+
 export interface ManualForm {
   name: string;
   calories: string;
@@ -28,6 +30,7 @@ export interface ScanState {
   manualForm: ManualForm;
   errorMessage: string | null;
   slot: MealSlot;
+  visionProvider: VisionProvider;
   portionGrams: number;
   scaledNutrition: NutritionInfo | null;
 }
@@ -37,6 +40,7 @@ export interface ScanActions {
   clearFile: () => void;
   analyze: () => Promise<void>;
   setSlot: (slot: MealSlot) => void;
+  setVisionProvider: (provider: VisionProvider) => void;
   setPortionGrams: (grams: number) => void;
   patchManualForm: (patch: Partial<ManualForm>) => void;
   addToDiary: () => Promise<void>;
@@ -81,6 +85,7 @@ export function useScanMeal(): ScanState & ScanActions {
   const [manualForm,  setManualForm]  = useState<ManualForm>(EMPTY_FORM);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [slot,        setSlot]        = useState<MealSlot>('Lunch');
+  const [visionProvider, setVisionProvider] = useState<VisionProvider>('auto');
   const [basePortionGrams, setBasePortionGrams] = useState(DEFAULT_PORTION_GRAMS);
   const [portionGrams, setPortionGramsState] = useState(DEFAULT_PORTION_GRAMS);
 
@@ -115,7 +120,7 @@ export function useScanMeal(): ScanState & ScanActions {
     setErrorMessage(null);
 
     try {
-      const response = await mealApi.analyzePhoto(file);
+      const response = await mealApi.analyzePhoto(file, visionProvider);
       if (response?.meal) {
         const grams = initialPortionGrams(response.meal);
         setBasePortionGrams(grams);
@@ -123,9 +128,17 @@ export function useScanMeal(): ScanState & ScanActions {
         setResult(response.meal);
         setStage('result');
       } else {
+        setErrorMessage('Scan returned no meal data. Try again or enter details manually.');
         fallbackToManual(file);
       }
-    } catch {
+    } catch (err) {
+      const status = (err as { status?: number }).status;
+      const msg = (err as { message?: string }).message ?? 'Scan failed';
+      if (status === 403 || status === 401) {
+        setErrorMessage('Session expired or invalid — log out and log in again, then retry.');
+      } else {
+        setErrorMessage(msg);
+      }
       fallbackToManual(file);
     }
   }
@@ -216,7 +229,7 @@ export function useScanMeal(): ScanState & ScanActions {
 
   return {
     stage, file, previewUrl, result, photoLog, manualForm, errorMessage, slot,
-    portionGrams, scaledNutrition,
-    setFile, clearFile, analyze, setSlot, setPortionGrams, patchManualForm, addToDiary, retry,
+    visionProvider, portionGrams, scaledNutrition,
+    setFile, clearFile, analyze, setSlot, setVisionProvider, setPortionGrams, patchManualForm, addToDiary, retry,
   };
 }

@@ -27,7 +27,7 @@ import org.springframework.web.client.RestClient;
 public class GenAiMealAnalyzer implements MealAnalyzer {
 
   private static final int CONNECT_TIMEOUT_MS = 5_000;
-  private static final int READ_TIMEOUT_MS = 60_000;
+  private static final int READ_TIMEOUT_MS = 120_000;
 
   private final RestClient client;
 
@@ -40,20 +40,32 @@ public class GenAiMealAnalyzer implements MealAnalyzer {
   }
 
   @Override
-  public MealAnalysis analyze(byte[] image, String filename) {
+  public MealAnalysis analyze(byte[] image, String filename, String visionProvider) {
     MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
     body.add("file", new NamedByteArrayResource(image, filename));
 
     GenAiNutrition nutrition =
         client
             .post()
-            .uri("/api/analyze")
+            .uri(
+                uriBuilder ->
+                    uriBuilder
+                        .path("/api/analyze")
+                        .queryParam("vision_provider", normalizeVisionProvider(visionProvider))
+                        .build())
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(body)
             .retrieve()
             .body(GenAiNutrition.class);
 
     return toMealAnalysis(nutrition);
+  }
+
+  static String normalizeVisionProvider(String visionProvider) {
+    if (visionProvider == null || visionProvider.isBlank()) {
+      return "auto";
+    }
+    return visionProvider.trim().toLowerCase();
   }
 
   /**

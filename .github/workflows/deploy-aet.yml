@@ -41,7 +41,7 @@ jobs:
           fi
 
       # Check out the chart at the SAME commit that was built, so chart + images match.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ steps.ctx.outputs.ref }}
 

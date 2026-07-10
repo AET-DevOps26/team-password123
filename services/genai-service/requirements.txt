@@ -44,7 +44,7 @@ opentelemetry-instrumentation-fastapi==0.48b0
 python-dotenv==1.0.0
 
 # Logging and utilities
-python-multipart==0.0.6
+python-multipart==0.0.32
 pydantic>=2.5,<3.0
 
 # Testing

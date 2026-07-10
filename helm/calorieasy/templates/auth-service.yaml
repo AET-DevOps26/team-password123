@@ -6,7 +6,9 @@ metadata:
     app: auth-service
     {{- include "calorieasy.labels" . | nindent 4 }}
 spec:
+  {{- if not (include "calorieasy.hpaManaged" (dict "root" $ "name" "auth-service")) }}
   replicas: 1
+  {{- end }}
   selector:
     matchLabels:
       app: auth-service

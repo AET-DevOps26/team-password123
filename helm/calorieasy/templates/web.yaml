@@ -6,7 +6,9 @@ metadata:
     app: web
     {{- include "calorieasy.labels" . | nindent 4 }}
 spec:
+  {{- if not (include "calorieasy.hpaManaged" (dict "root" $ "name" "web")) }}
   replicas: {{ .Values.web.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       app: web

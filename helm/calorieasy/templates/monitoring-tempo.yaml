@@ -1,0 +1,115 @@
+{{- if .Values.tracing.enabled }}
+# Grafana Tempo — single-binary trace store. Receives OTLP spans from every service
+# (Java via Micrometer, genai via the OTel SDK) and is queried by Grafana. Opt-in
+# via tracing.enabled; storage is ephemeral unless tracing.persistence.enabled.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tempo-config
+  labels:
+    {{- include "calorieasy.labels" . | nindent 4 }}
+data:
+  tempo.yaml: |
+    server:
+      http_listen_port: 3200
+    distributor:
+      receivers:
+        otlp:
+          protocols:
+            http:
+              endpoint: "0.0.0.0:4318"
+            grpc:
+              endpoint: "0.0.0.0:4317"
+    ingester:
+      max_block_duration: 5m
+    compactor:
+      compaction:
+        block_retention: 24h
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo/blocks
+        wal:
+          path: /var/tempo/wal
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo
+  labels:
+    app: tempo
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tempo
+  template:
+    metadata:
+      labels:
+        app: tempo
+    spec:
+      containers:
+        - name: tempo
+          image: {{ .Values.tracing.image }}
+          args: ["-config.file=/etc/tempo/tempo.yaml"]
+          ports:
+            - { name: http, containerPort: 3200 }
+            - { name: otlp-http, containerPort: 4318 }
+            - { name: otlp-grpc, containerPort: 4317 }
+          volumeMounts:
+            - name: config
+              mountPath: /etc/tempo
+            - name: storage
+              mountPath: /var/tempo
+          readinessProbe:
+            httpGet: { path: /ready, port: 3200 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.tracing.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: tempo-config
+        - name: storage
+          {{- if .Values.tracing.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: tempo-storage
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+{{- if .Values.tracing.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tempo-storage
+  labels:
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  accessModes: ["ReadWriteOnce"]
+  {{- if .Values.tracing.persistence.storageClass }}
+  storageClassName: {{ .Values.tracing.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.tracing.persistence.size | quote }}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tempo
+  labels:
+    app: tempo
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: tempo
+  ports:
+    - { name: http, port: 3200, targetPort: 3200 }
+    - { name: otlp-http, port: 4318, targetPort: 4318 }
+    - { name: otlp-grpc, port: 4317, targetPort: 4317 }
+{{- end }}

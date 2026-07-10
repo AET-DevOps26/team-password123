@@ -1,0 +1,39 @@
+{{- if .Values.networkPolicy.enabled }}
+# Namespace isolation. Two additive policies:
+#   1. default-deny-ingress  — no pod accepts ingress unless another policy allows it.
+#   2. allow-intra-namespace — every pod accepts ingress from other pods in THIS
+#      namespace, plus from the ingress-controller namespace (the external door).
+# Net effect: internal service-to-service, nginx->backends, prometheus scrapes and
+# the backup job all keep working; nothing from outside the namespace (except the
+# ingress controller) can reach any pod. Egress is untouched, so DNS and the
+# outbound LLM/API calls are unaffected.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  labels:
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-intra-namespace
+  labels:
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # Any pod in this namespace.
+        - podSelector: {}
+        # The ingress controller's namespace (external HTTP entrypoint).
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.ingressNamespace | quote }}
+{{- end }}

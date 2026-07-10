@@ -32,6 +32,16 @@ management:
       # panels work (without this they show "No data").
       percentiles-histogram:
         http.server.requests: true
+  # Distributed tracing -> OTLP (Tempo). OFF by default so local runs and tests
+  # emit no spans; the k8s deployment sets MANAGEMENT_TRACING_ENABLED=true when
+  # .Values.tracing.enabled. Endpoint defaults to the in-cluster Tempo collector.
+  tracing:
+    enabled: ${MANAGEMENT_TRACING_ENABLED:false}
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${MANAGEMENT_OTLP_TRACING_ENDPOINT:http://tempo:4318/v1/traces}
 
 logging:
   level:

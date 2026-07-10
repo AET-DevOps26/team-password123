@@ -1,0 +1,156 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.loki.enabled }}
+# Log aggregation: Loki (single-binary, built-in default config) + a Promtail
+# DaemonSet that tails each node's pod logs from /var/log/pods and ships them to
+# Loki. File-based discovery (labels parsed from the log path) needs no cluster
+# RBAC. Opt-in via monitoring.loki.enabled — the DaemonSet mounts hostPath, which
+# a restricted PodSecurity namespace may reject.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+  labels:
+    app: loki
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      containers:
+        - name: loki
+          image: {{ .Values.monitoring.loki.image }}
+          args: ["-config.file=/etc/loki/local-config.yaml"]
+          ports:
+            - { name: http, containerPort: 3100 }
+          volumeMounts:
+            - name: storage
+              mountPath: /loki
+          readinessProbe:
+            httpGet: { path: /ready, port: 3100 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.monitoring.loki.resources | nindent 12 }}
+      volumes:
+        - name: storage
+          {{- if .Values.monitoring.loki.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: loki-storage
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+{{- if .Values.monitoring.loki.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loki-storage
+  labels:
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  accessModes: ["ReadWriteOnce"]
+  {{- if .Values.monitoring.loki.persistence.storageClass }}
+  storageClassName: {{ .Values.monitoring.loki.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.monitoring.loki.persistence.size | quote }}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+  labels:
+    app: loki
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: loki
+  ports:
+    - { name: http, port: 3100, targetPort: 3100 }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-config
+  labels:
+    {{- include "calorieasy.labels" . | nindent 4 }}
+data:
+  promtail.yaml: |
+    server:
+      http_listen_port: 9080
+      grpc_listen_port: 0
+    positions:
+      filename: /run/promtail/positions.yaml
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+    scrape_configs:
+      # Tail every pod's container logs off the node. Promtail sets a `filename`
+      # label per file; the regex below turns the /var/log/pods path into
+      # namespace/pod/container labels without needing the Kubernetes API.
+      - job_name: kubernetes-pods
+        static_configs:
+          - targets: [localhost]
+            labels:
+              job: kubernetes-pods
+              __path__: /var/log/pods/*/*/*.log
+        pipeline_stages:
+          - regex:
+              source: filename
+              expression: '/var/log/pods/(?P<namespace>[^_]+)_(?P<pod>.+)_[^/]+/(?P<container>[^/]+)/'
+          - labels:
+              namespace:
+              pod:
+              container:
+          # Break log volume down by level (Spring logback + Python share these).
+          - regex:
+              expression: '(?P<level>TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL)'
+          - labels:
+              level:
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: promtail
+  labels:
+    app: promtail
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: promtail
+  template:
+    metadata:
+      labels:
+        app: promtail
+    spec:
+      containers:
+        - name: promtail
+          image: {{ .Values.monitoring.loki.promtailImage }}
+          args: ["-config.file=/etc/promtail/promtail.yaml"]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/promtail
+            - name: positions
+              mountPath: /run/promtail
+            - name: pod-logs
+              mountPath: /var/log/pods
+              readOnly: true
+          resources:
+            {{- toYaml .Values.monitoring.loki.promtailResources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: promtail-config
+        - name: positions
+          emptyDir: {}
+        - name: pod-logs
+          hostPath:
+            path: /var/log/pods
+{{- end }}

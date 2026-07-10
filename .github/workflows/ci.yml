@@ -158,6 +158,12 @@ jobs:
       - name: Unit tests
         run: pytest tests/test_estimate.py tests/test_nutrition_lookup.py tests/test_insight.py tests/test_vision_fallback.py -v -m "not integration"
 
+      # Retrieval-quality eval: prints a recall@1/@5/MRR table for the RAG. Uses the
+      # real fastembed model; self-skips if the model can't download in CI, so it
+      # never fails the pipeline for an environment reason.
+      - name: RAG retrieval eval
+        run: pytest tests/test_rag_eval.py -v -s
+
       # Optional live smoke against OpenRouter Nemotron. Skips (does not fail) on
       # 429 quota or timeout — the free pool is often congested in CI.
       - name: Backup vision smoke (OpenRouter)
@@ -182,3 +188,23 @@ jobs:
           curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" \
             | tar -xz -C /tmp gitleaks
           /tmp/gitleaks git . --redact --verbose
+
+  vuln-scan:
+    name: Vulnerability scan (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Filesystem scan of dependency manifests (pom.xml, requirements.txt,
+      # package-lock.json) and Dockerfiles for known CVEs. Report-only for now
+      # (exit-code 0) so it surfaces findings without blocking merges; flip
+      # exit-code to '1' once the initial backlog is triaged.
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '0'
+          format: table

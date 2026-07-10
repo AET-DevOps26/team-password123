@@ -41,6 +41,18 @@ postgres:
   resources:
     requests: { cpu: "100m", memory: "256Mi" }
     limits:   { cpu: "500m", memory: "512Mi" }
+  # Scheduled pg_dump backups to a dedicated PVC. OFF by default (opt-in) so a
+  # cluster that can't provision the backup PVC never blocks a `helm upgrade`.
+  # Restore procedure: docs/runbooks/restore.md.
+  backup:
+    enabled: false
+    schedule: "0 3 * * *"       # daily 03:00 (cluster TZ)
+    retentionDays: 7            # prune dumps older than this each run
+    storageClass: ""
+    storageSize: 2Gi
+    resources:
+      requests: { cpu: "50m", memory: "64Mi" }
+      limits:   { cpu: "250m", memory: "256Mi" }
 
 # Resource profile shared by the three Spring Boot services.
 java:
@@ -161,6 +173,25 @@ monitoring:
     resources:
       requests: { cpu: "50m", memory: "128Mi" }
       limits:   { cpu: "250m", memory: "256Mi" }
+  # Log aggregation: Loki + a Promtail DaemonSet that tails pod logs off each node
+  # via file discovery (hostPath /var/log, no cluster RBAC). A Loki datasource is
+  # auto-added to Grafana when this is on. OFF by default (opt-in): the Promtail
+  # DaemonSet mounts hostPath, which a restricted PodSecurity namespace may reject —
+  # enable once you've confirmed the node allows it.
+  loki:
+    enabled: false
+    image: grafana/loki:3.1.1
+    promtailImage: grafana/promtail:3.1.1
+    persistence:
+      enabled: false           # false -> emptyDir (ephemeral, like prometheus)
+      storageClass: ""
+      size: 5Gi
+    resources:
+      requests: { cpu: "50m", memory: "128Mi" }
+      limits:   { cpu: "300m", memory: "512Mi" }
+    promtailResources:
+      requests: { cpu: "20m", memory: "64Mi" }
+      limits:   { cpu: "100m", memory: "128Mi" }
 
 # Traefik runs in-namespace as the L7 load balancer / router in front of the app.
 # The AET cluster exposes no Traefik ingress class, so we ship our own via the
@@ -186,3 +217,30 @@ ingress:
   tls:
     enabled: true
     secretName: team-password123-tls
+
+# Distributed tracing: OpenTelemetry spans from all services -> Tempo, viewable in
+# Grafana (a Tempo datasource is auto-added when this is on). OFF by default
+# (opt-in): enabling sets MANAGEMENT_TRACING_ENABLED=true on the Java services and
+# OTEL_EXPORTER_OTLP_ENDPOINT on genai, and deploys a single-binary Tempo.
+tracing:
+  enabled: false
+  image: grafana/tempo:2.6.1
+  otlpEndpoint: "http://tempo:4318/v1/traces"   # Java services (Micrometer OTLP/HTTP)
+  otelExporterEndpoint: "http://tempo:4318"     # genai (OTel SDK OTLP base endpoint)
+  persistence:
+    enabled: false          # false -> emptyDir (ephemeral)
+    storageClass: ""
+    size: 2Gi
+  resources:
+    requests: { cpu: "50m", memory: "128Mi" }
+    limits:   { cpu: "300m", memory: "512Mi" }
+
+# Default-deny + explicit-allow pod network segmentation. OFF by default (opt-in):
+# NetworkPolicy only enforces on a CNI that implements it (Calico/Cilium), and a
+# wrong rule can sever traffic — enable after confirming the CNI and testing.
+# Model: deny all ingress, then allow intra-namespace pod-to-pod plus the ingress
+# controller — so nothing outside the namespace (except the front door) can reach
+# any pod, without micro-managing every service-to-service edge.
+networkPolicy:
+  enabled: false
+  ingressNamespace: ingress-nginx   # namespace of the ingress controller (the external entrypoint)

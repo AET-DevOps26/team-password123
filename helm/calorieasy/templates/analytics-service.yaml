@@ -51,6 +51,12 @@ spec:
             # RAG health-insights: analytics calls genai to generate the insight.
             - name: GENAI_URL
               value: http://genai-service:8084
+            {{- if .Values.tracing.enabled }}
+            - name: MANAGEMENT_TRACING_ENABLED
+              value: "true"
+            - name: MANAGEMENT_OTLP_TRACING_ENDPOINT
+              value: {{ .Values.tracing.otlpEndpoint | quote }}
+            {{- end }}
           startupProbe:
             httpGet: { path: /actuator/health, port: 8083 }
             failureThreshold: 30

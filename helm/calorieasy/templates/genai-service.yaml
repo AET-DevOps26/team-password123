@@ -70,6 +70,12 @@ spec:
               value: {{ .Values.weaviate.url | quote }}
             - name: EMBED_PROVIDER
               value: {{ .Values.genai.embedProvider | quote }}
+            {{- if .Values.tracing.enabled }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.tracing.otelExporterEndpoint | quote }}
+            - name: OTEL_SERVICE_NAME
+              value: genai-service
+            {{- end }}
           startupProbe:
             tcpSocket: { port: 8084 }
             failureThreshold: 30

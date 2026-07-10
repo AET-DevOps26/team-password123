@@ -39,6 +39,10 @@ struct MealEditorView: View {
     @State private var aiConfidence: Double?
     @State private var analyzing = false
     @State private var aiError: String?
+    // Tracks the in-flight analysis so cancel/re-analyze can disown its result. A
+    // reference type (not @State) so the running task still sees `abandoned` after
+    // the view is dismissed.
+    @State private var analysis: AnalysisLifetime?
 
     private var isPhotoMode: Bool {
         switch mode {
@@ -167,8 +171,10 @@ struct MealEditorView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button("Cancel") {
-                    // An analyzed-but-unsaved AI meal was already persisted server-side;
-                    // discard it so cancelling doesn't leave an orphan.
+                    // Disown any in-flight analysis so it discards its result when it
+                    // returns, and drop an already-finished AI meal — either way the
+                    // server-side meal isn't left orphaned.
+                    analysis?.abandoned = true
                     if let orphan = aiServerId { sync.discardServerMeal(orphan) }
                     dismiss()
                 }
@@ -240,15 +246,27 @@ struct MealEditorView: View {
     private func analyze() async {
         guard let imageData else { return }
         // Re-analyzing: the previous analysis already persisted a meal server-side.
-        // Drop that orphan before creating a new one.
+        // Mark it abandoned (in case it's still in flight) and drop any finished one.
+        analysis?.abandoned = true
         if let previous = aiServerId {
             sync.discardServerMeal(previous)
             aiServerId = nil
         }
+        // Own this run with a fresh token. We deliberately do NOT cancel the network
+        // request on abandon — the backend persists the meal, so we let the call
+        // finish to learn its id, then discard it if the user has moved on.
+        let lifetime = AnalysisLifetime()
+        analysis = lifetime
         analyzing = true
         aiError = nil
         do {
             let meal = try await sync.analyzePhoto(imageData)
+            if lifetime.abandoned {
+                // Cancelled / re-analyzed while this request was in flight — discard
+                // the server-side meal instead of orphaning it.
+                sync.discardServerMeal(meal.id)
+                return
+            }
             name = meal.dishName
             calories = Int(meal.nutrition.calories.rounded())
             protein = meal.nutrition.protein
@@ -258,9 +276,11 @@ struct MealEditorView: View {
             aiServerId = meal.id
             aiConfidence = meal.confidence
         } catch {
-            aiError = "Couldn't analyze the photo — enter the details manually."
+            if !lifetime.abandoned {
+                aiError = "Couldn't analyze the photo — enter the details manually."
+            }
         }
-        analyzing = false
+        if !lifetime.abandoned { analyzing = false }
     }
 
     private func macroStepper(label: String, value: Binding<Double>, tint: Color) -> some View {
@@ -412,6 +432,14 @@ struct MealEditorView: View {
 
         dismiss()
     }
+}
+
+/// One in-flight photo analysis. `abandoned` flips to true when the user cancels or
+/// re-analyzes; the running task checks it after the (deliberately un-cancelled)
+/// network call returns, so it can discard the server-persisted meal rather than
+/// leave it orphaned.
+private final class AnalysisLifetime {
+    var abandoned = false
 }
 
 struct IngredientDraft: Identifiable {

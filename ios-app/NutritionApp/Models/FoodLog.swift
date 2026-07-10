@@ -39,6 +39,9 @@ final class FoodLog {
     @Attribute(.unique) var id: UUID
     /// Backend meal id once this entry has been pushed; nil while only local.
     var serverId: String?
+    /// True when this row has local edits not yet pushed to the backend. Keeps the
+    /// next pull from clobbering them and marks the row for retry in pushUnsynced.
+    var dirty: Bool = false
     var timestamp: Date
     var name: String
     var notes: String?

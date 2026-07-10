@@ -39,6 +39,10 @@ struct MealEditorView: View {
     @State private var aiConfidence: Double?
     @State private var analyzing = false
     @State private var aiError: String?
+    // Tracks the in-flight analysis so cancel/re-analyze can disown its result. A
+    // reference type (not @State) so the running task still sees `abandoned` after
+    // the view is dismissed.
+    @State private var analysis: AnalysisLifetime?
 
     private var isPhotoMode: Bool {
         switch mode {
@@ -166,7 +170,14 @@ struct MealEditorView: View {
         .navigationTitle(navTitle)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button("Cancel") { dismiss() }
+                Button("Cancel") {
+                    // Disown any in-flight analysis so it discards its result when it
+                    // returns, and drop an already-finished AI meal — either way the
+                    // server-side meal isn't left orphaned.
+                    analysis?.abandoned = true
+                    if let orphan = aiServerId { sync.discardServerMeal(orphan) }
+                    dismiss()
+                }
             }
         }
         .onAppear { populateFromMode() }
@@ -234,10 +245,28 @@ struct MealEditorView: View {
 
     private func analyze() async {
         guard let imageData else { return }
+        // Re-analyzing: the previous analysis already persisted a meal server-side.
+        // Mark it abandoned (in case it's still in flight) and drop any finished one.
+        analysis?.abandoned = true
+        if let previous = aiServerId {
+            sync.discardServerMeal(previous)
+            aiServerId = nil
+        }
+        // Own this run with a fresh token. We deliberately do NOT cancel the network
+        // request on abandon — the backend persists the meal, so we let the call
+        // finish to learn its id, then discard it if the user has moved on.
+        let lifetime = AnalysisLifetime()
+        analysis = lifetime
         analyzing = true
         aiError = nil
         do {
             let meal = try await sync.analyzePhoto(imageData)
+            if lifetime.abandoned {
+                // Cancelled / re-analyzed while this request was in flight — discard
+                // the server-side meal instead of orphaning it.
+                sync.discardServerMeal(meal.id)
+                return
+            }
             name = meal.dishName
             calories = Int(meal.nutrition.calories.rounded())
             protein = meal.nutrition.protein
@@ -247,9 +276,11 @@ struct MealEditorView: View {
             aiServerId = meal.id
             aiConfidence = meal.confidence
         } catch {
-            aiError = "Couldn't analyze the photo — enter the details manually."
+            if !lifetime.abandoned {
+                aiError = "Couldn't analyze the photo — enter the details manually."
+            }
         }
-        analyzing = false
+        if !lifetime.abandoned { analyzing = false }
     }
 
     private func macroStepper(label: String, value: Binding<Double>, tint: Color) -> some View {
@@ -292,9 +323,29 @@ struct MealEditorView: View {
 
     private func loadImage(from item: PhotosPickerItem?) async {
         guard let item else { return }
-        if let data = try? await item.loadTransferable(type: Data.self) {
-            await MainActor.run { imageData = data }
+        guard let data = try? await item.loadTransferable(type: Data.self) else { return }
+        // Re-encode to a downscaled JPEG before storing/uploading: iPhone captures are
+        // often multi-MB HEIC, which the backend's Pillow can't decode and which can
+        // exceed the ingress body cap. Fall back to the raw bytes if decoding fails.
+        let prepared = Self.downscaledJPEG(from: data) ?? data
+        await MainActor.run { imageData = prepared }
+    }
+
+    /// Decode (handles HEIC/PNG/JPEG), downscale so the longest side is <= maxDimension,
+    /// and re-encode as JPEG. Returns nil only if the input can't be decoded at all.
+    private static func downscaledJPEG(
+        from data: Data, maxDimension: CGFloat = 1280, quality: CGFloat = 0.7
+    ) -> Data? {
+        guard let image = UIImage(data: data) else { return nil }
+        let longest = max(image.size.width, image.size.height)
+        let scale = longest > maxDimension ? maxDimension / longest : 1
+        let target = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        let resized = UIGraphicsImageRenderer(size: target, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: target))
         }
+        return resized.jpegData(compressionQuality: quality)
     }
 
     private func save() {
@@ -347,6 +398,8 @@ struct MealEditorView: View {
             // inserts locally without creating a duplicate on the backend.
             log.serverId = aiServerId
             sync.addMeal(log)
+            // Push any edits the user made to the AI estimate (PUT keeps sourceType).
+            if aiServerId != nil { sync.updateMeal(log) }
 
         case .edit(let log):
             log.name = trimmedName
@@ -379,6 +432,14 @@ struct MealEditorView: View {
 
         dismiss()
     }
+}
+
+/// One in-flight photo analysis. `abandoned` flips to true when the user cancels or
+/// re-analyzes; the running task checks it after the (deliberately un-cancelled)
+/// network call returns, so it can discard the server-persisted meal rather than
+/// leave it orphaned.
+private final class AnalysisLifetime {
+    var abandoned = false
 }
 
 struct IngredientDraft: Identifiable {

@@ -262,6 +262,10 @@ struct APIClient {
         switch http.statusCode {
         case 200...299: return
         case 401: throw APIError.unauthorized
+        // Spring Security 6 with no AuthenticationEntryPoint answers a missing/expired
+        // token with 403 and an empty body (not 401). Treat that as an auth failure so
+        // the session can recover; a real forbidden response carries a body.
+        case 403 where data.isEmpty: throw APIError.unauthorized
         default:
             let message = String(data: data, encoding: .utf8) ?? ""
             throw APIError.http(status: http.statusCode, message: message)

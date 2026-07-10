@@ -147,7 +147,7 @@ public class MealService {
   }
 
   @Transactional
-  public MealAnalysisResponse analyzePhoto(UUID userId, MultipartFile image) {
+  public MealAnalysisResponse analyzePhoto(UUID userId, MultipartFile image, String visionProvider) {
     if (image.isEmpty()) {
       throw new BadRequestException("Photo file is required");
     }
@@ -162,7 +162,7 @@ public class MealService {
     StoredFile stored = storePhoto(image);
     MealAnalysis analysis;
     try {
-      analysis = analyzer.analyze(bytes, stored.originalFilename());
+      analysis = analyzer.analyze(bytes, stored.originalFilename(), visionProvider);
     } catch (RuntimeException e) {
       metrics.counter("calorieasy.meals.analyze", "result", "error").increment();
       log.error(

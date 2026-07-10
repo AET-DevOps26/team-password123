@@ -21,6 +21,37 @@ The server side is split into three Spring Boot microservices, plus a separate P
 
 **Default goals.** `analytics-service` returns `204 No Content` for `GET /api/goals` until the user calls `PUT /api/goals` for the first time. No event from `auth-service` on registration is needed.
 
+## Feature toggles (runtime flags)
+
+`auth-service` exposes in-memory feature flags (W07 post-deployment pattern). Flip UI or behavior **without redeploying**:
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/features/{name}` | Read flag (`false` if unset) |
+| `PUT /api/features/{name}?enabled=true` | Enable / disable |
+| `GET /api/features` | List all set flags |
+
+| Flag | Effect when `true` |
+|------|---------------------|
+| `scan-vision-model-picker` | Scan modal shows Auto / Gemini / Nemotron before analyze |
+
+### Local: enable the vision model picker
+
+```bash
+# 1. Stack running (genai + meals + auth + web)
+docker compose up --build
+
+# 2. Enable the picker (auth-service port 8081)
+curl -X PUT "http://localhost:8081/api/features/scan-vision-model-picker?enabled=true"
+
+# 3. Hard-refresh the web app, open Scan, pick Gemini or Nemotron, analyze a photo.
+#    Result overlay shows e.g. "95% match · Gemini" or "… · Nemotron".
+```
+
+Ensure `.env` has `GEMINI_API_KEY` (or `OPENAI_API_KEY`) and `OPENROUTER_API_KEY` for Nemotron. See [docs/ai/vision-models.md](../docs/ai/vision-models.md) for model comparison.
+
+Flags reset when auth-service restarts (in-memory). Protect `PUT` in production if needed.
+
 ## Running locally
 
 From the repo root:
@@ -56,7 +87,7 @@ Make sure Postgres is up first (e.g. `docker compose up -d postgres`).
 
 Supported inference backends:
 - **Primary:** Google Gemini (`gemini-3.1-flash-lite`) via OpenAI-compatible API
-- **Backup:** OpenRouter Nemotron (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`)
+- **Backup:** OpenRouter Nemotron (`nvidia/nemotron-nano-12b-v2-vl:free`; alternate: `nemotron-3-nano-omni-30b-a3b-reasoning:free`)
 - **Text:** AET Logos `gpt-oss-120b` for `/api/estimate` and `/api/insight`
 
 Operationally, it is treated like the other services: build it as a container, wire it into compose/Helm, and expose it on port `8084`.

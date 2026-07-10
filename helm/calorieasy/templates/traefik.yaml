@@ -10,7 +10,7 @@ data:
     http:
       routers:
         api-auth:
-          rule: "PathPrefix(`/api/auth`) || PathPrefix(`/api/users`)"
+          rule: "PathPrefix(`/api/auth`) || PathPrefix(`/api/users`) || PathPrefix(`/api/features`)"
           entryPoints: [web]
           service: auth
           priority: 100

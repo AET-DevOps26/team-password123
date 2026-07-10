@@ -16,6 +16,10 @@ OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "")
 BACKUP_OPENAI_API_KEY = os.getenv("BACKUP_OPENAI_API_KEY", "")
 BACKUP_OPENAI_MODEL = os.getenv("BACKUP_OPENAI_MODEL", "")
 BACKUP_OPENAI_BASE_URL = os.getenv("BACKUP_OPENAI_BASE_URL", "")
+# Nemotron backup: cap output, resize images, and disable reasoning for speed.
+BACKUP_OPENAI_MAX_TOKENS = int(os.getenv("BACKUP_OPENAI_MAX_TOKENS", "256"))
+BACKUP_VISION_TIMEOUT_SEC = float(os.getenv("BACKUP_VISION_TIMEOUT_SEC", "90"))
+BACKUP_VISION_MAX_SIDE = int(os.getenv("BACKUP_VISION_MAX_SIDE", "384"))
 
 # Google Gemini configuration (cloud)
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")

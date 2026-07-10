@@ -125,9 +125,10 @@ public class MealController {
     @ResponseStatus(HttpStatus.CREATED)
     public MealAnalysisResponse analyze(
             @AuthenticationPrincipal AuthenticatedUser user,
-            @RequestPart("image") MultipartFile image
+            @RequestPart("image") MultipartFile image,
+            @RequestParam(defaultValue = "auto") String visionProvider
     ) {
-        return mealService.analyzePhoto(user.id(), image);
+        return mealService.analyzePhoto(user.id(), image, visionProvider);
     }
 
     @GetMapping("/photo/{id}/raw")

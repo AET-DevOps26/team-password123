@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar, Tabbar } from '../widgets/navigation';
 import { Toast } from '../widgets/notification';
 import { ScanModal } from '../features/scan-meal';
@@ -6,6 +6,7 @@ import { AuthPage } from '../features/auth';
 import { OnboardingFlow } from '../features/onboarding';
 import { useUserStore } from '../entities/user';
 import { useProfileStore } from '../entities/user/model/profile';
+import { useFeatureToggleStore } from '../entities/feature';
 import { HomePage } from '../pages/home';
 import { DiaryPage } from '../pages/diary';
 import { InsightsPage } from '../pages/insights';
@@ -27,6 +28,13 @@ export function App() {
   const [insightsSnapshot, setInsightsSnapshot] = useState<InsightsSnapshot | undefined>(undefined);
   const [showScan, setShowScan] = useState(false);
   const [toast, setToast]       = useState<string | null>(null);
+  const loadFeatureToggles = useFeatureToggleStore((s) => s.load);
+
+  useEffect(() => {
+    if (token) {
+      void loadFeatureToggles();
+    }
+  }, [token, loadFeatureToggles]);
 
   function navigate(p: Page) {
     if (p !== 'diary') setFromInsights(false);

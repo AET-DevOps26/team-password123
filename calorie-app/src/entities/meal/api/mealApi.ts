@@ -37,11 +37,13 @@ export const mealApi = {
   /**
    * POST /meals/analyze — send the photo to the GenAI vision model. The backend
    * analyzes, persists the meal, and returns the recognized dish + macros.
+   * @param visionProvider auto (Gemini then Nemotron fallback), gemini, or nemotron
    */
-  analyzePhoto: (imageFile: File): Promise<MealAnalysisResponse> => {
+  analyzePhoto: (imageFile: File, visionProvider = 'auto'): Promise<MealAnalysisResponse> => {
     const formData = new FormData();
     formData.append('image', imageFile);
-    return apiClient.post<MealAnalysisResponse>('/meals/analyze', formData);
+    const qs = `?visionProvider=${encodeURIComponent(visionProvider)}`;
+    return apiClient.post<MealAnalysisResponse>(`/meals/analyze${qs}`, formData);
   },
 
   /**

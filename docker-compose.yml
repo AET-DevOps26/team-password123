@@ -33,6 +33,10 @@ services:
 
   meals-service:
     build: ./services/meals-service
+    user: "0:0"
+    command: >
+      sh -c "chown -R spring:spring /app/uploads 2>/dev/null || true
+      && exec su spring -s /bin/sh -c 'java -jar app.jar'"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nutrition}?currentSchema=meals
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nutrition}

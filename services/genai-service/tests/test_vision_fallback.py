@@ -57,7 +57,7 @@ OPENROUTER_BASE = os.getenv(
 ).rstrip("/")
 BACKUP_MODEL = os.getenv(
     "BACKUP_OPENAI_MODEL",
-    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "nvidia/nemotron-nano-12b-v2-vl:free",
 )
 
 
@@ -115,6 +115,30 @@ def test_analyze_uses_gemini_primary_without_calling_backup():
     assert any("pizza" in food.lower() for food in result.foods)
     assert result.calories > 0
     assert result.vision_model == NutritionAnalyzer._vision_model_label(primary=True)
+
+
+def test_forced_gemini_skips_backup_even_when_primary_fails():
+    """Explicit gemini must not silently fall back to Nemotron."""
+    primary = _FakeLLM(exc=RuntimeError("Error code: 403"), label="gemini")
+    backup = _FakeLLM(BACKUP_JSON, label="nemotron")
+
+    with pytest.raises(ValueError):
+        _analyzer_with_llms(primary, backup).analyze(_tiny_png_b64(), vision_provider="gemini")
+
+    assert primary.calls == 1
+    assert backup.calls == 0
+
+
+def test_forced_nemotron_uses_backup_only():
+    """Explicit nemotron must call backup and never primary."""
+    primary = _FakeLLM(GEMINI_JSON, label="gemini")
+    backup = _FakeLLM(BACKUP_JSON, label="nemotron")
+
+    result = _analyzer_with_llms(primary, backup).analyze(_tiny_png_b64(), vision_provider="nemotron")
+
+    assert primary.calls == 0
+    assert backup.calls == 1
+    assert result.vision_model == NutritionAnalyzer._vision_model_label(primary=False)
 
 
 def test_analyze_falls_back_to_nemotron_when_gemini_fails():

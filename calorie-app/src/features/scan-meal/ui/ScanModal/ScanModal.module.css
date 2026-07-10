@@ -344,3 +344,45 @@
   grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
 }
+
+.visionPicker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.visionPickerLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.visionPickerOptions {
+  display: flex;
+  gap: 6px;
+}
+
+.visionOption {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  transition: background .12s, color .12s, border-color .12s;
+}
+
+.visionOptionActive {
+  color: var(--green-press);
+  background: var(--green-tint);
+  border-color: var(--green);
+}

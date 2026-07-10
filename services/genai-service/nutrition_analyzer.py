@@ -6,6 +6,7 @@ import base64
 import json
 import logging
 import re
+from concurrent import futures
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -31,7 +32,10 @@ from config import (
     NUTRITION_DATA_PROVIDER,
     BACKUP_OPENAI_API_KEY,
     BACKUP_OPENAI_BASE_URL,
+    BACKUP_OPENAI_MAX_TOKENS,
     BACKUP_OPENAI_MODEL,
+    BACKUP_VISION_MAX_SIDE,
+    BACKUP_VISION_TIMEOUT_SEC,
     GOOGLE_API_KEY,
     GOOGLE_MODEL,
     OPENAI_API_KEY,
@@ -44,6 +48,9 @@ from config import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Sentinel: backup vision is configured (direct OpenRouter HTTP, not LangChain).
+_BACKUP_VISION_READY = object()
 
 # Placeholder names models sometimes copy from the prompt template instead of real food.
 _PROMPT_PLACEHOLDER_FOODS = frozenset(
@@ -565,48 +572,95 @@ class NutritionAnalyzer:
             logger.warning("Text LLM initialization failed: %s", exc)
             return None
 
+    @staticmethod
+    def _backup_configured() -> bool:
+        return bool(BACKUP_OPENAI_API_KEY and BACKUP_OPENAI_BASE_URL and BACKUP_OPENAI_MODEL)
+
     def _build_fallback_llm(self, provider: str):
-        if provider == "openai":
-            if BACKUP_OPENAI_API_KEY and BACKUP_OPENAI_BASE_URL and BACKUP_OPENAI_MODEL:
-                try:
-                    logger.info(
-                        "Initializing backup OpenAI-compatible vision model at %s with model %s",
-                        BACKUP_OPENAI_BASE_URL,
-                        BACKUP_OPENAI_MODEL,
-                    )
-                    return ChatOpenAI(
-                        model=BACKUP_OPENAI_MODEL,
-                        api_key=BACKUP_OPENAI_API_KEY,
-                        base_url=BACKUP_OPENAI_BASE_URL,
-                        temperature=0,
-                        max_tokens=1024,
-                    )
-                except Exception as exc:
-                    logger.warning("Backup OpenAI-compatible initialization failed: %s", exc)
-                    return None
-            return None
-
-        if provider == "google":
-            if BACKUP_OPENAI_API_KEY and BACKUP_OPENAI_BASE_URL and BACKUP_OPENAI_MODEL:
-                try:
-                    logger.info(
-                        "Initializing backup OpenAI-compatible vision model at %s with model %s",
-                        BACKUP_OPENAI_BASE_URL,
-                        BACKUP_OPENAI_MODEL,
-                    )
-                    return ChatOpenAI(
-                        model=BACKUP_OPENAI_MODEL,
-                        api_key=BACKUP_OPENAI_API_KEY,
-                        base_url=BACKUP_OPENAI_BASE_URL,
-                        temperature=0,
-                        max_tokens=1024,
-                    )
-                except Exception as exc:
-                    logger.warning("Backup OpenAI-compatible initialization failed: %s", exc)
-                    return None
-            return None
-
+        if provider in {"openai", "google"} and self._backup_configured():
+            logger.info(
+                "Backup OpenRouter vision at %s model %s "
+                "(max_tokens=%s, timeout=%ss, max_side=%spx, reasoning=off)",
+                BACKUP_OPENAI_BASE_URL,
+                BACKUP_OPENAI_MODEL,
+                BACKUP_OPENAI_MAX_TOKENS,
+                BACKUP_VISION_TIMEOUT_SEC,
+                BACKUP_VISION_MAX_SIDE,
+            )
+            return _BACKUP_VISION_READY
         return None
+
+    def _invoke_backup_openrouter(self, message: HumanMessage):
+        """Call OpenRouter directly so reasoning/thinking flags are honored."""
+        executor = futures.ThreadPoolExecutor(max_workers=1)
+        pending = executor.submit(self._post_openrouter_vision, message)
+        try:
+            return pending.result(timeout=BACKUP_VISION_TIMEOUT_SEC)
+        except futures.TimeoutError as exc:
+            raise TimeoutError(
+                f"Nemotron backup timed out after {BACKUP_VISION_TIMEOUT_SEC:.0f}s"
+            ) from exc
+        finally:
+            executor.shutdown(wait=False, cancel_futures=True)
+
+    def _post_openrouter_vision(self, message: HumanMessage):
+        url = f"{BACKUP_OPENAI_BASE_URL.rstrip('/')}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {BACKUP_OPENAI_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://calorieasy.app",
+            "X-Title": "Calorieasy",
+        }
+        payload = {
+            "model": BACKUP_OPENAI_MODEL,
+            "messages": [{"role": "user", "content": message.content}],
+            "max_tokens": BACKUP_OPENAI_MAX_TOKENS,
+            "temperature": 0,
+            "stream": False,
+            "reasoning": {"enabled": False},
+            "chat_template_kwargs": {"enable_thinking": False},
+            "provider": {
+                "sort": "latency",
+                "preferred_max_latency": 45,
+            },
+        }
+        response = requests.post(
+            url,
+            json=payload,
+            headers=headers,
+            timeout=(10, BACKUP_VISION_TIMEOUT_SEC + 5),
+        )
+        if not response.ok:
+            try:
+                detail = response.json()
+            except Exception:
+                detail = response.text
+            raise RuntimeError(f"Error code: {response.status_code} - {detail}")
+
+        data = response.json()
+        if data.get("error"):
+            err = data["error"]
+            code = err.get("code", "?")
+            message_text = err.get("message", err)
+            raise RuntimeError(f"Error code: {code} - {message_text}")
+
+        choices = data.get("choices") or []
+        if not choices:
+            raise RuntimeError("OpenRouter backup returned no choices")
+        message_data = choices[0].get("message") or {}
+        content = message_data.get("content")
+        if isinstance(content, list):
+            text_parts = [
+                part.get("text", "")
+                for part in content
+                if isinstance(part, dict) and part.get("type") == "text"
+            ]
+            content = "\n".join(text_parts).strip()
+        if not content:
+            content = message_data.get("reasoning") or ""
+        if not str(content).strip():
+            raise RuntimeError("OpenRouter backup returned empty content")
+        return type("Response", (), {"content": str(content).strip()})()
 
     def _get_fallback_llm(self):
         """Return the fallback LLM, retrying initialization lazily.
@@ -762,7 +816,11 @@ class NutritionAnalyzer:
                 "confidence": 0.9,
             }
 
-        llm_to_use = self.text_llm or self.llm or self._get_fallback_llm()
+        llm_to_use = self.text_llm or self.llm
+        if not llm_to_use:
+            fallback = self._get_fallback_llm()
+            if fallback is not None and callable(getattr(fallback, "invoke", None)):
+                llm_to_use = fallback
         if not llm_to_use:
             raise LLMUnavailableError("No LLM available for text estimation")
 
@@ -853,51 +911,69 @@ class NutritionAnalyzer:
             return "Nemotron"
         return "Backup"
 
-    def analyze(self, image_base64: str) -> NutritionResponse:
+    def analyze(self, image_base64: str, vision_provider: str = "auto") -> NutritionResponse:
         """Analyze a base64-encoded food image and return nutrition estimates."""
-        try:
-            image_data = base64.b64decode(image_base64)
-            img = Image.open(BytesIO(image_data))
-            img_format = img.format or "JPEG"
+        preference = (vision_provider or "auto").strip().lower()
+        if preference not in {"auto", "gemini", "nemotron"}:
+            raise ValueError(
+                f"Invalid vision_provider '{vision_provider}'. Use auto, gemini, or nemotron."
+            )
 
-            message = HumanMessage(
-                content=[
-                    {"type": "text", "text": self._build_prompt()},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/{img_format.lower()};base64,{image_base64}"},
-                    },
-                ]
+        try:
+            img_format = self._image_format(image_base64)
+            primary_message = self._make_analysis_message(image_base64, img_format, backup=False)
+            backup_b64, backup_format = self._resize_image_base64(
+                image_base64, max_side=BACKUP_VISION_MAX_SIDE
+            )
+            backup_message = self._make_analysis_message(
+                backup_b64, backup_format, backup=True
             )
 
             response = None
             primary_error = None
             used_primary = False
-            if self.llm:
-                try:
-                    logger.info("Calling %s for image analysis", self.provider)
-                    response = self.llm.invoke([message])
-                    used_primary = bool(response)
-                except Exception as exc:
-                    primary_error = exc
-                    logger.warning("Primary (%s) LLM failed: %s", self.provider, exc)
 
-            fallback_llm = self._get_fallback_llm()
-            if not response and fallback_llm:
-                try:
-                    logger.info("Calling fallback LLM")
-                    response = fallback_llm.invoke([message])
-                    used_primary = False
-                except Exception as exc:
-                    logger.error("Fallback LLM also failed: %s", exc)
-                    if self.llm is None and primary_error is None:
-                        raise ValueError(self._analysis_failure(primary_error)) from exc
-                    raise ValueError(
-                        self._combined_analysis_failure(primary_error, exc)
-                    ) from exc
+            if preference == "gemini":
+                response, used_primary, primary_error = self._invoke_primary(primary_message)
+                if not response:
+                    raise ValueError(self._analysis_failure(primary_error))
+            elif preference == "nemotron":
+                response, used_primary, primary_error = self._invoke_backup(backup_message)
+                if not response:
+                    msg = (
+                        f"backup vision analysis failed: {primary_error}"
+                        if primary_error is not None
+                        else "Nemotron backup is not configured"
+                    )
+                    raise ValueError(msg)
+            else:
+                if self.llm:
+                    try:
+                        logger.info("Calling %s for image analysis", self.provider)
+                        response = self.llm.invoke([primary_message])
+                        used_primary = bool(response)
+                    except Exception as exc:
+                        primary_error = exc
+                        logger.warning("Primary (%s) LLM failed: %s", self.provider, exc)
 
-            if not response:
-                raise ValueError(self._analysis_failure(primary_error))
+                if not response and self._get_fallback_llm():
+                    try:
+                        logger.info("Calling fallback LLM (reasoning off, short prompt)")
+                        response, used_primary, fallback_error = self._invoke_backup(
+                            backup_message
+                        )
+                        if not response:
+                            raise fallback_error or RuntimeError("backup vision returned no response")
+                    except Exception as exc:
+                        logger.error("Fallback LLM also failed: %s", exc)
+                        if self.llm is None and primary_error is None:
+                            raise ValueError(self._analysis_failure(primary_error)) from exc
+                        raise ValueError(
+                            self._combined_analysis_failure(primary_error, exc)
+                        ) from exc
+
+                if not response:
+                    raise ValueError(self._analysis_failure(primary_error))
 
             logger.debug("Raw LLM response: %s", response.content)
             foods_with_grams, confidence = self._parse_response(response.content)
@@ -930,6 +1006,32 @@ class NutritionAnalyzer:
         except Exception as exc:
             logger.error("Unexpected error: %s", exc, exc_info=True)
             raise ValueError(f"Image analysis failed: {exc}") from exc
+
+    def _invoke_primary(self, message: HumanMessage):
+        if not self.llm:
+            return None, True, None
+        try:
+            logger.info("Calling primary (%s) vision model", self.provider)
+            response = self.llm.invoke([message])
+            return response, True, None
+        except Exception as exc:
+            logger.warning("Primary (%s) LLM failed: %s", self.provider, exc)
+            return None, True, exc
+
+    def _invoke_backup(self, message: HumanMessage):
+        fallback = self._get_fallback_llm()
+        if not fallback:
+            return None, False, None
+        try:
+            logger.info("Calling backup (Nemotron) vision model")
+            if fallback is _BACKUP_VISION_READY:
+                response = self._invoke_backup_openrouter(message)
+            else:
+                response = fallback.invoke([message])
+            return response, False, None
+        except Exception as exc:
+            logger.error("Backup LLM failed: %s", exc)
+            return None, False, exc
 
     def analyze_with_provider(self, image_base64: str, provider: str) -> NutritionAnalysisResult:
         """Analyze an image using one provider only, without fallback switching."""
@@ -1349,6 +1451,54 @@ class NutritionAnalyzer:
                 unique.append(c)
 
         return unique
+
+    @staticmethod
+    def _image_format(image_base64: str) -> str:
+        image_data = base64.b64decode(image_base64)
+        img = Image.open(BytesIO(image_data))
+        return img.format or "JPEG"
+
+    @staticmethod
+    def _resize_image_base64(image_base64: str, *, max_side: int) -> tuple[str, str]:
+        """Downscale large photos before sending to the backup vision model."""
+        image_data = base64.b64decode(image_base64)
+        img = Image.open(BytesIO(image_data)).convert("RGB")
+        width, height = img.size
+        longest = max(width, height)
+        if longest > max_side:
+            scale = max_side / longest
+            img = img.resize(
+                (max(1, int(width * scale)), max(1, int(height * scale))),
+                Image.Resampling.LANCZOS,
+            )
+        buffer = BytesIO()
+        img.save(buffer, format="JPEG", quality=85, optimize=True)
+        return base64.b64encode(buffer.getvalue()).decode("ascii"), "JPEG"
+
+    def _make_analysis_message(
+        self, image_base64: str, img_format: str, *, backup: bool
+    ) -> HumanMessage:
+        prompt = self._build_backup_prompt() if backup else self._build_prompt()
+        return HumanMessage(
+            content=[
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/{img_format.lower()};base64,{image_base64}"
+                    },
+                },
+            ]
+        )
+
+    @staticmethod
+    def _build_backup_prompt() -> str:
+        """Shorter prompt for Nemotron — JSON only, no chain-of-thought."""
+        return (
+            "Identify foods in this meal photo with estimated grams per item.\n"
+            "Reply with ONLY JSON, no markdown or explanation:\n"
+            '{"foods":[{"food":"grilled chicken","grams":150}],"confidence":0.85}'
+        )
 
     @staticmethod
     def _build_prompt() -> str:

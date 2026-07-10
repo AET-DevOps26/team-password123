@@ -158,10 +158,13 @@ jobs:
       - name: Unit tests
         run: pytest tests/test_estimate.py tests/test_nutrition_lookup.py tests/test_insight.py tests/test_vision_fallback.py -v -m "not integration"
 
+      # Optional live smoke against OpenRouter Nemotron. Skips (does not fail) on
+      # 429 quota or timeout — the free pool is often congested in CI.
       - name: Backup vision smoke (OpenRouter)
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           BACKUP_OPENAI_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          BACKUP_VISION_TIMEOUT_SEC: "45"
         run: pytest tests/test_vision_fallback.py -v -m "integration and backup"
 
   secret-scan:

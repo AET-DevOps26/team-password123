@@ -147,7 +147,8 @@ public class MealService {
   }
 
   @Transactional
-  public MealAnalysisResponse analyzePhoto(UUID userId, MultipartFile image, String visionProvider) {
+  public MealAnalysisResponse analyzePhoto(
+      UUID userId, MultipartFile image, String visionProvider) {
     if (image.isEmpty()) {
       throw new BadRequestException("Photo file is required");
     }

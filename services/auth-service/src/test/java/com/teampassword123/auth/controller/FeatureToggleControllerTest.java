@@ -6,20 +6,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.teampassword123.auth.service.FeatureToggleService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-@WebMvcTest(FeatureToggleController.class)
-@Import(FeatureToggleService.class)
-@AutoConfigureMockMvc(addFilters = false)
 class FeatureToggleControllerTest {
 
-  @Autowired
   private MockMvc mockMvc;
+
+  @BeforeEach
+  void setUp() {
+    FeatureToggleService featureToggles = new FeatureToggleService();
+    FeatureToggleController controller = new FeatureToggleController(featureToggles);
+    mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+  }
 
   @Test
   void getUnknownFeatureReturnsFalse() throws Exception {

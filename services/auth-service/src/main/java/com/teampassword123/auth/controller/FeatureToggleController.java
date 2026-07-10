@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Runtime feature flags — same pattern as the W07 Canteen exercise.
  *
- * <p>Flip a flag with {@code PUT /api/features/{name}?enabled=true} (Bruno/Postman/curl).
- * The web app reads flags on startup and shows or hides UI without a new deploy.
+ * <p>Flip a flag with {@code PUT /api/features/{name}?enabled=true} (Bruno/Postman/curl). The web
+ * app reads flags on startup and shows or hides UI without a new deploy.
  */
 @RestController
 @RequestMapping("/api/features")

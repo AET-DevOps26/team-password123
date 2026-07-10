@@ -39,109 +39,93 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/meals")
 public class MealController {
 
-    private final MealService mealService;
-    private final Optional<GenAiFoodEstimator> foodEstimator;
+  private final MealService mealService;
+  private final Optional<GenAiFoodEstimator> foodEstimator;
 
-    public MealController(MealService mealService, Optional<GenAiFoodEstimator> foodEstimator) {
-        this.mealService = mealService;
-        this.foodEstimator = foodEstimator;
-    }
+  public MealController(MealService mealService, Optional<GenAiFoodEstimator> foodEstimator) {
+    this.mealService = mealService;
+    this.foodEstimator = foodEstimator;
+  }
 
-    @PostMapping("/manual")
-    @ResponseStatus(HttpStatus.CREATED)
-    public MealResponse createManual(
-            @AuthenticationPrincipal AuthenticatedUser user,
-            @Valid @RequestBody ManualMealRequest request
-    ) {
-        return mealService.createManual(user.id(), request);
-    }
+  @PostMapping("/manual")
+  @ResponseStatus(HttpStatus.CREATED)
+  public MealResponse createManual(
+      @AuthenticationPrincipal AuthenticatedUser user,
+      @Valid @RequestBody ManualMealRequest request) {
+    return mealService.createManual(user.id(), request);
+  }
 
-    @GetMapping
-    public List<MealResponse> list(
-            @AuthenticationPrincipal AuthenticatedUser user,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
-    ) {
-        return mealService.list(user.id(), from, to);
-    }
+  @GetMapping
+  public List<MealResponse> list(
+      @AuthenticationPrincipal AuthenticatedUser user,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+    return mealService.list(user.id(), from, to);
+  }
 
-    @GetMapping("/{id}")
-    public MealResponse get(
-            @AuthenticationPrincipal AuthenticatedUser user,
-            @PathVariable UUID id
-    ) {
-        return mealService.get(user.id(), id);
-    }
+  @GetMapping("/{id}")
+  public MealResponse get(@AuthenticationPrincipal AuthenticatedUser user, @PathVariable UUID id) {
+    return mealService.get(user.id(), id);
+  }
 
-    @PutMapping("/{id}")
-    public MealResponse update(
-            @AuthenticationPrincipal AuthenticatedUser user,
-            @PathVariable UUID id,
-            @Valid @RequestBody ManualMealRequest request
-    ) {
-        return mealService.update(user.id(), id, request);
-    }
+  @PutMapping("/{id}")
+  public MealResponse update(
+      @AuthenticationPrincipal AuthenticatedUser user,
+      @PathVariable UUID id,
+      @Valid @RequestBody ManualMealRequest request) {
+    return mealService.update(user.id(), id, request);
+  }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(
-            @AuthenticationPrincipal AuthenticatedUser user,
-            @PathVariable UUID id
-    ) {
-        mealService.delete(user.id(), id);
-    }
+  @DeleteMapping("/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void delete(@AuthenticationPrincipal AuthenticatedUser user, @PathVariable UUID id) {
+    mealService.delete(user.id(), id);
+  }
 
-    @PostMapping("/photo")
-    @ResponseStatus(HttpStatus.CREATED)
-    public PhotoLogResponse createPhoto(
-            @AuthenticationPrincipal AuthenticatedUser user,
-            @RequestPart("file") MultipartFile file
-    ) {
-        return mealService.createPhoto(user.id(), file);
-    }
+  @PostMapping("/photo")
+  @ResponseStatus(HttpStatus.CREATED)
+  public PhotoLogResponse createPhoto(
+      @AuthenticationPrincipal AuthenticatedUser user, @RequestPart("file") MultipartFile file) {
+    return mealService.createPhoto(user.id(), file);
+  }
 
-    @PostMapping("/photo/{id}/convert-manual")
-    @ResponseStatus(HttpStatus.CREATED)
-    public MealResponse convertPhotoToManual(
-            @AuthenticationPrincipal AuthenticatedUser user,
-            @PathVariable UUID id,
-            @Valid @RequestBody ManualMealRequest request
-    ) {
-        return mealService.convertPhotoToManual(user.id(), id, request);
-    }
+  @PostMapping("/photo/{id}/convert-manual")
+  @ResponseStatus(HttpStatus.CREATED)
+  public MealResponse convertPhotoToManual(
+      @AuthenticationPrincipal AuthenticatedUser user,
+      @PathVariable UUID id,
+      @Valid @RequestBody ManualMealRequest request) {
+    return mealService.convertPhotoToManual(user.id(), id, request);
+  }
 
-    @PostMapping("/estimate")
-    public FoodEstimateResponse estimate(
-            @Valid @RequestBody FoodEstimateRequest request
-    ) {
-        return foodEstimator
-                .map(e -> e.estimate(request.foodName()))
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.SERVICE_UNAVAILABLE,
-                        "AI estimation is not available — genai-service URL not configured."));
-    }
+  @PostMapping("/estimate")
+  public FoodEstimateResponse estimate(@Valid @RequestBody FoodEstimateRequest request) {
+    return foodEstimator
+        .map(e -> e.estimate(request.foodName()))
+        .orElseThrow(
+            () ->
+                new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "AI estimation is not available — genai-service URL not configured."));
+  }
 
-    @PostMapping("/analyze")
-    @ResponseStatus(HttpStatus.CREATED)
-    public MealAnalysisResponse analyze(
-            @AuthenticationPrincipal AuthenticatedUser user,
-            @RequestPart("image") MultipartFile image,
-            @RequestParam(defaultValue = "auto") String visionProvider
-    ) {
-        return mealService.analyzePhoto(user.id(), image, visionProvider);
-    }
+  @PostMapping("/analyze")
+  @ResponseStatus(HttpStatus.CREATED)
+  public MealAnalysisResponse analyze(
+      @AuthenticationPrincipal AuthenticatedUser user,
+      @RequestPart("image") MultipartFile image,
+      @RequestParam(defaultValue = "auto") String visionProvider) {
+    return mealService.analyzePhoto(user.id(), image, visionProvider);
+  }
 
-    @GetMapping("/photo/{id}/raw")
-    public ResponseEntity<Resource> photoRaw(
-            @AuthenticationPrincipal AuthenticatedUser user,
-            @PathVariable UUID id
-    ) {
-        StoredPhoto photo = mealService.loadPhoto(user.id(), id);
-        MediaType contentType = photo.contentType() == null
-                ? MediaType.APPLICATION_OCTET_STREAM
-                : MediaType.parseMediaType(photo.contentType());
-        return ResponseEntity.ok()
-                .contentType(contentType)
-                .body(photo.resource());
-    }
+  @GetMapping("/photo/{id}/raw")
+  public ResponseEntity<Resource> photoRaw(
+      @AuthenticationPrincipal AuthenticatedUser user, @PathVariable UUID id) {
+    StoredPhoto photo = mealService.loadPhoto(user.id(), id);
+    MediaType contentType =
+        photo.contentType() == null
+            ? MediaType.APPLICATION_OCTET_STREAM
+            : MediaType.parseMediaType(photo.contentType());
+    return ResponseEntity.ok().contentType(contentType).body(photo.resource());
+  }
 }

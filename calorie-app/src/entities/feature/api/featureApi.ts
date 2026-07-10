@@ -1,5 +1,5 @@
 import { apiClient } from '../../../shared/api/client';
-import type { FeatureName } from './features';
+import type { FeatureName } from '../model/features';
 
 export const featureApi = {
   get: (name: FeatureName): Promise<boolean> =>

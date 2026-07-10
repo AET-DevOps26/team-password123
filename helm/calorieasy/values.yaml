@@ -106,6 +106,33 @@ web:
     requests: { cpu: "50m", memory: "64Mi" }
     limits:   { cpu: "250m", memory: "128Mi" }
 
+# Horizontal Pod Autoscaling (CPU-based, autoscaling/v2). Only workloads proven
+# stateless-safe belong in `targets`. auth-service is the clean win: bcrypt is
+# genuinely on-CPU, so CPU utilisation actually tracks login load.
+# Deliberately NOT autoscaled: meals-service (RWO uploads PVC pins it to 1 pod),
+# postgres/weaviate (stateful singletons), genai-service (all replicas share one
+# rate-limited free-tier LLM key — more pods just means more 429s, not throughput).
+# REQUIRES metrics-server in the cluster: `kubectl top pods` must return numbers,
+# else the HPA sits at <unknown>/70% and never scales.
+# Listing a workload here also drops its static `replicas:` field (see _helpers.tpl
+# calorieasy.hpaManaged) so `helm upgrade` on every deploy doesn't fight the HPA.
+autoscaling:
+  enabled: true
+  targetCPUUtilizationPercentage: 70   # add a pod when sustained CPU > 70% of the request
+  scaleUpStabilizationSeconds: 60      # "a lot of load" = sustained >=60s, not a spike
+  # scale-DOWN is intentionally omitted -> inherits Kubernetes' default 300s
+  # stabilization window: scales in only after 5 min of low load, so it won't flap.
+  targets:
+    auth-service:
+      minReplicas: 1
+      maxReplicas: 4   # Postgres wall: (4 auth + 1 analytics + 1 meals) x 10 Hikari conns = 60 < 97
+    # web is off by default: nginx is so cheap per request it almost never trips 70%
+    # of its 50m request, so the HPA would just sit at min. Uncomment to demo scaling
+    # the front door (the replicas guard below already handles it):
+    # web:
+    #   minReplicas: 2
+    #   maxReplicas: 4
+
 # Observability — in-namespace Prometheus + Grafana (no operator/CRDs, no
 # cluster-scoped RBAC). Prometheus scrapes the services via static in-cluster DNS
 # and stays ClusterIP (internal-only); Grafana is exposed online at <host>/grafana

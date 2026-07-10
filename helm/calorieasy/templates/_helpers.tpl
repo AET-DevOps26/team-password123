@@ -17,3 +17,13 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
 {{- define "calorieasy.image" -}}
 {{- printf "%s/%s/%s:%s" .root.Values.image.registry .root.Values.image.repository .name (.root.Values.image.tag | toString) -}}
 {{- end -}}
+
+{{/* Is a Deployment owned by an HPA? Returns "true" (else empty) when autoscaling
+     is enabled and the workload is listed in .Values.autoscaling.targets. Used to
+     drop the static replicas field so `helm upgrade` doesn't fight the HPA.
+     {{ include "calorieasy.hpaManaged" (dict "root" $ "name" "auth-service") }} */}}
+{{- define "calorieasy.hpaManaged" -}}
+{{- if and .root.Values.autoscaling.enabled (hasKey .root.Values.autoscaling.targets .name) -}}
+true
+{{- end -}}
+{{- end -}}

@@ -53,7 +53,29 @@ struct RootTabView: View {
         .onChange(of: allWater.count) { _, _ in refreshSnapshot() }
         .onChange(of: profile?.dailyCalorieGoal) { _, _ in refreshSnapshot() }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { refreshSnapshot() }
+            if phase == .active {
+                refreshSnapshot()
+                Task { await sync.sync() }   // re-pull server state on foreground
+            }
+        }
+        // An expired/invalid token drops the user back to sign-in instead of failing
+        // sync silently forever.
+        .onChange(of: sync.sessionExpired) { _, expired in
+            if expired {
+                session.signOut()
+                sync.sessionExpired = false
+            }
+        }
+        // Surface a failed sync rather than showing stale data with no explanation.
+        .safeAreaInset(edge: .top) {
+            if sync.lastSyncFailed {
+                Text("Offline — showing saved data")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                    .background(.thinMaterial)
+            }
         }
     }
 

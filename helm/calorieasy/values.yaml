@@ -183,6 +183,10 @@ ingress:
   host: "team-password123-devops-ss26.stud.k8s.aet.cit.tum.de"  # AET wildcard: <id>-devops-ss26.stud.k8s.aet.cit.tum.de
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod   # cert-manager auto-issues a trusted TLS cert
+    # Allow meal-photo uploads: the app sends downscaled JPEGs, but the ingress-nginx
+    # default body cap (~1MB) would still 413 larger captures before they reach the
+    # pod (in-pod nginx already allows 10m; meals-service allows 10MB).
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
   tls:
     enabled: true
     secretName: team-password123-tls

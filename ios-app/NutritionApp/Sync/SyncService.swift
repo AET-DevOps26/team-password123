@@ -11,6 +11,9 @@ import SwiftData
 final class SyncService {
     var streak: Int = 0
     var lastSyncFailed = false
+    /// Set when a sync call hits an expired/invalid token (401 or empty-body 403).
+    /// RootTabView observes this and signs the user out so they can log in again.
+    var sessionExpired = false
 
     private let container: ModelContainer
     private let api = APIClient.shared
@@ -21,11 +24,18 @@ final class SyncService {
 
     private var context: ModelContext { container.mainContext }
 
+    /// Only talk to the backend when we hold a real bearer token and aren't in the
+    /// launch-flag offline mode. A tokenless "Continue offline" guest stays fully
+    /// local — which is what makes offline-first work without a sign-out loop.
+    private var canSync: Bool {
+        !AppConfig.offline && KeychainStore.get(APIClient.tokenKey) != nil
+    }
+
     // MARK: - Pull + flush
 
     /// Full reconciliation: flush queued offline changes, then pull server state.
     func sync() async {
-        guard !AppConfig.offline else { return }
+        guard canSync else { return }
         await flushTombstones()
         await pushUnsynced()
         await pullProfile()
@@ -57,8 +67,16 @@ final class SyncService {
 
     private func pullMeals() async {
         let to = Date.now
-        let from = Calendar.current.date(byAdding: .day, value: -60, to: to) ?? to
-        guard let dtos = try? await api.meals(from: DateFmt.day(from), to: DateFmt.day(to)) else {
+        // 90 days: match the History/Analytics range picker so older days aren't blank.
+        let from = Calendar.current.date(byAdding: .day, value: -90, to: to) ?? to
+        let dtos: [MealResponseDTO]
+        do {
+            dtos = try await api.meals(from: DateFmt.day(from), to: DateFmt.day(to))
+        } catch APIError.unauthorized {
+            sessionExpired = true
+            lastSyncFailed = true
+            return
+        } catch {
             lastSyncFailed = true
             return
         }
@@ -67,11 +85,21 @@ final class SyncService {
         let existing = syncedLogsByServerId()
         for dto in dtos {
             if let log = existing[dto.id] {
-                DTOMapper.update(log, from: dto)
+                // Don't clobber local edits that haven't been pushed yet.
+                if !log.dirty { DTOMapper.update(log, from: dto) }
             } else {
                 context.insert(DTOMapper.foodLog(from: dto))
             }
         }
+
+        // Purge phantoms: a synced meal inside the pulled window that the server no
+        // longer returns was deleted elsewhere. Offline creates (serverId == nil) and
+        // rows outside the window are left alone.
+        let returnedIds = Set(dtos.map { $0.id })
+        for (sid, log) in existing where !returnedIds.contains(sid) {
+            if log.timestamp >= from && log.timestamp <= to { context.delete(log) }
+        }
+
         try? context.save()
     }
 
@@ -94,8 +122,16 @@ final class SyncService {
     }
 
     func updateMeal(_ log: FoodLog) {
+        log.dirty = true
         try? context.save()
         Task { await pushUpdate(log) }
+    }
+
+    /// Best-effort delete of a server-side meal by id — used to clean up an AI photo
+    /// meal that was analyzed (and thus persisted) but never saved, or that was
+    /// replaced by a re-analysis. Tombstoned for retry if it can't go through now.
+    func discardServerMeal(_ serverId: String) {
+        Task { await pushDelete(serverId) }
     }
 
     func deleteMeal(_ log: FoodLog) {
@@ -114,7 +150,7 @@ final class SyncService {
 
     /// Push the local profile (identity + physical data) and goals to the backend.
     func saveProfile() async {
-        guard !AppConfig.offline, let profile = currentProfile() else { return }
+        guard canSync, let profile = currentProfile() else { return }
         _ = try? await api.updateUser(DTOMapper.updateRequest(from: profile))
         _ = try? await api.saveGoals(DTOMapper.goalRequest(from: profile))
     }
@@ -122,27 +158,33 @@ final class SyncService {
     // MARK: - Push helpers
 
     private func pushCreate(_ log: FoodLog) async {
-        guard !AppConfig.offline else { return }
+        guard canSync else { return }
         guard let res = try? await api.createMeal(DTOMapper.manualRequest(from: log)) else { return }
         log.serverId = res.id
         try? context.save()
     }
 
     private func pushUpdate(_ log: FoodLog) async {
-        guard !AppConfig.offline, let serverId = log.serverId else { return }
-        _ = try? await api.updateMeal(id: serverId, DTOMapper.manualRequest(from: log))
+        guard canSync, let serverId = log.serverId else { return }
+        guard (try? await api.updateMeal(id: serverId, DTOMapper.manualRequest(from: log))) != nil else { return }
+        log.dirty = false   // edits landed on the server
+        try? context.save()
     }
 
     private func pushDelete(_ serverId: String) async {
-        guard !AppConfig.offline else { addTombstone(serverId); return }
+        guard canSync else { addTombstone(serverId); return }
         do { try await api.deleteMeal(id: serverId) }
+        catch APIError.http(let status, _) where status == 404 { /* already gone — done */ }
         catch { addTombstone(serverId) }
     }
 
     private func pushUnsynced() async {
-        let descriptor = FetchDescriptor<FoodLog>(predicate: #Predicate { $0.serverId == nil })
-        guard let pending = try? context.fetch(descriptor) else { return }
-        for log in pending { await pushCreate(log) }
+        // New offline creates (no serverId yet)...
+        let creates = FetchDescriptor<FoodLog>(predicate: #Predicate { $0.serverId == nil })
+        for log in (try? context.fetch(creates)) ?? [] { await pushCreate(log) }
+        // ...and rows edited while offline (already have a serverId, marked dirty).
+        let edits = FetchDescriptor<FoodLog>(predicate: #Predicate { $0.dirty && $0.serverId != nil })
+        for log in (try? context.fetch(edits)) ?? [] { await pushUpdate(log) }
     }
 
     private func flushTombstones() async {
@@ -151,6 +193,8 @@ final class SyncService {
             do {
                 try await api.deleteMeal(id: tomb.serverId)
                 context.delete(tomb)
+            } catch APIError.http(let status, _) where status == 404 {
+                context.delete(tomb)   // already gone on the server — treat as done
             } catch { /* keep for next attempt */ }
         }
         try? context.save()
@@ -320,7 +364,10 @@ enum DateFmt {
             digits.append(s[idx])
             idx = s.index(after: idx)
         }
-        let millis = String(digits.prefix(3))
+        // Pad short fractions up to 3 digits: the backend suppresses trailing zeros
+        // (".120Z" comes back as ".12Z"), which the strict parser otherwise rejects,
+        // dropping the meal onto today's date.
+        let millis = String((digits + "000").prefix(3))
         return String(s[s.startIndex..<dot]) + "." + millis + String(s[idx...])
     }
 }

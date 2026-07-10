@@ -62,10 +62,11 @@ struct AuthView: View {
             .tint(.green)
             .disabled(busy || !formValid)
 
-            if AppConfig.offline {
-                Button("Continue offline") { session.continueOffline() }
-                    .font(.footnote)
-            }
+            // Offline-first: usable without an account. A guest session stays fully
+            // local (SyncService.canSync is false without a token), so this never
+            // triggers a network call or a sign-out loop.
+            Button("Continue offline") { session.continueOffline() }
+                .font(.footnote)
 
             Spacer()
         }

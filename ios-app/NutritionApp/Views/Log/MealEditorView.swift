@@ -166,7 +166,12 @@ struct MealEditorView: View {
         .navigationTitle(navTitle)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button("Cancel") { dismiss() }
+                Button("Cancel") {
+                    // An analyzed-but-unsaved AI meal was already persisted server-side;
+                    // discard it so cancelling doesn't leave an orphan.
+                    if let orphan = aiServerId { sync.discardServerMeal(orphan) }
+                    dismiss()
+                }
             }
         }
         .onAppear { populateFromMode() }
@@ -234,6 +239,12 @@ struct MealEditorView: View {
 
     private func analyze() async {
         guard let imageData else { return }
+        // Re-analyzing: the previous analysis already persisted a meal server-side.
+        // Drop that orphan before creating a new one.
+        if let previous = aiServerId {
+            sync.discardServerMeal(previous)
+            aiServerId = nil
+        }
         analyzing = true
         aiError = nil
         do {
@@ -292,9 +303,29 @@ struct MealEditorView: View {
 
     private func loadImage(from item: PhotosPickerItem?) async {
         guard let item else { return }
-        if let data = try? await item.loadTransferable(type: Data.self) {
-            await MainActor.run { imageData = data }
+        guard let data = try? await item.loadTransferable(type: Data.self) else { return }
+        // Re-encode to a downscaled JPEG before storing/uploading: iPhone captures are
+        // often multi-MB HEIC, which the backend's Pillow can't decode and which can
+        // exceed the ingress body cap. Fall back to the raw bytes if decoding fails.
+        let prepared = Self.downscaledJPEG(from: data) ?? data
+        await MainActor.run { imageData = prepared }
+    }
+
+    /// Decode (handles HEIC/PNG/JPEG), downscale so the longest side is <= maxDimension,
+    /// and re-encode as JPEG. Returns nil only if the input can't be decoded at all.
+    private static func downscaledJPEG(
+        from data: Data, maxDimension: CGFloat = 1280, quality: CGFloat = 0.7
+    ) -> Data? {
+        guard let image = UIImage(data: data) else { return nil }
+        let longest = max(image.size.width, image.size.height)
+        let scale = longest > maxDimension ? maxDimension / longest : 1
+        let target = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        let resized = UIGraphicsImageRenderer(size: target, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: target))
         }
+        return resized.jpegData(compressionQuality: quality)
     }
 
     private func save() {
@@ -347,6 +378,8 @@ struct MealEditorView: View {
             // inserts locally without creating a duplicate on the backend.
             log.serverId = aiServerId
             sync.addMeal(log)
+            // Push any edits the user made to the AI estimate (PUT keeps sourceType).
+            if aiServerId != nil { sync.updateMeal(log) }
 
         case .edit(let log):
             log.name = trimmedName

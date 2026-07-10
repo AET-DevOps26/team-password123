@@ -25,7 +25,7 @@ jobs:
       matrix:
         service: [auth-service, meals-service, analytics-service]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         # Full history so Spotless's `ratchetFrom origin/main` can diff against
         # main and only enforce formatting on changed Java.
         with:
@@ -64,7 +64,7 @@ jobs:
       run:
         working-directory: calorie-app
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Node 20
         uses: actions/setup-node@v4
@@ -93,7 +93,7 @@ jobs:
       run:
         working-directory: calorie-app
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Node 20
         uses: actions/setup-node@v4
@@ -131,7 +131,7 @@ jobs:
       run:
         working-directory: services/genai-service
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Match the service Dockerfile (python:3.11-slim) so the pinned deps resolve.
       - name: Set up Python 3.11
@@ -177,7 +177,7 @@ jobs:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         # Full history so gitleaks scans every commit, not just the tip.
         with:
           fetch-depth: 0
@@ -193,7 +193,7 @@ jobs:
     name: Vulnerability scan (Trivy)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Filesystem scan of dependency manifests (pom.xml, requirements.txt,
       # package-lock.json) and Dockerfiles for known CVEs. Report-only for now

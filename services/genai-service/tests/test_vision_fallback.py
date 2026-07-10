@@ -11,7 +11,7 @@ are smoke checks for when Gemini is down, not the main vision path.
 Run unit tests (CI, no keys):
   pytest tests/test_vision_fallback.py -v -m "not integration"
 
-Run backup smoke tests (needs OPENROUTER_API_KEY; skips on quota 429):
+Run backup smoke tests (needs OPENROUTER_API_KEY; skips on quota 429 or timeout):
   pytest tests/test_vision_fallback.py -v -m "integration and backup"
 """
 
@@ -215,27 +215,34 @@ def test_combined_analysis_failure_reports_backup_when_it_responded():
 # ---------------------------------------------------------------------------
 
 
-def _skip_if_openrouter_quota_error(exc: BaseException) -> None:
+def _skip_if_openrouter_unavailable(exc: BaseException) -> None:
+    """Skip optional smoke tests when the free OpenRouter pool is congested."""
     seen: set[int] = set()
     current: BaseException | None = exc
     while current is not None and id(current) not in seen:
         seen.add(id(current))
+        if isinstance(current, TimeoutError):
+            pytest.skip(
+                f"OpenRouter backup timed out — skipping (free pool often congested): {current}"
+            )
         msg = str(current).lower()
         if (
             "429" in msg
             or "rate limit" in msg
             or "free-models-per-day" in msg
             or "quota" in msg
+            or "timed out" in msg
+            or "timeout" in msg
         ):
-            pytest.skip(f"OpenRouter backup quota exhausted — skipping: {current}")
+            pytest.skip(f"OpenRouter backup unavailable — skipping: {current}")
         current = current.__cause__
 
 
 def _analyze_backup_or_skip(analyzer: NutritionAnalyzer, image_b64: str):
     try:
-        return analyzer.analyze(image_b64)
-    except ValueError as exc:
-        _skip_if_openrouter_quota_error(exc)
+        return analyzer.analyze(image_b64, vision_provider="nemotron")
+    except (ValueError, TimeoutError) as exc:
+        _skip_if_openrouter_unavailable(exc)
         raise
 
 

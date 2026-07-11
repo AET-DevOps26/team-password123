@@ -51,7 +51,12 @@ jobs:
           printf '%s' "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
+      # Pin Helm: an unpinned setup-helm silently jumped 3.x -> 4.x, which
+      # changed --wait semantics and broke deploys. Pin to the version that
+      # already manages this release so the version can't drift under us again.
       - uses: azure/setup-helm@v4
+        with:
+          version: v4.2.3
 
       - name: Ensure GHCR pull secret
         run: |
@@ -81,7 +86,11 @@ jobs:
             --set genai.textOpenaiBaseUrl="${{ secrets.LOGOS_BASE_URL }}" \
             --set genai.textOpenaiModel="${{ vars.LOGOS_MODEL || 'openai/gpt-oss-120b' }}" \
             --set genai.textOpenaiApiKey="${{ secrets.LOGOS_API_KEY }}" \
-            --atomic --timeout 8m
+            --atomic --timeout 20m
+          # 20m (not 8m): a fresh-SHA rollout pulls ~6 Spring Boot images onto
+          # separate AET nodes and each pod's startupProbe allows up to 150s, so
+          # 8m regularly expired mid-rollout and --atomic rolled prod back to the
+          # previous (stale) images. The app converges in ~10m; 20m gives margin.
           # --atomic implies --wait and auto-rolls-back to the last good release if
           # the rollout fails within the timeout, so a broken deploy self-heals
           # instead of leaving half-updated pods.

@@ -1,0 +1,23 @@
+# Code owners — GitHub auto-requests the listed reviewer(s) when a PR touches
+# matching paths. Ownership is *primary* review responsibility, not exclusive:
+# any teammate may review. Requiring an approving review before merge is a
+# branch-protection setting on `main`, configured separately by an org admin.
+#
+# The LAST matching pattern wins, so the specific paths below override the default.
+
+# Default owner for cross-cutting changes / anything not matched below.
+*                              @denizozturk95
+
+# Web client — Pavel
+/calorie-app/                  @dedvnutree
+
+# GenAI service — Melisa
+/services/genai-service/       @sahinoglumelisa
+
+# Backend Spring services + DevOps/infra — Deniz (explicit for documentation)
+/services/auth-service/        @denizozturk95
+/services/meals-service/       @denizozturk95
+/services/analytics-service/   @denizozturk95
+/.github/                      @denizozturk95
+/helm/                         @denizozturk95
+/infra/                        @denizozturk95

@@ -9,8 +9,74 @@ Calorieasy is a nutrition tracking platform that uses GenAI to reduce the fricti
 ### Use Case Diagram
 ![Use Case Diagram](usecase-diagram.png)
 
+### Subsystem Decomposition
+
+The system decomposes into six subsystems (packages) and their runtime dependencies.
+This diagram reflects the **current** implementation — the three separate Spring
+services, the GenAI subsystem with its vector store, and the observability stack.
+
+```mermaid
+flowchart TB
+    subgraph Client["Client subsystem"]
+        Web["Web Client<br/>React SPA (Vite)"]
+        iOS["iOS App<br/>SwiftUI + SwiftData"]
+    end
+
+    subgraph Edge["Edge / routing"]
+        Proxy["Reverse proxy<br/>Vite dev · nginx · k8s Traefik<br/>routes /api/*"]
+    end
+
+    subgraph App["Application subsystem — Spring Boot"]
+        Auth["auth-service :8081<br/>identity · issues JWT"]
+        Meals["meals-service :8082<br/>meal log · photo scan"]
+        Analytics["analytics-service :8083<br/>goals · aggregates (read-side)"]
+    end
+
+    subgraph GenAI["GenAI subsystem — Python"]
+        Genai["genai-service :8084<br/>FastAPI · vision + RAG"]
+        Weaviate["Weaviate<br/>vector store"]
+    end
+
+    subgraph Data["Persistence"]
+        PG[("PostgreSQL 16<br/>schemas: auth · meals · analytics")]
+    end
+
+    subgraph Obs["Observability"]
+        Prom["Prometheus"]
+        Graf["Grafana"]
+    end
+
+    Web --> Proxy
+    iOS --> Proxy
+    Proxy --> Auth
+    Proxy --> Meals
+    Proxy --> Analytics
+
+    Meals -->|POST /api/analyze| Genai
+    Analytics -->|GET /api/meals| Meals
+    Analytics -->|POST /api/insight| Genai
+    Genai --> Weaviate
+
+    Auth --> PG
+    Meals --> PG
+    Analytics --> PG
+
+    Prom -. scrapes .-> Auth
+    Prom -. scrapes .-> Meals
+    Prom -. scrapes .-> Analytics
+    Prom -. scrapes .-> Genai
+    Graf --> Prom
+
+    Auth -. shared APP_JWT_SECRET .-> Meals
+    Auth -. shared APP_JWT_SECRET .-> Analytics
+```
+
 ### Component / Architecture Diagram
 ![System Architecture Diagram](sys-architecture.png)
+
+> Note: `sys-architecture.png` predates the split into three Spring services and
+> still shows a single "Spring Boot API" box. Use the **Subsystem Decomposition**
+> above for the current service boundaries.
 
 ### Class Diagram
 ![Class Diagram](object-diagram.png)

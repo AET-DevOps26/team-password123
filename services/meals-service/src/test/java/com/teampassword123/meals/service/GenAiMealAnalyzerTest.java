@@ -71,4 +71,12 @@ class GenAiMealAnalyzerTest {
     assertThat(analysis.calories()).isEqualByComparingTo("0");
     assertThat(analysis.confidence()).isEqualTo(0.0);
   }
+
+  // Guards against the Spring Boot 4 regression: the analyzer must build its own
+  // RestClient and not depend on an injected RestClient.Builder bean (which SB4
+  // no longer auto-provides). If someone re-adds a bean param, this won't compile.
+  @Test
+  void constructsWithoutAnInjectedRestClientBuilder() {
+    assertThat(new GenAiMealAnalyzer("http://localhost:8084")).isNotNull();
+  }
 }

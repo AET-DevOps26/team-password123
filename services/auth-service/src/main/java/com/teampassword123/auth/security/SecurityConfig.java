@@ -28,7 +28,10 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login")
                     .permitAll()
-                    .requestMatchers("/api/features", "/api/features/**")
+                    // Reading flags is public (the web app fetches them on startup),
+                    // but flipping them (PUT) mutates global app state and must be
+                    // authenticated — otherwise any anonymous caller can toggle it.
+                    .requestMatchers(HttpMethod.GET, "/api/features", "/api/features/**")
                     .permitAll()
                     .requestMatchers(
                         "/swagger-ui.html",
@@ -39,6 +42,10 @@ public class SecurityConfig {
                     .permitAll()
                     .anyRequest()
                     .authenticated())
+        // Throttle the public login/register endpoints per IP (10 req / 60s)
+        // before auth runs, so credential brute-force can't hammer them freely.
+        .addFilterBefore(
+            new LoginRateLimitFilter(10, 60_000L), UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .build();
   }

@@ -13,7 +13,8 @@ To run locally:
     4. Visit http://localhost:8084/docs
 """
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, status, Query
+from fastapi import FastAPI, File, UploadFile, HTTPException, status, Query, Request
+from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_client import Counter, Histogram, Summary
 import base64
@@ -47,6 +48,29 @@ app = FastAPI(
     description="Analyzes food images and returns nutritional estimates using Google Gemini with an OpenAI-compatible backup endpoint",
     version="0.1.0"
 )
+
+# Reject oversized bodies before Starlette buffers them into memory, so a huge
+# upload to the (unauthenticated) analyze endpoints can't exhaust worker RAM.
+# This also neutralises the reachable path of the Starlette multipart CVE
+# (CVE-2024-47874) that the pinned fastapi==0.104.1 carries. 15MB mirrors
+# meals-service's 10MB multipart cap plus headroom for base64 inflation.
+# ponytail: Content-Length check only — a chunked body with no length slips past;
+# the sole prod caller (meals-service) always sends a bounded, length-tagged body.
+MAX_REQUEST_BYTES = 15 * 1024 * 1024
+
+
+@app.middleware("http")
+async def limit_request_size(request: Request, call_next):
+    content_length = request.headers.get("content-length")
+    if content_length is not None:
+        try:
+            too_large = int(content_length) > MAX_REQUEST_BYTES
+        except ValueError:
+            return JSONResponse(status_code=400, content={"detail": "Invalid Content-Length"})
+        if too_large:
+            return JSONResponse(status_code=413, content={"detail": "Request body too large"})
+    return await call_next(request)
+
 
 # Expose Prometheus metrics at /metrics for scraping.
 Instrumentator().instrument(app).expose(app)

@@ -156,7 +156,7 @@ jobs:
       # tests (test_vision_fallback.py) mock Gemini primary + Nemotron backup.
       # test_smoke / test_image_expectations self-skip without a running service.
       - name: Unit tests
-        run: pytest tests/test_estimate.py tests/test_nutrition_lookup.py tests/test_insight.py tests/test_vision_fallback.py -v -m "not integration"
+        run: pytest tests/test_estimate.py tests/test_nutrition_lookup.py tests/test_insight.py tests/test_vision_fallback.py tests/test_request_size_limit.py -v -m "not integration"
 
       # Retrieval-quality eval: prints a recall@1/@5/MRR table for the RAG. Uses the
       # real fastembed model; self-skips if the model can't download in CI, so it
@@ -166,7 +166,11 @@ jobs:
 
       # Optional live smoke against OpenRouter Nemotron. Skips (does not fail) on
       # 429 quota or timeout — the free pool is often congested in CI.
+      # push-only: on pull_request this step would run PR-authored pytest code
+      # with OPENROUTER_API_KEY in the env, letting a malicious PR exfiltrate the
+      # key. Restricting to push (main) keeps the secret away from untrusted code.
       - name: Backup vision smoke (OpenRouter)
+        if: github.event_name == 'push'
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           BACKUP_OPENAI_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

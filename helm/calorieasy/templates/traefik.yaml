@@ -71,13 +71,11 @@ spec:
             - "--entryPoints.web.address=:80"
             - "--providers.file.filename=/config/dynamic.yml"
             - "--providers.file.watch=true"
-            - "--api.dashboard=true"
-            - "--api.insecure=true"
+            # No --api.insecure: it serves the dashboard + full routing API on
+            # :8080 with no auth. Nothing here uses the dashboard, so it's off.
           ports:
             - name: web
               containerPort: 80
-            - name: admin
-              containerPort: 8080
           volumeMounts:
             - name: dynamic
               mountPath: /config

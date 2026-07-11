@@ -49,6 +49,11 @@ from config import (
 
 logger = logging.getLogger(__name__)
 
+# Bound decompression bombs: a tiny compressed file can declare huge pixel
+# dimensions and blow up RAM on decode. Pillow raises DecompressionBombError
+# past 2x this. 64 MP is ample for meal photos (e.g. 8000x8000).
+Image.MAX_IMAGE_PIXELS = 64_000_000
+
 # Sentinel: backup vision is configured (direct OpenRouter HTTP, not LangChain).
 _BACKUP_VISION_READY = object()
 

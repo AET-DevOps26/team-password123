@@ -86,14 +86,15 @@ jobs:
             --set genai.textOpenaiBaseUrl="${{ secrets.LOGOS_BASE_URL }}" \
             --set genai.textOpenaiModel="${{ vars.LOGOS_MODEL || 'openai/gpt-oss-120b' }}" \
             --set genai.textOpenaiApiKey="${{ secrets.LOGOS_API_KEY }}" \
-            --atomic --timeout 20m
+            --rollback-on-failure --timeout 20m
           # 20m (not 8m): a fresh-SHA rollout pulls ~6 Spring Boot images onto
           # separate AET nodes and each pod's startupProbe allows up to 150s, so
-          # 8m regularly expired mid-rollout and --atomic rolled prod back to the
-          # previous (stale) images. The app converges in ~10m; 20m gives margin.
-          # --atomic implies --wait and auto-rolls-back to the last good release if
-          # the rollout fails within the timeout, so a broken deploy self-heals
-          # instead of leaving half-updated pods.
+          # 8m regularly expired mid-rollout and rolled prod back to the previous
+          # (stale) images. The app converges in ~10m; 20m gives margin.
+          # --rollback-on-failure (the Helm 4 replacement for the deprecated
+          # --atomic) defaults --wait to "watcher" and auto-rolls-back to the last
+          # good release if the rollout fails within the timeout, so a broken
+          # deploy self-heals instead of leaving half-updated pods.
 
       - name: Show rollout
         run: kubectl get pods -n team-password123

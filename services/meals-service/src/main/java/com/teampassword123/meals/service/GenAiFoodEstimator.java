@@ -24,13 +24,13 @@ public class GenAiFoodEstimator {
 
     private final RestClient client;
 
-    public GenAiFoodEstimator(
-            @Value("${app.genai.base-url}") String baseUrl,
-            RestClient.Builder builder) {
+    public GenAiFoodEstimator(@Value("${app.genai.base-url}") String baseUrl) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(CONNECT_TIMEOUT_MS);
         factory.setReadTimeout(READ_TIMEOUT_MS);
-        this.client = builder.baseUrl(baseUrl).requestFactory(factory).build();
+        // RestClient.builder() (static), not an injected RestClient.Builder bean:
+        // Spring Boot 4 no longer auto-provides that bean and the DI fails at startup.
+        this.client = RestClient.builder().baseUrl(baseUrl).requestFactory(factory).build();
     }
 
     public FoodEstimateResponse estimate(String foodName) {

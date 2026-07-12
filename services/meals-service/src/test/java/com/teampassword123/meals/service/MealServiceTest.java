@@ -205,6 +205,35 @@ class MealServiceTest {
   }
 
   @Test
+  void loggedDates_whenFromAfterTo_throwsBadRequest() {
+    LocalDate from = LocalDate.of(2026, 5, 10);
+    LocalDate to = LocalDate.of(2026, 5, 1);
+
+    assertThatThrownBy(() -> service.loggedDates(userId, from, to))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("from must be on or before to");
+
+    verify(meals, never()).findLoggedAtInRange(any(), any(), any());
+  }
+
+  @Test
+  void loggedDates_deduplicatesAndBucketsByUtcDay() {
+    when(meals.findLoggedAtInRange(
+            any(UUID.class), any(OffsetDateTime.class), any(OffsetDateTime.class)))
+        .thenReturn(
+            List.of(
+                OffsetDateTime.of(2026, 5, 2, 8, 0, 0, 0, ZoneOffset.UTC),
+                OffsetDateTime.of(2026, 5, 2, 21, 30, 0, 0, ZoneOffset.UTC),
+                // 2026-05-01T01:00+02:00 is 2026-04-30T23:00Z — must land on Apr 30.
+                OffsetDateTime.of(2026, 5, 1, 1, 0, 0, 0, ZoneOffset.ofHours(2))));
+
+    List<LocalDate> result =
+        service.loggedDates(userId, LocalDate.of(2026, 4, 1), LocalDate.of(2026, 5, 31));
+
+    assertThat(result).containsExactly(LocalDate.of(2026, 4, 30), LocalDate.of(2026, 5, 2));
+  }
+
+  @Test
   void get_whenMealNotFound_throwsNotFound() {
     UUID mealId = UUID.randomUUID();
     when(meals.findByIdAndUserId(mealId, userId)).thenReturn(Optional.empty());

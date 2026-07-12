@@ -40,4 +40,21 @@ public class MealsClient {
         .retrieve()
         .body(new ParameterizedTypeReference<>() {});
   }
+
+  // Distinct dates with at least one meal — a few bytes per day instead of the
+  // full meal bodies listForUser transfers. Used by the streak computation.
+  public List<LocalDate> loggedDates(String bearerToken, LocalDate from, LocalDate to) {
+    return restClient
+        .get()
+        .uri(
+            uriBuilder ->
+                uriBuilder
+                    .path("/api/meals/logged-dates")
+                    .queryParam("from", from)
+                    .queryParam("to", to)
+                    .build())
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
+        .retrieve()
+        .body(new ParameterizedTypeReference<>() {});
+  }
 }

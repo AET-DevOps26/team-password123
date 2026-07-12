@@ -232,6 +232,19 @@ Replace a meal log. Same request body as `POST /api/meals/manual`.
 
 ---
 
+### GET `/api/meals/logged-dates` · bearer
+
+Distinct UTC dates in the range with at least one logged meal. Used internally by analytics-service for the logging-streak computation — it avoids transferring full meal bodies.
+
+**Query params** — `from` / `to`, ISO dates, both required (same as `GET /api/meals`).
+
+**Response `200`** — sorted array of ISO dates:
+```json
+["2026-06-16", "2026-06-18"]
+```
+
+---
+
 ### POST `/api/meals/analyze` · bearer
 
 Upload a photo and get macro estimates from the GenAI service. The meal is **automatically logged** on success.

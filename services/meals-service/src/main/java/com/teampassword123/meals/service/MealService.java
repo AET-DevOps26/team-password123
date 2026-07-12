@@ -104,6 +104,20 @@ public class MealService {
         .toList();
   }
 
+  // Distinct UTC dates that have at least one meal. Serves analytics' streak
+  // computation without shipping full meal bodies over HTTP.
+  @Transactional(readOnly = true)
+  public List<LocalDate> loggedDates(UUID userId, LocalDate from, LocalDate to) {
+    if (from.isAfter(to)) {
+      throw new BadRequestException("from must be on or before to");
+    }
+    return meals.findLoggedAtInRange(userId, start(from), end(to)).stream()
+        .map(loggedAt -> loggedAt.atZoneSameInstant(ZoneOffset.UTC).toLocalDate())
+        .distinct()
+        .sorted()
+        .toList();
+  }
+
   @Transactional(readOnly = true)
   public MealResponse get(UUID userId, UUID mealId) {
     MealLog meal = findOwnedMeal(userId, mealId);

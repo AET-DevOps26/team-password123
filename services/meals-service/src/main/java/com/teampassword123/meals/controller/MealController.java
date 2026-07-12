@@ -63,6 +63,14 @@ public class MealController {
     return mealService.list(user.id(), from, to);
   }
 
+  @GetMapping("/logged-dates")
+  public List<LocalDate> loggedDates(
+      @AuthenticationPrincipal AuthenticatedUser user,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+    return mealService.loggedDates(user.id(), from, to);
+  }
+
   @GetMapping("/{id}")
   public MealResponse get(@AuthenticationPrincipal AuthenticatedUser user, @PathVariable UUID id) {
     return mealService.get(user.id(), id);

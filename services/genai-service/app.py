@@ -217,8 +217,13 @@ class FoodEstimateResponse(BaseModel):
     confidence: float
 
 
+# The analyze/estimate/insight endpoints are deliberately plain `def`: the whole
+# LLM stack underneath (requests, LangChain .invoke()) is synchronous, and inside
+# `async def` a single 60s vision call would freeze the event loop — stalling every
+# other request, /health and /metrics included. FastAPI runs `def` endpoints in a
+# threadpool, so slow analyses only occupy a worker thread.
 @app.post("/api/estimate", response_model=FoodEstimateResponse)
-async def estimate_food(request: FoodEstimateRequest):
+def estimate_food(request: FoodEstimateRequest):
     """
     Estimate nutrition per 100g for a food by name, plus a typical serving size.
     Tries USDA database first, falls back to text LLM (e.g. Logos).
@@ -261,7 +266,7 @@ async def estimate_food(request: FoodEstimateRequest):
 
 
 @app.post("/api/analyze", response_model=NutritionResponse)
-async def analyze_meal(
+def analyze_meal(
     file: UploadFile = File(...),
     vision_provider: str = Query(default="auto", alias="vision_provider"),
 ):
@@ -287,8 +292,8 @@ async def analyze_meal(
         if not file.filename:
             raise ValueError("File must have a name")
 
-        # Read the image file
-        image_data = await file.read()
+        # Read the image file (sync read: this endpoint runs in the threadpool)
+        image_data = file.file.read()
         if not image_data:
             raise ValueError("Empty image file")
 
@@ -328,7 +333,7 @@ async def analyze_meal(
 
 
 @app.post("/api/analyze/base64", response_model=NutritionResponse)
-async def analyze_meal_base64(request_data: dict):
+def analyze_meal_base64(request_data: dict):
     """
     Analyze a meal using base64-encoded image.
     
@@ -362,7 +367,7 @@ async def analyze_meal_base64(request_data: dict):
 
 
 @app.post("/api/analyze/compare", response_model=NutritionComparisonResponse)
-async def compare_meal(file: UploadFile = File(...)):
+def compare_meal(file: UploadFile = File(...)):
     """Analyze the same image with two providers and compare calorie estimates."""
     if not analyzer:
         raise HTTPException(
@@ -374,7 +379,7 @@ async def compare_meal(file: UploadFile = File(...)):
         if not file.filename:
             raise ValueError("File must have a name")
 
-        image_data = await file.read()
+        image_data = file.file.read()
         if not image_data:
             raise ValueError("Empty image file")
 
@@ -426,7 +431,7 @@ class InsightResponse(BaseModel):
 
 
 @app.post("/api/insight", response_model=InsightResponse)
-async def health_insight(request: InsightRequest):
+def health_insight(request: InsightRequest):
     """Generate a short, personalized health insight via RAG.
 
     Pipeline: embed a profile-derived query -> Weaviate top-k HealthFact search

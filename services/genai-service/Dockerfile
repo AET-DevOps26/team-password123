@@ -37,5 +37,6 @@ ENV LLM_PROVIDER=openai \
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD python -c "import requests; exit(0 if requests.get('http://localhost:8084/health', timeout=5).status_code == 200 else 1)" || exit 1
 
-# Run the FastAPI app with uvicorn
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8084"]
+# Run the FastAPI app with uvicorn. Two workers so one long vision analysis
+# (up to ~60s in the threadpool) never leaves the service single-lane.
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8084", "--workers", "2"]

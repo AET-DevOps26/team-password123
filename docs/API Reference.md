@@ -116,15 +116,6 @@ Replace the current user's profile. All fields are required.
 
 ---
 
-### GET `/api/users/{id}` · bearer
-
-Look up any user by UUID. Used internally by other services.
-
-**Response `200`** — `UserResponse` (same shape as GET `/me`).  
-**Response `404`** — user not found.
-
----
-
 ## meals-service — port 8082
 
 ### POST `/api/meals/manual` · bearer

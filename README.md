@@ -163,7 +163,6 @@ All Spring endpoints are served under the `/api` prefix; all except registration
 | `POST` | `/api/auth/login` | Authenticate, returns `AuthResponse` (JWT); public |
 | `GET` | `/api/users/me` | Current user's profile (from JWT) |
 | `PUT` | `/api/users/me` | Full-replace profile (name + body metrics + activity/goal) |
-| `GET` | `/api/users/{id}` | Lookup user by UUID |
 | `GET` | `/actuator/health`, `/swagger-ui.html` | Public |
 
 JWT subject is the user's email; the user id is a custom `userId` claim. The auth filter re-loads the user from the DB on every request. Token TTL is an ISO-8601 duration (`APP_JWT_EXPIRATION`, default `PT24H`).

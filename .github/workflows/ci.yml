@@ -151,14 +151,25 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt ruff pip-audit
+          pip install -r requirements.txt ruff pip-audit pip-tools
+
+      # The Dockerfile installs the pinned lock (requirements.txt). Recompile it
+      # from requirements.in and fail if it drifted, so the floors source and the
+      # audited/shipped lock can never silently diverge. Recompiling in place keeps
+      # existing pins stable (pip-compile reads the committed lock as the baseline),
+      # so this only trips when requirements.in changes or a pin stops satisfying it.
+      - name: Verify requirements lock is in sync
+        run: |
+          pip-compile --strip-extras requirements.in
+          git diff --exit-code -- requirements.txt \
+            || { echo "::error::requirements.txt is out of date — run 'pip-compile --strip-extras requirements.in' and commit the result."; exit 1; }
 
       - name: Lint (ruff)
         run: ruff check .
 
-      # Fail on known CVEs in the resolved environment (requirements + transitives).
-      # Complements Dependabot: Dependabot proposes update PRs, this gate stops a
-      # merge that would ship an already-known-vulnerable dependency set.
+      # Fail on known CVEs in the resolved environment (the installed pinned lock +
+      # transitives). Complements Dependabot: Dependabot proposes update PRs, this
+      # gate stops a merge that would ship an already-known-vulnerable dependency set.
       - name: Audit dependencies (pip-audit)
         run: pip-audit --skip-editable
 

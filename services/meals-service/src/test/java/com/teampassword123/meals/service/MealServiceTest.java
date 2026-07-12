@@ -279,6 +279,27 @@ class MealServiceTest {
   }
 
   @Test
+  void loggedDates_bucketsQueryRangeInClientZone() {
+    when(meals.findLoggedAtInRange(
+            any(UUID.class), any(OffsetDateTime.class), any(OffsetDateTime.class)))
+        .thenReturn(List.of());
+
+    service.loggedDates(
+        userId, LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 1), ZoneId.of("Europe/Berlin"));
+
+    ArgumentCaptor<OffsetDateTime> from = ArgumentCaptor.forClass(OffsetDateTime.class);
+    ArgumentCaptor<OffsetDateTime> to = ArgumentCaptor.forClass(OffsetDateTime.class);
+    verify(meals).findLoggedAtInRange(any(UUID.class), from.capture(), to.capture());
+
+    // Berlin is UTC+2 in May: the local day starts at 22:00Z the previous day.
+    assertThat(from.getValue().toInstant())
+        .isEqualTo(OffsetDateTime.of(2026, 4, 30, 22, 0, 0, 0, ZoneOffset.UTC).toInstant());
+    assertThat(to.getValue().toInstant())
+        .isEqualTo(
+            OffsetDateTime.of(2026, 5, 1, 21, 59, 59, 999_999_999, ZoneOffset.UTC).toInstant());
+  }
+
+  @Test
   void get_whenMealNotFound_throwsNotFound() {
     UUID mealId = UUID.randomUUID();
     when(meals.findByIdAndUserId(mealId, userId)).thenReturn(Optional.empty());

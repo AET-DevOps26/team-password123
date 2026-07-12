@@ -347,8 +347,10 @@ public class MealService {
     return items.stream().map(nutrient::value).reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 
-  // Half-open day [start, end] bucketed in the caller's zone, then expressed as an
-  // instant for the timestamp column. Berlin 2026-05-01 spans 2026-04-30T22:00Z..
+  // Closed day range [start, end] bucketed in the caller's zone, expressed as
+  // instants for the timestamp column: end() backs off one nanosecond from the
+  // next local midnight so it pairs with the inclusive BETWEEN. Berlin 2026-05-01
+  // spans 2026-04-30T22:00Z .. 2026-05-01T21:59:59.999999999Z.
   private OffsetDateTime start(LocalDate date, ZoneId zone) {
     return date.atStartOfDay(zone).toOffsetDateTime();
   }

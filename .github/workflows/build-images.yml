@@ -1,15 +1,17 @@
 name: Build & Push Images
 
 # Builds all service images (linux/amd64) and pushes them to GHCR so the
-# Kubernetes cluster can pull them. Runs on the deploy branch and main.
+# Kubernetes cluster can pull them.
+#
+# Runs AFTER "CI" succeeds on main (via workflow_run): images are only produced
+# from a green build (tests + lint passed). Since deploy-aet.yml keys off THIS
+# workflow, the full gate is CI → build → deploy — a failing test can no longer
+# reach the cluster. Manual dispatch rebuilds the current ref on demand.
 on:
-  push:
-    branches: ["deniz/helm-k8s-deploy", "main"]
-    paths:
-      - "services/**"
-      - "calorie-app/**"
-      - "helm/**"
-      - ".github/workflows/build-images.yml"
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -19,6 +21,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Only build when the triggering CI run passed (or on manual dispatch).
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     strategy:
       fail-fast: false
       matrix:
@@ -34,7 +38,22 @@ jobs:
           - name: web
             context: calorie-app
     steps:
+      # On workflow_run the default checkout ref is the branch tip, which may be
+      # ahead of the commit CI actually tested; pin to the tested SHA so the
+      # image tag matches what deploy-aet.yml resolves (workflow_run.head_sha
+      # propagates through the chain).
+      - name: Resolve build ref
+        id: ctx
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "ref=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.ctx.outputs.ref }}
 
       - uses: docker/setup-buildx-action@v3
 
@@ -57,7 +76,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ steps.repo.outputs.name }}/${{ matrix.name }}:latest
-            ghcr.io/${{ steps.repo.outputs.name }}/${{ matrix.name }}:${{ github.sha }}
+            ghcr.io/${{ steps.repo.outputs.name }}/${{ matrix.name }}:${{ steps.ctx.outputs.ref }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           # Supply-chain attestations attached to each GHCR image: an SBOM of the

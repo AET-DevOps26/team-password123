@@ -149,14 +149,16 @@ jobs:
       - name: Lint (ruff)
         run: ruff check .
 
-      # Headless unit tests for the critical nutrition + RAG logic: curated-DB
-      # lookup, name-based portion estimation, and the health-insight retrieve→
-      # augment→generate path. They mock the LLM/Weaviate/embedder, so no API
-      # keys, model downloads or a live :8084 are needed. Vision fallback unit
-      # tests (test_vision_fallback.py) mock Gemini primary + Nemotron backup.
-      # test_smoke / test_image_expectations self-skip without a running service.
+      # Run the whole tests/ directory so newly added test files are picked up
+      # automatically — no hand-maintained file list to silently fall out of date.
+      # `-m "not integration"` drops the live-LLM tests (need API keys);
+      # test_smoke / test_image_expectations self-skip without a running :8084;
+      # test_rag_eval has its own step below (needs the real embedding model).
+      # These cover the critical nutrition + RAG logic: curated-DB lookup,
+      # name-based portion estimation, the retrieve→augment→generate insight path,
+      # and the Gemini-primary → Nemotron-backup vision fallback (all mocked).
       - name: Unit tests
-        run: pytest tests/test_unit.py tests/test_estimate.py tests/test_nutrition_lookup.py tests/test_insight.py tests/test_vision_fallback.py tests/test_request_size_limit.py -v -m "not integration"
+        run: pytest tests/ -m "not integration" --ignore=tests/test_rag_eval.py -v
 
       # Retrieval-quality eval: prints a recall@1/@5/MRR table for the RAG. Uses the
       # real fastembed model; self-skips if the model can't download in CI, so it

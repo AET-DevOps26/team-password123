@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
@@ -158,7 +159,7 @@ class MealServiceTest {
     LocalDate from = LocalDate.of(2026, 5, 10);
     LocalDate to = LocalDate.of(2026, 5, 1);
 
-    assertThatThrownBy(() -> service.list(userId, from, to))
+    assertThatThrownBy(() -> service.list(userId, from, to, ZoneOffset.UTC))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("from must be on or before to");
 
@@ -182,11 +183,34 @@ class MealServiceTest {
         .thenReturn(List.of(meal));
 
     List<MealResponse> result =
-        service.list(userId, LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 31));
+        service.list(userId, LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 31), ZoneOffset.UTC);
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).mealType()).isEqualTo(MealType.DINNER);
     assertThat(result.get(0).calories()).isEqualByComparingTo("400");
+  }
+
+  @Test
+  void list_bucketsQueryRangeInClientZone() {
+    when(meals.findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(
+            any(UUID.class), any(OffsetDateTime.class), any(OffsetDateTime.class)))
+        .thenReturn(List.of());
+
+    service.list(
+        userId, LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 1), ZoneId.of("Europe/Berlin"));
+
+    ArgumentCaptor<OffsetDateTime> from = ArgumentCaptor.forClass(OffsetDateTime.class);
+    ArgumentCaptor<OffsetDateTime> to = ArgumentCaptor.forClass(OffsetDateTime.class);
+    verify(meals)
+        .findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(
+            any(UUID.class), from.capture(), to.capture());
+
+    // Berlin is UTC+2 in May: the local day starts at 22:00Z the previous day.
+    assertThat(from.getValue().toInstant())
+        .isEqualTo(OffsetDateTime.of(2026, 4, 30, 22, 0, 0, 0, ZoneOffset.UTC).toInstant());
+    assertThat(to.getValue().toInstant())
+        .isEqualTo(
+            OffsetDateTime.of(2026, 5, 1, 21, 59, 59, 999_999_999, ZoneOffset.UTC).toInstant());
   }
 
   @Test
@@ -196,7 +220,7 @@ class MealServiceTest {
         .thenReturn(List.of());
 
     LocalDate sameDay = LocalDate.of(2026, 5, 5);
-    List<MealResponse> result = service.list(userId, sameDay, sameDay);
+    List<MealResponse> result = service.list(userId, sameDay, sameDay, ZoneOffset.UTC);
 
     assertThat(result).isEmpty();
     verify(meals)
@@ -209,7 +233,7 @@ class MealServiceTest {
     LocalDate from = LocalDate.of(2026, 5, 10);
     LocalDate to = LocalDate.of(2026, 5, 1);
 
-    assertThatThrownBy(() -> service.loggedDates(userId, from, to))
+    assertThatThrownBy(() -> service.loggedDates(userId, from, to, ZoneOffset.UTC))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("from must be on or before to");
 
@@ -228,9 +252,30 @@ class MealServiceTest {
                 OffsetDateTime.of(2026, 5, 1, 1, 0, 0, 0, ZoneOffset.ofHours(2))));
 
     List<LocalDate> result =
-        service.loggedDates(userId, LocalDate.of(2026, 4, 1), LocalDate.of(2026, 5, 31));
+        service.loggedDates(
+            userId, LocalDate.of(2026, 4, 1), LocalDate.of(2026, 5, 31), ZoneOffset.UTC);
 
     assertThat(result).containsExactly(LocalDate.of(2026, 4, 30), LocalDate.of(2026, 5, 2));
+  }
+
+  @Test
+  void loggedDates_bucketsByClientZone() {
+    when(meals.findLoggedAtInRange(
+            any(UUID.class), any(OffsetDateTime.class), any(OffsetDateTime.class)))
+        .thenReturn(
+            List.of(
+                // 22:30Z is already 00:30 next day in Berlin (UTC+2) — the local day.
+                OffsetDateTime.of(2026, 5, 1, 22, 30, 0, 0, ZoneOffset.UTC),
+                OffsetDateTime.of(2026, 5, 2, 9, 0, 0, 0, ZoneOffset.UTC)));
+
+    List<LocalDate> result =
+        service.loggedDates(
+            userId,
+            LocalDate.of(2026, 4, 1),
+            LocalDate.of(2026, 5, 31),
+            ZoneId.of("Europe/Berlin"));
+
+    assertThat(result).containsExactly(LocalDate.of(2026, 5, 2));
   }
 
   @Test

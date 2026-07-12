@@ -10,6 +10,7 @@ import com.teampassword123.analytics.security.JwtAuthenticationFilter;
 import com.teampassword123.analytics.service.AnalyticsService;
 import com.teampassword123.analytics.service.InsightService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -38,11 +39,12 @@ class AnalyticsControllerInsightTest {
     InsightResponse expected =
         new InsightResponse("ok", List.of(), "logos:gpt-oss-120b", "success");
     when(request.getAttribute(JwtAuthenticationFilter.BEARER_TOKEN_ATTRIBUTE)).thenReturn(TOKEN);
-    when(insightService.getInsight(USER_ID, TOKEN, "week")).thenReturn(expected);
+    // tz omitted (null) resolves to UTC.
+    when(insightService.getInsight(USER_ID, TOKEN, "week", ZoneOffset.UTC)).thenReturn(expected);
 
-    InsightResponse result = controller.insight(user, request, "week");
+    InsightResponse result = controller.insight(user, request, "week", null);
 
     assertThat(result).isSameAs(expected);
-    verify(insightService).getInsight(USER_ID, TOKEN, "week");
+    verify(insightService).getInsight(USER_ID, TOKEN, "week", ZoneOffset.UTC);
   }
 }

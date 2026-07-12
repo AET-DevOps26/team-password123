@@ -1,4 +1,5 @@
 import { apiClient } from '../../../shared/api/client';
+import { clientTimeZone } from '../../../shared/lib/timezone';
 import type { MealAnalysisResponse } from '../model/types';
 import type { MealResponse, ManualMealRequest, PhotoLogResponse, FoodEstimateResponse } from './backendTypes';
 
@@ -7,9 +8,11 @@ export const mealApi = {
   saveManual: (request: ManualMealRequest): Promise<MealResponse> =>
     apiClient.post<MealResponse>('/meals/manual', request),
 
-  /** GET /meals?from=DATE&to=DATE — fetch meals for a date range (ISO dates) */
+  /** GET /meals?from=DATE&to=DATE&tz — fetch meals for a date range (ISO dates), bucketed by the client's zone */
   getHistory: (from: string, to: string): Promise<MealResponse[]> =>
-    apiClient.get<MealResponse[]>(`/meals?from=${from}&to=${to}`),
+    apiClient.get<MealResponse[]>(
+      `/meals?from=${from}&to=${to}&tz=${encodeURIComponent(clientTimeZone())}`,
+    ),
 
   /** GET /meals/:id */
   getById: (id: string): Promise<MealResponse> =>
@@ -42,7 +45,9 @@ export const mealApi = {
   analyzePhoto: (imageFile: File, visionProvider = 'auto'): Promise<MealAnalysisResponse> => {
     const formData = new FormData();
     formData.append('image', imageFile);
-    const qs = `?visionProvider=${encodeURIComponent(visionProvider)}`;
+    const qs =
+      `?visionProvider=${encodeURIComponent(visionProvider)}` +
+      `&tz=${encodeURIComponent(clientTimeZone())}`;
     return apiClient.post<MealAnalysisResponse>(`/meals/analyze${qs}`, formData);
   },
 

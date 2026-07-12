@@ -3,6 +3,7 @@ package com.teampassword123.analytics.client;
 import com.teampassword123.analytics.dto.MealSummary;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -30,20 +31,27 @@ public class MealsClient {
   }
 
   public List<MealSummary> listForUser(
-      String bearerToken, @DateTimeFormat LocalDate from, LocalDate to) {
+      String bearerToken, @DateTimeFormat LocalDate from, LocalDate to, ZoneId zone) {
     return restClient
         .get()
         .uri(
             uriBuilder ->
-                uriBuilder.path("/api/meals").queryParam("from", from).queryParam("to", to).build())
+                uriBuilder
+                    .path("/api/meals")
+                    .queryParam("from", from)
+                    .queryParam("to", to)
+                    .queryParam("tz", zone.getId())
+                    .build())
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
         .retrieve()
         .body(new ParameterizedTypeReference<>() {});
   }
 
   // Distinct dates with at least one meal — a few bytes per day instead of the
-  // full meal bodies listForUser transfers. Used by the streak computation.
-  public List<LocalDate> loggedDates(String bearerToken, LocalDate from, LocalDate to) {
+  // full meal bodies listForUser transfers. Used by the streak computation. The
+  // zone is forwarded so meals-service buckets days on the user's local calendar.
+  public List<LocalDate> loggedDates(
+      String bearerToken, LocalDate from, LocalDate to, ZoneId zone) {
     return restClient
         .get()
         .uri(
@@ -52,6 +60,7 @@ public class MealsClient {
                     .path("/api/meals/logged-dates")
                     .queryParam("from", from)
                     .queryParam("to", to)
+                    .queryParam("tz", zone.getId())
                     .build())
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
         .retrieve()

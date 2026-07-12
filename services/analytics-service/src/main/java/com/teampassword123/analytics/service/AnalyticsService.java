@@ -9,7 +9,7 @@ import com.teampassword123.analytics.exception.BadRequestException;
 import com.teampassword123.analytics.repository.NutritionGoalRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,22 +29,24 @@ public class AnalyticsService {
   }
 
   @Transactional(readOnly = true)
-  public AnalyticsResponse daily(UUID userId, String bearerToken, LocalDate date) {
-    return summarize(userId, bearerToken, date, date, BigDecimal.ONE);
+  public AnalyticsResponse daily(UUID userId, String bearerToken, LocalDate date, ZoneId zone) {
+    return summarize(userId, bearerToken, date, date, BigDecimal.ONE, zone);
   }
 
   @Transactional(readOnly = true)
-  public AnalyticsResponse weekly(UUID userId, String bearerToken, LocalDate weekStart) {
-    return summarize(userId, bearerToken, weekStart, weekStart.plusDays(6), BigDecimal.valueOf(7));
+  public AnalyticsResponse weekly(
+      UUID userId, String bearerToken, LocalDate weekStart, ZoneId zone) {
+    return summarize(
+        userId, bearerToken, weekStart, weekStart.plusDays(6), BigDecimal.valueOf(7), zone);
   }
 
   @Transactional(readOnly = true)
-  public StreakResponse computeStreak(UUID userId, String bearerToken) {
-    LocalDate today = LocalDate.now(ZoneOffset.UTC);
+  public StreakResponse computeStreak(UUID userId, String bearerToken, ZoneId zone) {
+    LocalDate today = LocalDate.now(zone);
     // ~5 year window caps extreme streaks; logged-dates returns only distinct
     // days, so the window no longer means transferring years of meal bodies.
     Set<LocalDate> loggedDays =
-        new HashSet<>(mealsClient.loggedDates(bearerToken, today.minusDays(1830), today));
+        new HashSet<>(mealsClient.loggedDates(bearerToken, today.minusDays(1830), today, zone));
 
     // Grace rule: don't reset an active streak just because today's meal isn't logged yet.
     LocalDate cursor = loggedDays.contains(today) ? today : today.minusDays(1);
@@ -58,11 +60,16 @@ public class AnalyticsService {
   }
 
   private AnalyticsResponse summarize(
-      UUID userId, String bearerToken, LocalDate from, LocalDate to, BigDecimal goalMultiplier) {
+      UUID userId,
+      String bearerToken,
+      LocalDate from,
+      LocalDate to,
+      BigDecimal goalMultiplier,
+      ZoneId zone) {
     if (from.isAfter(to)) {
       throw new BadRequestException("from must be on or before to");
     }
-    List<MealSummary> meals = mealsClient.listForUser(bearerToken, from, to);
+    List<MealSummary> meals = mealsClient.listForUser(bearerToken, from, to, zone);
     Totals totals = Totals.from(meals);
     NutritionGoal goal = goals.findByUserId(userId).orElse(null);
 

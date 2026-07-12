@@ -25,7 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -87,12 +87,13 @@ public class MealService {
   }
 
   @Transactional(readOnly = true)
-  public List<MealResponse> list(UUID userId, LocalDate from, LocalDate to) {
+  public List<MealResponse> list(UUID userId, LocalDate from, LocalDate to, ZoneId zone) {
     if (from.isAfter(to)) {
       throw new BadRequestException("from must be on or before to");
     }
     List<MealLog> mealLogs =
-        meals.findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(userId, start(from), end(to));
+        meals.findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(
+            userId, start(from, zone), end(to, zone));
 
     // Resolve every linked photo in one query, then map without per-meal lookups.
     Map<UUID, PhotoLog> photosByMeal =
@@ -104,15 +105,15 @@ public class MealService {
         .toList();
   }
 
-  // Distinct UTC dates that have at least one meal. Serves analytics' streak
-  // computation without shipping full meal bodies over HTTP.
+  // Distinct local calendar dates (in the caller's zone) that have at least one
+  // meal. Serves analytics' streak computation without shipping full meal bodies.
   @Transactional(readOnly = true)
-  public List<LocalDate> loggedDates(UUID userId, LocalDate from, LocalDate to) {
+  public List<LocalDate> loggedDates(UUID userId, LocalDate from, LocalDate to, ZoneId zone) {
     if (from.isAfter(to)) {
       throw new BadRequestException("from must be on or before to");
     }
-    return meals.findLoggedAtInRange(userId, start(from), end(to)).stream()
-        .map(loggedAt -> loggedAt.atZoneSameInstant(ZoneOffset.UTC).toLocalDate())
+    return meals.findLoggedAtInRange(userId, start(from, zone), end(to, zone)).stream()
+        .map(loggedAt -> loggedAt.atZoneSameInstant(zone).toLocalDate())
         .distinct()
         .sorted()
         .toList();
@@ -162,7 +163,7 @@ public class MealService {
 
   @Transactional
   public MealAnalysisResponse analyzePhoto(
-      UUID userId, MultipartFile image, String visionProvider) {
+      UUID userId, MultipartFile image, String visionProvider, ZoneId zone) {
     if (image.isEmpty()) {
       throw new BadRequestException("Photo file is required");
     }
@@ -190,7 +191,7 @@ public class MealService {
     metrics.counter("calorieasy.meals.analyze", "result", "success").increment();
 
     OffsetDateTime now = OffsetDateTime.now();
-    MealLog meal = meals.save(buildAnalyzedMeal(userId, analysis, now));
+    MealLog meal = meals.save(buildAnalyzedMeal(userId, analysis, now, zone));
     recordLogged(meal, "photo_ai");
 
     PhotoLog photo = new PhotoLog();
@@ -273,7 +274,8 @@ public class MealService {
     return new StoredFile(originalFilename, storedFilename);
   }
 
-  private MealLog buildAnalyzedMeal(UUID userId, MealAnalysis analysis, OffsetDateTime loggedAt) {
+  private MealLog buildAnalyzedMeal(
+      UUID userId, MealAnalysis analysis, OffsetDateTime loggedAt, ZoneId zone) {
     MealItem item = new MealItem();
     item.setName(analysis.dishName());
     item.setQuantity(analysis.portionGrams() == null ? BigDecimal.ONE : analysis.portionGrams());
@@ -287,7 +289,7 @@ public class MealService {
     MealLog meal = new MealLog();
     meal.setUserId(userId);
     meal.setSourceType(SourceType.PHOTO_AI);
-    meal.setMealType(pickMealType(loggedAt));
+    meal.setMealType(pickMealType(loggedAt, zone));
     meal.setLoggedAt(loggedAt);
     meal.setDishName(analysis.dishName());
     meal.setConfidence(BigDecimal.valueOf(analysis.confidence()));
@@ -300,8 +302,8 @@ public class MealService {
     return meal;
   }
 
-  private MealType pickMealType(OffsetDateTime loggedAt) {
-    int hour = loggedAt.getHour();
+  private MealType pickMealType(OffsetDateTime loggedAt, ZoneId zone) {
+    int hour = loggedAt.atZoneSameInstant(zone).getHour();
     if (hour < 11) {
       return MealType.BREAKFAST;
     }
@@ -345,12 +347,14 @@ public class MealService {
     return items.stream().map(nutrient::value).reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 
-  private OffsetDateTime start(LocalDate date) {
-    return date.atStartOfDay().atOffset(ZoneOffset.UTC);
+  // Half-open day [start, end] bucketed in the caller's zone, then expressed as an
+  // instant for the timestamp column. Berlin 2026-05-01 spans 2026-04-30T22:00Z..
+  private OffsetDateTime start(LocalDate date, ZoneId zone) {
+    return date.atStartOfDay(zone).toOffsetDateTime();
   }
 
-  private OffsetDateTime end(LocalDate date) {
-    return date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC).minusNanos(1);
+  private OffsetDateTime end(LocalDate date, ZoneId zone) {
+    return date.plusDays(1).atStartOfDay(zone).minusNanos(1).toOffsetDateTime();
   }
 
   private record StoredFile(String originalFilename, String storedFilename) {}

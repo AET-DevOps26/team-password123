@@ -51,8 +51,8 @@ app = FastAPI(
 
 # Reject oversized bodies before Starlette buffers them into memory, so a huge
 # upload to the (unauthenticated) analyze endpoints can't exhaust worker RAM.
-# This also neutralises the reachable path of the Starlette multipart CVE
-# (CVE-2024-47874) that the pinned fastapi==0.104.1 carries. 15MB mirrors
+# (Originally also the mitigation for CVE-2024-47874 while fastapi was pinned to
+# 0.104; the pin is gone, this stays as defense in depth.) 15MB mirrors
 # meals-service's 10MB multipart cap plus headroom for base64 inflation.
 # ponytail: Content-Length check only — a chunked body with no length slips past;
 # the sole prod caller (meals-service) always sends a bounded, length-tagged body.

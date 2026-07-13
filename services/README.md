@@ -8,10 +8,15 @@ The server side is split into three Spring Boot microservices, plus a separate P
 | [meals-service](meals-service) | 8082 | `meals` | Manual meal logging, photo analysis, food-name estimation |
 | [analytics-service](analytics-service) | 8083 | `analytics` | Nutrition goals, daily/weekly aggregations, RAG health insights |
 | [genai-service](genai-service) | 8084 | n/a | Food image analysis, name-based estimation, health-insight RAG |
+| [common-security](common-security) | — | — | Shared library: JWT resource-server security + API error handling |
+
+**Building.** `services/pom.xml` is an aggregator: `cd services && mvn verify` builds the shared
+module first, then every service. To build a single service standalone, install the shared module
+once (`mvn -f services/common-security/pom.xml install`) so Maven can resolve it.
 
 ## Cross-cutting design
 
-**JWT.** `auth-service` issues tokens; the other two validate them with the same `APP_JWT_SECRET`. Each downstream service runs a thin `JwtVerifier` that decodes the token and extracts `userId` — no DB lookup, no shared library.
+**JWT.** `auth-service` issues tokens; the other two validate them with the same `APP_JWT_SECRET`. Token validation lives in the shared [common-security](common-security) module: a thin `JwtVerifier` (decode + extract `userId`, no DB lookup) and a `JwtAuthenticationFilter`, wired by auto-configuration in meals/analytics. auth-service defines its own `SecurityFilterChain` (public login/register endpoints), so the shared resource-server chain backs off there; it reuses the module's error-handling classes.
 
 **Database.** One PostgreSQL instance, three schemas. Each service owns its schema and its Flyway migrations live under `src/main/resources/db/migration/`. The schemas themselves are created by `infra/postgres/init/01-create-schemas.sql` on first container start.
 

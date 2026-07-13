@@ -6,8 +6,8 @@ import static org.mockito.Mockito.when;
 
 import com.teampassword123.auth.domain.AppUser;
 import com.teampassword123.auth.dto.UserResponse;
-import com.teampassword123.auth.exception.NotFoundException;
 import com.teampassword123.auth.repository.AppUserRepository;
+import com.teampassword123.common.web.NotFoundException;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;

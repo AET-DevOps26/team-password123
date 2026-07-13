@@ -1,5 +1,7 @@
 package com.teampassword123.meals.service;
 
+import com.teampassword123.common.web.BadRequestException;
+import com.teampassword123.common.web.NotFoundException;
 import com.teampassword123.meals.config.StorageProperties;
 import com.teampassword123.meals.domain.MealItem;
 import com.teampassword123.meals.domain.MealLog;
@@ -13,8 +15,6 @@ import com.teampassword123.meals.dto.MealAnalysisResponse;
 import com.teampassword123.meals.dto.MealResponse;
 import com.teampassword123.meals.dto.NutritionSummary;
 import com.teampassword123.meals.dto.PhotoLogResponse;
-import com.teampassword123.meals.exception.BadRequestException;
-import com.teampassword123.meals.exception.NotFoundException;
 import com.teampassword123.meals.repository.MealLogRepository;
 import com.teampassword123.meals.repository.PhotoLogRepository;
 import io.micrometer.core.instrument.MeterRegistry;

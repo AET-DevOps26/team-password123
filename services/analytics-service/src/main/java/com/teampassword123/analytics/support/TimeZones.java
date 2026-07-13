@@ -1,6 +1,6 @@
 package com.teampassword123.analytics.support;
 
-import com.teampassword123.analytics.exception.BadRequestException;
+import com.teampassword123.common.web.BadRequestException;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.ZoneOffset;

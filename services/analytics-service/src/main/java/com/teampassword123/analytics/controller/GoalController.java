@@ -2,8 +2,8 @@ package com.teampassword123.analytics.controller;
 
 import com.teampassword123.analytics.dto.GoalRequest;
 import com.teampassword123.analytics.dto.GoalResponse;
-import com.teampassword123.analytics.security.AuthenticatedUser;
 import com.teampassword123.analytics.service.GoalService;
+import com.teampassword123.common.security.AuthenticatedUser;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

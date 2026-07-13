@@ -1,4 +1,4 @@
-package com.teampassword123.meals.security;
+package com.teampassword123.common.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,11 +9,15 @@ import java.util.List;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    /**
+     * The raw bearer token is stashed on the request so services that fan out to other services
+     * (e.g. analytics calling meals) can forward the caller's credentials.
+     */
+    public static final String BEARER_TOKEN_ATTRIBUTE = "bearerToken";
 
     private final JwtVerifier jwtVerifier;
 
@@ -31,14 +35,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        String token = header.substring(7);
         try {
-            AuthenticatedUser user = jwtVerifier.verify(header.substring(7));
+            AuthenticatedUser user = jwtVerifier.verify(token);
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(user, null, List.of());
                 authentication.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                request.setAttribute(BEARER_TOKEN_ATTRIBUTE, token);
             }
         } catch (RuntimeException ignored) {
             SecurityContextHolder.clearContext();

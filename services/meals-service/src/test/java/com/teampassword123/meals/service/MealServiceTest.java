@@ -8,6 +8,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.teampassword123.common.web.BadRequestException;
+import com.teampassword123.common.web.NotFoundException;
 import com.teampassword123.meals.config.StorageProperties;
 import com.teampassword123.meals.domain.MealLog;
 import com.teampassword123.meals.domain.MealType;
@@ -18,8 +20,6 @@ import com.teampassword123.meals.dto.ManualMealRequest;
 import com.teampassword123.meals.dto.MealItemRequest;
 import com.teampassword123.meals.dto.MealResponse;
 import com.teampassword123.meals.dto.PhotoLogResponse;
-import com.teampassword123.meals.exception.BadRequestException;
-import com.teampassword123.meals.exception.NotFoundException;
 import com.teampassword123.meals.repository.MealLogRepository;
 import com.teampassword123.meals.repository.PhotoLogRepository;
 import java.math.BigDecimal;

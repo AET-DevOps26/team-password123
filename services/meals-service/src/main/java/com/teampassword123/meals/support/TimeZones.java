@@ -1,6 +1,6 @@
 package com.teampassword123.meals.support;
 
-import com.teampassword123.meals.exception.BadRequestException;
+import com.teampassword123.common.web.BadRequestException;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.ZoneOffset;

@@ -1,4 +1,4 @@
-package com.teampassword123.meals.exception;
+package com.teampassword123.common.web;
 
 public class BadRequestException extends RuntimeException {
 

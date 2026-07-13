@@ -1,4 +1,4 @@
-package com.teampassword123.auth.exception;
+package com.teampassword123.common.web;
 
 import java.time.OffsetDateTime;
 import java.util.List;

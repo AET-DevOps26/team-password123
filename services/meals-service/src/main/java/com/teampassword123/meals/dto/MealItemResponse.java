@@ -12,6 +12,4 @@ public record MealItemResponse(
         BigDecimal proteinGrams,
         BigDecimal carbsGrams,
         BigDecimal fatGrams,
-        BigDecimal fiberGrams
-) {
-}
+        BigDecimal fiberGrams) {}

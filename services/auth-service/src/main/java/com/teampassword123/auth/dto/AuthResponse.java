@@ -9,6 +9,4 @@ public record AuthResponse(
         OffsetDateTime expiresAt,
         UUID userId,
         String email,
-        String displayName
-) {
-}
+        String displayName) {}

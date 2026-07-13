@@ -35,8 +35,7 @@ public class UserService {
     }
 
     private AppUser load(UUID id) {
-        return users.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        return users.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
     }
 
     private UserResponse toResponse(AppUser user) {

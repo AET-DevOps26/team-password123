@@ -12,6 +12,4 @@ public record ManualMealRequest(
         @NotNull MealType mealType,
         OffsetDateTime loggedAt,
         @Size(max = 500) String notes,
-        @NotEmpty List<@Valid MealItemRequest> items
-) {
-}
+        @NotEmpty List<@Valid MealItemRequest> items) {}

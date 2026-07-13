@@ -19,11 +19,7 @@ public class JwtVerifier {
     }
 
     public AuthenticatedUser verify(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
         UUID userId = UUID.fromString(claims.get("userId", String.class));
         return new AuthenticatedUser(userId, claims.getSubject());
     }

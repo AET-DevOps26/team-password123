@@ -19,6 +19,4 @@ public record MealResponse(
         BigDecimal fiberGrams,
         String notes,
         String photoUrl,
-        List<MealItemResponse> items
-) {
-}
+        List<MealItemResponse> items) {}

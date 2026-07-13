@@ -15,16 +15,20 @@ public class OpenApiConfig {
     OpenAPI analyticsOpenApi() {
         String schemeName = "bearerAuth";
         return new OpenAPI()
-                .info(new Info()
-                        .title("Analytics Service")
-                        .version("v1")
-                        .description("Goals and daily/weekly nutrition analytics."))
+                .info(
+                        new Info()
+                                .title("Analytics Service")
+                                .version("v1")
+                                .description("Goals and daily/weekly nutrition analytics."))
                 .addSecurityItem(new SecurityRequirement().addList(schemeName))
-                .components(new Components().addSecuritySchemes(schemeName,
-                        new SecurityScheme()
-                                .name(schemeName)
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")));
+                .components(
+                        new Components()
+                                .addSecuritySchemes(
+                                        schemeName,
+                                        new SecurityScheme()
+                                                .name(schemeName)
+                                                .type(SecurityScheme.Type.HTTP)
+                                                .scheme("bearer")
+                                                .bearerFormat("JWT")));
     }
 }

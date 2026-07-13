@@ -25,9 +25,10 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException exception) {
-        List<String> details = exception.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .toList();
+        List<String> details =
+                exception.getBindingResult().getFieldErrors().stream()
+                        .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                        .toList();
         return error(HttpStatus.BAD_REQUEST, "Validation failed", details);
     }
 
@@ -36,13 +37,15 @@ public class ApiExceptionHandler {
         return error(HttpStatus.PAYLOAD_TOO_LARGE, "Uploaded file is too large", List.of());
     }
 
-    private ResponseEntity<ErrorResponse> error(HttpStatus status, String message, List<String> details) {
-        return ResponseEntity.status(status).body(new ErrorResponse(
-                OffsetDateTime.now(),
-                status.value(),
-                status.getReasonPhrase(),
-                message,
-                details
-        ));
+    private ResponseEntity<ErrorResponse> error(
+            HttpStatus status, String message, List<String> details) {
+        return ResponseEntity.status(status)
+                .body(
+                        new ErrorResponse(
+                                OffsetDateTime.now(),
+                                status.value(),
+                                status.getReasonPhrase(),
+                                message,
+                                details));
     }
 }

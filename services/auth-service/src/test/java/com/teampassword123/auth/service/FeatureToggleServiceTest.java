@@ -7,27 +7,27 @@ import org.junit.jupiter.api.Test;
 
 class FeatureToggleServiceTest {
 
-  private FeatureToggleService service;
+    private FeatureToggleService service;
 
-  @BeforeEach
-  void setUp() {
-    service = new FeatureToggleService();
-  }
+    @BeforeEach
+    void setUp() {
+        service = new FeatureToggleService();
+    }
 
-  @Test
-  void unknownFeatureDefaultsToDisabled() {
-    assertThat(service.isEnabled("scan-vision-model-picker")).isFalse();
-  }
+    @Test
+    void unknownFeatureDefaultsToDisabled() {
+        assertThat(service.isEnabled("scan-vision-model-picker")).isFalse();
+    }
 
-  @Test
-  void canEnableAndReadFeature() {
-    service.setEnabled("scan-vision-model-picker", true);
-    assertThat(service.isEnabled("scan-vision-model-picker")).isTrue();
-  }
+    @Test
+    void canEnableAndReadFeature() {
+        service.setEnabled("scan-vision-model-picker", true);
+        assertThat(service.isEnabled("scan-vision-model-picker")).isTrue();
+    }
 
-  @Test
-  void snapshotReturnsCopy() {
-    service.setEnabled("a", true);
-    assertThat(service.snapshot()).containsEntry("a", true);
-  }
+    @Test
+    void snapshotReturnsCopy() {
+        service.setEnabled("a", true);
+        assertThat(service.snapshot()).containsEntry("a", true);
+    }
 }

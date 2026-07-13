@@ -32,24 +32,25 @@ import org.springframework.security.core.Authentication;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-    @Mock
-    private AppUserRepository users;
+    @Mock private AppUserRepository users;
 
-    @Mock
-    private org.springframework.security.crypto.password.PasswordEncoder encoder;
+    @Mock private org.springframework.security.crypto.password.PasswordEncoder encoder;
 
-    @Mock
-    private AuthenticationManager authenticationManager;
+    @Mock private AuthenticationManager authenticationManager;
 
-    @Mock
-    private JwtService jwtService;
+    @Mock private JwtService jwtService;
 
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(users, encoder, authenticationManager, jwtService,
-                new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
+        authService =
+                new AuthService(
+                        users,
+                        encoder,
+                        authenticationManager,
+                        jwtService,
+                        new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
     }
 
     private AppUser persistedUser(UUID id, String email, String displayName) {
@@ -71,11 +72,13 @@ class AuthServiceTest {
         when(encoder.encode("password1")).thenReturn("ENC");
 
         UUID id = UUID.randomUUID();
-        when(users.save(any(AppUser.class))).thenAnswer(invocation -> {
-            AppUser arg = invocation.getArgument(0);
-            arg.setId(id);
-            return arg;
-        });
+        when(users.save(any(AppUser.class)))
+                .thenAnswer(
+                        invocation -> {
+                            AppUser arg = invocation.getArgument(0);
+                            arg.setId(id);
+                            return arg;
+                        });
         when(jwtService.generateToken(any(UserPrincipal.class))).thenReturn("jwt-token");
         OffsetDateTime expiry = OffsetDateTime.now().plusHours(1);
         when(jwtService.expiresAt()).thenReturn(expiry);
@@ -100,8 +103,7 @@ class AuthServiceTest {
 
     @Test
     void registerThrowsBadRequestWhenEmailAlreadyRegisteredAndDoesNotSave() {
-        RegisterRequest request =
-                new RegisterRequest("DUP@Example.com", "password1", "Bob");
+        RegisterRequest request = new RegisterRequest("DUP@Example.com", "password1", "Bob");
 
         when(users.existsByEmailIgnoreCase("dup@example.com")).thenReturn(true);
 
@@ -117,7 +119,8 @@ class AuthServiceTest {
     void loginAuthenticatesNormalizedEmailAndReturnsTokenForFoundUser() {
         LoginRequest request = new LoginRequest("  USER@Example.com ", "secret123");
 
-        Authentication auth = new UsernamePasswordAuthenticationToken("user@example.com", "secret123");
+        Authentication auth =
+                new UsernamePasswordAuthenticationToken("user@example.com", "secret123");
         when(authenticationManager.authenticate(any())).thenReturn(auth);
 
         UUID id = UUID.randomUUID();
@@ -162,7 +165,8 @@ class AuthServiceTest {
         LoginRequest request = new LoginRequest("ghost@example.com", "secret123");
 
         when(authenticationManager.authenticate(any()))
-                .thenReturn(new UsernamePasswordAuthenticationToken("ghost@example.com", "secret123"));
+                .thenReturn(
+                        new UsernamePasswordAuthenticationToken("ghost@example.com", "secret123"));
         when(users.findByEmailIgnoreCase("ghost@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.login(request))

@@ -48,8 +48,7 @@ class JwtServiceTest {
 
         String token = issuer.generateToken(principal(UUID.randomUUID(), "a@b.com"));
 
-        assertThatThrownBy(() -> verifier.subject(token))
-                .isInstanceOf(JwtException.class);
+        assertThatThrownBy(() -> verifier.subject(token)).isInstanceOf(JwtException.class);
     }
 
     @Test
@@ -58,8 +57,7 @@ class JwtServiceTest {
         JwtService service = new JwtService(SECRET, Duration.ofSeconds(-60));
         String token = service.generateToken(principal(UUID.randomUUID(), "expired@b.com"));
 
-        assertThatThrownBy(() -> service.subject(token))
-                .isInstanceOf(JwtException.class);
+        assertThatThrownBy(() -> service.subject(token)).isInstanceOf(JwtException.class);
     }
 
     @Test

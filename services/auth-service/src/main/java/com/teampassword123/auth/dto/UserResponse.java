@@ -17,6 +17,4 @@ public record UserResponse(
         Integer age,
         Sex sex,
         ActivityLevel activityLevel,
-        Goal goal
-) {
-}
+        Goal goal) {}

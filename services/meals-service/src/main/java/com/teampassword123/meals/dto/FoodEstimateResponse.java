@@ -11,5 +11,4 @@ public record FoodEstimateResponse(
         BigDecimal typicalPortionGrams,
         String typicalPortionLabel,
         String source,
-        BigDecimal confidence
-) {}
+        BigDecimal confidence) {}

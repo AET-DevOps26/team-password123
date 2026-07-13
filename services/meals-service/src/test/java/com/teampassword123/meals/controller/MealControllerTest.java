@@ -32,16 +32,17 @@ class MealControllerTest {
     @Test
     void estimateDelegatesToEstimatorWhenConfigured() {
         GenAiFoodEstimator estimator = mock(GenAiFoodEstimator.class);
-        FoodEstimateResponse expected = new FoodEstimateResponse(
-                "toast",
-                new BigDecimal("265"),
-                new BigDecimal("9"),
-                new BigDecimal("49"),
-                new BigDecimal("3.2"),
-                new BigDecimal("30"),
-                "1 slice",
-                "curated",
-                new BigDecimal("0.9"));
+        FoodEstimateResponse expected =
+                new FoodEstimateResponse(
+                        "toast",
+                        new BigDecimal("265"),
+                        new BigDecimal("9"),
+                        new BigDecimal("49"),
+                        new BigDecimal("3.2"),
+                        new BigDecimal("30"),
+                        "1 slice",
+                        "curated",
+                        new BigDecimal("0.9"));
         when(estimator.estimate("toast")).thenReturn(expected);
 
         MealController controller = new MealController(mealService, Optional.of(estimator));

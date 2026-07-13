@@ -27,31 +27,22 @@ class MealMapperTest {
             BigDecimal protein,
             BigDecimal carbs,
             BigDecimal fat,
-            BigDecimal fiber
-    ) {
+            BigDecimal fiber) {
         return new MealItemRequest(
-                name,
-                new BigDecimal("1.0"),
-                unit,
-                calories,
-                protein,
-                carbs,
-                fat,
-                fiber
-        );
+                name, new BigDecimal("1.0"), unit, calories, protein, carbs, fat, fiber);
     }
 
     @Test
     void toItem_trimsNameAndUnit_andCopiesNutrients() {
-        MealItemRequest request = itemRequest(
-                "  Chicken  ",
-                "  g  ",
-                new BigDecimal("250"),
-                new BigDecimal("30"),
-                new BigDecimal("5"),
-                new BigDecimal("12"),
-                new BigDecimal("2")
-        );
+        MealItemRequest request =
+                itemRequest(
+                        "  Chicken  ",
+                        "  g  ",
+                        new BigDecimal("250"),
+                        new BigDecimal("30"),
+                        new BigDecimal("5"),
+                        new BigDecimal("12"),
+                        new BigDecimal("2"));
 
         MealItem item = MealMapper.toItem(request);
 
@@ -107,15 +98,16 @@ class MealMapperTest {
         meal.setFiberGrams(new BigDecimal("5"));
         meal.setNotes("post-workout");
 
-        MealItem item = MealMapper.toItem(itemRequest(
-                "Eggs",
-                "pcs",
-                new BigDecimal("90"),
-                new BigDecimal("7"),
-                new BigDecimal("1"),
-                new BigDecimal("6"),
-                new BigDecimal("0")
-        ));
+        MealItem item =
+                MealMapper.toItem(
+                        itemRequest(
+                                "Eggs",
+                                "pcs",
+                                new BigDecimal("90"),
+                                new BigDecimal("7"),
+                                new BigDecimal("1"),
+                                new BigDecimal("6"),
+                                new BigDecimal("0")));
         meal.addItem(item);
 
         MealResponse response = MealMapper.toMealResponse(meal);

@@ -20,11 +20,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
-    @Mock
-    private AppUserRepository users;
+    @Mock private AppUserRepository users;
 
-    @InjectMocks
-    private UserService userService;
+    @InjectMocks private UserService userService;
 
     @Test
     void getMapsFoundUserToUserResponse() {

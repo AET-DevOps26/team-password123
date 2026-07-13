@@ -16,43 +16,48 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
-  @ExceptionHandler({BadRequestException.class, MethodArgumentTypeMismatchException.class})
-  ResponseEntity<ErrorResponse> handleBadRequest(Exception exception) {
-    return error(HttpStatus.BAD_REQUEST, exception.getMessage(), List.of());
-  }
+    @ExceptionHandler({BadRequestException.class, MethodArgumentTypeMismatchException.class})
+    ResponseEntity<ErrorResponse> handleBadRequest(Exception exception) {
+        return error(HttpStatus.BAD_REQUEST, exception.getMessage(), List.of());
+    }
 
-  @ExceptionHandler(MethodArgumentNotValidException.class)
-  ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException exception) {
-    List<String> details =
-        exception.getBindingResult().getFieldErrors().stream()
-            .map(error -> error.getField() + ": " + error.getDefaultMessage())
-            .toList();
-    return error(HttpStatus.BAD_REQUEST, "Validation failed", details);
-  }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException exception) {
+        List<String> details =
+                exception.getBindingResult().getFieldErrors().stream()
+                        .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                        .toList();
+        return error(HttpStatus.BAD_REQUEST, "Validation failed", details);
+    }
 
-  // ResourceAccessException covers connect/read timeouts and refused connections —
-  // the upstream never produced a response, so 504 fits better than the generic 502.
-  @ExceptionHandler(ResourceAccessException.class)
-  ResponseEntity<ErrorResponse> handleUpstreamTimeout(ResourceAccessException exception) {
-    log.warn("Upstream meals service unreachable or timed out", exception);
-    return error(HttpStatus.GATEWAY_TIMEOUT, "Upstream meals service did not respond", List.of());
-  }
+    // ResourceAccessException covers connect/read timeouts and refused connections —
+    // the upstream never produced a response, so 504 fits better than the generic 502.
+    @ExceptionHandler(ResourceAccessException.class)
+    ResponseEntity<ErrorResponse> handleUpstreamTimeout(ResourceAccessException exception) {
+        log.warn("Upstream meals service unreachable or timed out", exception);
+        return error(
+                HttpStatus.GATEWAY_TIMEOUT, "Upstream meals service did not respond", List.of());
+    }
 
-  @ExceptionHandler(RestClientException.class)
-  ResponseEntity<ErrorResponse> handleUpstream(RestClientException exception) {
-    // Log the raw cause server-side, but don't echo it: RestClient messages
-    // embed the internal service URL/host/port and leak the mesh topology.
-    log.warn("Upstream meals service call failed", exception);
-    return error(HttpStatus.BAD_GATEWAY, "Upstream meals service unavailable", List.of());
-  }
+    @ExceptionHandler(RestClientException.class)
+    ResponseEntity<ErrorResponse> handleUpstream(RestClientException exception) {
+        // Log the raw cause server-side, but don't echo it: RestClient messages
+        // embed the internal service URL/host/port and leak the mesh topology.
+        log.warn("Upstream meals service call failed", exception);
+        return error(HttpStatus.BAD_GATEWAY, "Upstream meals service unavailable", List.of());
+    }
 
-  private ResponseEntity<ErrorResponse> error(
-      HttpStatus status, String message, List<String> details) {
-    return ResponseEntity.status(status)
-        .body(
-            new ErrorResponse(
-                OffsetDateTime.now(), status.value(), status.getReasonPhrase(), message, details));
-  }
+    private ResponseEntity<ErrorResponse> error(
+            HttpStatus status, String message, List<String> details) {
+        return ResponseEntity.status(status)
+                .body(
+                        new ErrorResponse(
+                                OffsetDateTime.now(),
+                                status.value(),
+                                status.getReasonPhrase(),
+                                message,
+                                details));
+    }
 }

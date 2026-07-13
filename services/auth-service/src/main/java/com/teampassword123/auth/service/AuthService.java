@@ -13,8 +13,8 @@ import java.time.OffsetDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,8 +35,7 @@ public class AuthService {
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
             JwtService jwtService,
-            MeterRegistry metrics
-    ) {
+            MeterRegistry metrics) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
@@ -68,17 +67,16 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
         String email = request.email().trim().toLowerCase();
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    email,
-                    request.password()
-            ));
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, request.password()));
         } catch (AuthenticationException e) {
             metrics.counter("calorieasy.auth.logins", "result", "failure").increment();
             log.warn("Login failed for {}: {}", email, e.getMessage());
             throw e;
         }
-        AppUser user = users.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new BadRequestException("Invalid email or password"));
+        AppUser user =
+                users.findByEmailIgnoreCase(email)
+                        .orElseThrow(() -> new BadRequestException("Invalid email or password"));
         metrics.counter("calorieasy.auth.logins", "result", "success").increment();
         log.info("Login ok user id={} email={}", user.getId(), email);
         return tokenResponse(user);
@@ -92,7 +90,6 @@ public class AuthService {
                 jwtService.expiresAt(),
                 user.getId(),
                 user.getEmail(),
-                user.getDisplayName()
-        );
+                user.getDisplayName());
     }
 }

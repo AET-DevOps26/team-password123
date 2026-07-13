@@ -3,7 +3,8 @@ package com.teampassword123.auth.domain;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-// JSON wire format matches the web client's tokens (note camelCase "veryActive"); JPA stores the constant name.
+// JSON wire format matches the web client's tokens (note camelCase "veryActive"); JPA stores the
+// constant name.
 public enum ActivityLevel {
     SEDENTARY("sedentary"),
     LIGHT("light"),

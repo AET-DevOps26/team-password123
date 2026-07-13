@@ -9,6 +9,4 @@ public record GoalRequest(
         @NotNull @DecimalMin("0.0") BigDecimal proteinGrams,
         @NotNull @DecimalMin("0.0") BigDecimal carbsGrams,
         @NotNull @DecimalMin("0.0") BigDecimal fatGrams,
-        @NotNull @DecimalMin("0.0") BigDecimal fiberGrams
-) {
-}
+        @NotNull @DecimalMin("0.0") BigDecimal fiberGrams) {}

@@ -11,6 +11,4 @@ public record GoalResponse(
         BigDecimal carbsGrams,
         BigDecimal fatGrams,
         BigDecimal fiberGrams,
-        OffsetDateTime updatedAt
-) {
-}
+        OffsetDateTime updatedAt) {}

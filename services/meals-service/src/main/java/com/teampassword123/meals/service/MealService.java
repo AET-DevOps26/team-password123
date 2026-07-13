@@ -195,6 +195,9 @@ public class MealService {
         try {
             analysis = analyzer.analyze(bytes, stored.originalFilename(), visionProvider);
         } catch (RuntimeException e) {
+            // The transaction rolls back but the file is already on disk; remove it
+            // so a failed analysis doesn't leave an orphan on the volume.
+            deleteStoredFile(stored.storedFilename());
             metrics.counter("calorieasy.meals.analyze", "result", "error").increment();
             log.error(
                     "Photo analysis failed user={} file={}: {}",
@@ -277,6 +280,10 @@ public class MealService {
     }
 
     private StoredFile storePhoto(MultipartFile file) {
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new BadRequestException("Only image uploads are supported");
+        }
         String originalFilename =
                 StringUtils.cleanPath(
                         file.getOriginalFilename() == null
@@ -292,6 +299,14 @@ public class MealService {
             throw new BadRequestException("Could not store uploaded photo");
         }
         return new StoredFile(originalFilename, storedFilename);
+    }
+
+    private void deleteStoredFile(String storedFilename) {
+        try {
+            Files.deleteIfExists(uploadDir.resolve(storedFilename));
+        } catch (IOException exception) {
+            log.warn("Could not delete stored photo {}: {}", storedFilename, exception.toString());
+        }
     }
 
     private MealLog buildAnalyzedMeal(

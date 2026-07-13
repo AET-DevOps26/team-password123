@@ -411,6 +411,47 @@ class MealServiceTest {
     }
 
     @Test
+    void createPhoto_whenNotAnImage_throwsBadRequestAndStoresNothing() {
+        MockMultipartFile pdf =
+                new MockMultipartFile(
+                        "file", "invoice.pdf", "application/pdf", "binarycontent".getBytes());
+
+        assertThatThrownBy(() -> service.createPhoto(userId, pdf))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Only image uploads are supported");
+
+        verify(photos, never()).save(any());
+        assertThat(uploadDir).isEmptyDirectory();
+    }
+
+    @Test
+    void analyzePhoto_whenNotAnImage_throwsBadRequestAndStoresNothing() {
+        MockMultipartFile pdf =
+                new MockMultipartFile(
+                        "file", "invoice.pdf", "application/pdf", "binarycontent".getBytes());
+
+        assertThatThrownBy(() -> service.analyzePhoto(userId, pdf, null, ZoneOffset.UTC))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Only image uploads are supported");
+
+        verify(analyzer, never()).analyze(any(), any(), any());
+        assertThat(uploadDir).isEmptyDirectory();
+    }
+
+    @Test
+    void analyzePhoto_whenAnalyzerFails_deletesStoredFile() {
+        MockMultipartFile file =
+                new MockMultipartFile("file", "meal.jpg", "image/jpeg", "binarycontent".getBytes());
+        when(analyzer.analyze(any(), any(), any())).thenThrow(new IllegalStateException("boom"));
+
+        assertThatThrownBy(() -> service.analyzePhoto(userId, file, null, ZoneOffset.UTC))
+                .isInstanceOf(IllegalStateException.class);
+
+        verify(meals, never()).save(any());
+        assertThat(uploadDir).isEmptyDirectory();
+    }
+
+    @Test
     void convertPhotoToManual_whenPhotoNotFound_throwsNotFound() {
         UUID photoId = UUID.randomUUID();
         when(photos.findByIdAndUserId(photoId, userId)).thenReturn(Optional.empty());

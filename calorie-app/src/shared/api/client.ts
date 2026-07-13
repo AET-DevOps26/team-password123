@@ -1,3 +1,4 @@
+import { useUserStore } from '../../entities/user/model/store';
 import type { ApiError } from '../lib/types';
 
 const BASE_URL = '/api';
@@ -22,6 +23,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, { ...options, headers });
 
   if (!response.ok) {
+    // Expired/invalid JWT: clear the session so the auth gate in App.tsx sends
+    // the user back to the login page instead of a shell full of dead requests.
+    // /auth/* is exempt — there a 401 means wrong credentials, not a stale session.
+    if (response.status === 401 && !path.startsWith('/auth')) {
+      useUserStore.getState().clearSession();
+    }
+
     let errorMessage = `HTTP error: ${response.status}`;
     try {
       const body = await response.json();

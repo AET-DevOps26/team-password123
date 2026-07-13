@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
@@ -29,6 +30,14 @@ public class ApiExceptionHandler {
             .map(error -> error.getField() + ": " + error.getDefaultMessage())
             .toList();
     return error(HttpStatus.BAD_REQUEST, "Validation failed", details);
+  }
+
+  // ResourceAccessException covers connect/read timeouts and refused connections —
+  // the upstream never produced a response, so 504 fits better than the generic 502.
+  @ExceptionHandler(ResourceAccessException.class)
+  ResponseEntity<ErrorResponse> handleUpstreamTimeout(ResourceAccessException exception) {
+    log.warn("Upstream meals service unreachable or timed out", exception);
+    return error(HttpStatus.GATEWAY_TIMEOUT, "Upstream meals service did not respond", List.of());
   }
 
   @ExceptionHandler(RestClientException.class)

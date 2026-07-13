@@ -19,6 +19,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -96,11 +97,12 @@ class InsightServiceTest {
                 item("white rice", 100),
                 item("broccoli", 80)),
             meal(at(2026, 6, 26, 12), 400, 25, 30, 15, 6, item("chicken breast", 100)));
-    when(mealsClient.listForUser(eq(TOKEN), any(LocalDate.class), any(LocalDate.class)))
+    when(mealsClient.listForUser(
+            eq(TOKEN), any(LocalDate.class), any(LocalDate.class), any(ZoneId.class)))
         .thenReturn(meals);
     when(genAiInsightClient.generate(any())).thenReturn(null);
 
-    service.getInsight(USER_ID, TOKEN, "week");
+    service.getInsight(USER_ID, TOKEN, "week", ZoneOffset.UTC);
 
     ArgumentCaptor<GenAiInsightRequest> captor = ArgumentCaptor.forClass(GenAiInsightRequest.class);
     verify(genAiInsightClient).generate(captor.capture());
@@ -124,15 +126,16 @@ class InsightServiceTest {
 
   @Test
   void requestsLastSevenDaysInclusiveOfToday() {
-    when(mealsClient.listForUser(eq(TOKEN), any(LocalDate.class), any(LocalDate.class)))
+    when(mealsClient.listForUser(
+            eq(TOKEN), any(LocalDate.class), any(LocalDate.class), any(ZoneId.class)))
         .thenReturn(List.of());
     when(genAiInsightClient.generate(any())).thenReturn(null);
 
-    service.getInsight(USER_ID, TOKEN, "week");
+    service.getInsight(USER_ID, TOKEN, "week", ZoneOffset.UTC);
 
     ArgumentCaptor<LocalDate> from = ArgumentCaptor.forClass(LocalDate.class);
     ArgumentCaptor<LocalDate> to = ArgumentCaptor.forClass(LocalDate.class);
-    verify(mealsClient).listForUser(eq(TOKEN), from.capture(), to.capture());
+    verify(mealsClient).listForUser(eq(TOKEN), from.capture(), to.capture(), any(ZoneId.class));
 
     assertThat(to.getValue()).isEqualTo(LocalDate.now(ZoneOffset.UTC));
     assertThat(ChronoUnit.DAYS.between(from.getValue(), to.getValue())).isEqualTo(6);
@@ -140,11 +143,12 @@ class InsightServiceTest {
 
   @Test
   void defaultsToWeekWhenWindowIsNull() {
-    when(mealsClient.listForUser(eq(TOKEN), any(LocalDate.class), any(LocalDate.class)))
+    when(mealsClient.listForUser(
+            eq(TOKEN), any(LocalDate.class), any(LocalDate.class), any(ZoneId.class)))
         .thenReturn(List.of());
     when(genAiInsightClient.generate(any())).thenReturn(null);
 
-    service.getInsight(USER_ID, TOKEN, null);
+    service.getInsight(USER_ID, TOKEN, null, ZoneOffset.UTC);
 
     ArgumentCaptor<GenAiInsightRequest> captor = ArgumentCaptor.forClass(GenAiInsightRequest.class);
     verify(genAiInsightClient).generate(captor.capture());
@@ -153,7 +157,8 @@ class InsightServiceTest {
 
   @Test
   void mapsGenAiResponseOnHappyPath() {
-    when(mealsClient.listForUser(eq(TOKEN), any(LocalDate.class), any(LocalDate.class)))
+    when(mealsClient.listForUser(
+            eq(TOKEN), any(LocalDate.class), any(LocalDate.class), any(ZoneId.class)))
         .thenReturn(
             List.of(meal(at(2026, 6, 26, 12), 400, 25, 30, 15, 6, item("chicken breast", 100))));
     GenAiInsightResponse genai =
@@ -164,7 +169,7 @@ class InsightServiceTest {
             "success");
     when(genAiInsightClient.generate(any())).thenReturn(genai);
 
-    InsightResponse response = service.getInsight(USER_ID, TOKEN, "week");
+    InsightResponse response = service.getInsight(USER_ID, TOKEN, "week", ZoneOffset.UTC);
 
     assertThat(response.insight())
         .isEqualTo("Solid protein this week, but fiber looks low — add legumes.");
@@ -176,11 +181,12 @@ class InsightServiceTest {
 
   @Test
   void failsSoftWhenGenAiClientThrows() {
-    when(mealsClient.listForUser(eq(TOKEN), any(LocalDate.class), any(LocalDate.class)))
+    when(mealsClient.listForUser(
+            eq(TOKEN), any(LocalDate.class), any(LocalDate.class), any(ZoneId.class)))
         .thenReturn(List.of());
     when(genAiInsightClient.generate(any())).thenThrow(new RuntimeException("boom"));
 
-    InsightResponse response = service.getInsight(USER_ID, TOKEN, "week");
+    InsightResponse response = service.getInsight(USER_ID, TOKEN, "week", ZoneOffset.UTC);
 
     assertThat(response.result()).isEqualTo("unavailable");
     assertThat(response.insight()).isNull();
@@ -190,11 +196,12 @@ class InsightServiceTest {
 
   @Test
   void failsSoftWhenGenAiClientReturnsNull() {
-    when(mealsClient.listForUser(eq(TOKEN), any(LocalDate.class), any(LocalDate.class)))
+    when(mealsClient.listForUser(
+            eq(TOKEN), any(LocalDate.class), any(LocalDate.class), any(ZoneId.class)))
         .thenReturn(List.of());
     when(genAiInsightClient.generate(any())).thenReturn(null);
 
-    InsightResponse response = service.getInsight(USER_ID, TOKEN, "week");
+    InsightResponse response = service.getInsight(USER_ID, TOKEN, "week", ZoneOffset.UTC);
 
     assertThat(response.result()).isEqualTo("unavailable");
     assertThat(response.insight()).isNull();

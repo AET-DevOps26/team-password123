@@ -1,0 +1,63 @@
+# Human-edited dependency source (floors). The pinned lockfile that the Dockerfile
+# and pip-audit actually consume is requirements.txt, regenerated from this file with:
+#
+#   pip-compile requirements.in            # or: make -C services/genai-service lock
+#
+# Run pip-compile on linux/python3.11 (e.g. the python:3.11-slim image) so the
+# resolution matches the runtime container. Edit floors here, never the lock.
+
+# FastAPI and async server. Kept as floors (not exact pins): the old
+# fastapi==0.104.1 pin carried starlette<0.28 (CVE-2024-47874) and cascaded
+# downgrades onto httpx, the Prometheus instrumentator, and OpenTelemetry.
+fastapi>=0.115
+uvicorn>=0.30
+websockets>=12.0
+numpy==2.4.4
+
+# LangChain and LLM integrations. The `langchain` meta-package is deliberately
+# absent: the code only imports langchain_core (HumanMessage) and
+# langchain_openai (ChatOpenAI), and the meta-package dragged in vulnerable
+# extras (text-splitters, old langsmith). 1.x floors clear the 2026 CVE batch.
+langchain-core>=1.0,<2
+langchain-openai>=1.1.14,<2
+langchain-google-genai>=2.0.0
+# Transitive dep of langchain-core; floor past GHSA-f4xh-w4cj-qxq8.
+langsmith>=0.8.18
+
+# RAG health insights: Weaviate vector store + local ONNX embeddings.
+# fastembed gives BAAI/bge-small-en-v1.5 (384-dim) with no torch dependency,
+# keeping the image light; the Weaviate v4 client talks to the vector DB.
+weaviate-client>=4.22.0,<5
+fastembed>=0.4,<1
+
+# Image processing (>=12.2 clears the 2026 CVE batch flagged by pip-audit)
+pillow>=12.2
+
+# HTTP requests (>=2.32 fixes CVE-2024-35195)
+requests>=2.32
+
+# httpx is a transitive dep (openai, weaviate-client) and backs Starlette's
+# TestClient; modern starlette needs >=0.28.
+httpx>=0.28
+
+# Prometheus metrics (7.x line, matches starlette>=0.30)
+prometheus-fastapi-instrumentator>=7.0
+
+# Distributed tracing: OpenTelemetry FastAPI instrumentation exporting spans over
+# OTLP/HTTP. Only active when OTEL_EXPORTER_OTLP_ENDPOINT is set (k8s deploy) — a
+# no-op locally and in tests. Floors, so pip resolves a consistent sdk/instrumentation
+# pair against the fastapi/starlette line above.
+opentelemetry-sdk>=1.27.0
+opentelemetry-exporter-otlp-proto-http>=1.27.0
+opentelemetry-instrumentation-fastapi>=0.48b0
+
+# Environment variables (>=1.2.2 fixes CVE-2026-28684)
+python-dotenv>=1.2.2
+
+# Logging and utilities
+python-multipart==0.0.32
+pydantic>=2.5,<3.0
+
+# Testing
+pytest==9.1.1
+pytest-asyncio==0.21.1

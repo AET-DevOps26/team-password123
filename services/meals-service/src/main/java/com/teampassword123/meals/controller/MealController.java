@@ -10,6 +10,7 @@ import com.teampassword123.meals.security.AuthenticatedUser;
 import com.teampassword123.meals.service.GenAiFoodEstimator;
 import com.teampassword123.meals.service.MealService;
 import com.teampassword123.meals.service.MealService.StoredPhoto;
+import com.teampassword123.meals.support.TimeZones;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -59,8 +60,18 @@ public class MealController {
   public List<MealResponse> list(
       @AuthenticationPrincipal AuthenticatedUser user,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-    return mealService.list(user.id(), from, to);
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+      @RequestParam(required = false) String tz) {
+    return mealService.list(user.id(), from, to, TimeZones.resolve(tz));
+  }
+
+  @GetMapping("/logged-dates")
+  public List<LocalDate> loggedDates(
+      @AuthenticationPrincipal AuthenticatedUser user,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+      @RequestParam(required = false) String tz) {
+    return mealService.loggedDates(user.id(), from, to, TimeZones.resolve(tz));
   }
 
   @GetMapping("/{id}")
@@ -114,8 +125,9 @@ public class MealController {
   public MealAnalysisResponse analyze(
       @AuthenticationPrincipal AuthenticatedUser user,
       @RequestPart("image") MultipartFile image,
-      @RequestParam(defaultValue = "auto") String visionProvider) {
-    return mealService.analyzePhoto(user.id(), image, visionProvider);
+      @RequestParam(defaultValue = "auto") String visionProvider,
+      @RequestParam(required = false) String tz) {
+    return mealService.analyzePhoto(user.id(), image, visionProvider, TimeZones.resolve(tz));
   }
 
   @GetMapping("/photo/{id}/raw")

@@ -2,8 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy requirements and install dependencies (pillow/numpy ship manylinux wheels,
-# so no system build packages are needed).
+# Install from the fully-pinned lock (requirements.txt is compiled from
+# requirements.in via pip-compile), so the build resolves the exact versions CI
+# audited — no re-resolution that could pull a newer, unaudited release at build
+# time. pillow/numpy ship manylinux wheels, so no system build packages are needed.
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -37,5 +39,10 @@ ENV LLM_PROVIDER=openai \
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD python -c "import requests; exit(0 if requests.get('http://localhost:8084/health', timeout=5).status_code == 200 else 1)" || exit 1
 
-# Run the FastAPI app with uvicorn
+# Run the FastAPI app with uvicorn as a single worker. A second worker would fork
+# a second process with its own Prometheus registry (no multiprocess collector is
+# configured), so /metrics would report whichever worker the scrape happened to
+# hit — and it roughly doubles RAM under the 512Mi pod limit. Concurrency is
+# unaffected: the long vision analysis runs in the threadpool, so the event loop
+# keeps serving other requests on this one worker.
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8084"]

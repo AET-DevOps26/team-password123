@@ -10,6 +10,7 @@ import { useProfileStore } from '../../../entities/user/model/profile';
 import { ScanMealButton } from '../../../features/scan-meal';
 import { MealDetailModal } from '../../../features/meal-detail';
 import { StatPill } from '../../../shared/ui/StatPill/StatPill';
+import { localIsoDate } from '../../../shared/lib/timezone';
 import { IconFlame, IconTarget, IconTrend, IconWater } from '../../../shared/ui/icons';
 import styles from './HomePage.module.css';
 
@@ -31,7 +32,7 @@ export function HomePage({ onScan, onOpenDiary }: HomePageProps) {
   const [selectedMeal, setSelectedMeal] = useState<MealEntry | null>(null);
   const [waterIntake, setWaterIntake] = useState(0);
 
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayKey = localIsoDate();
   const waterStorageKey = `waterIntake:${todayKey}`;
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export function HomePage({ onScan, onOpenDiary }: HomePageProps) {
   }
 
   const refreshToday = useCallback(() => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localIsoDate();
     mealApi.getHistory(today, today).then((raw) => {
       if (raw) setEntries(raw.map(mealResponseToEntry));
     }).catch(() => {});
@@ -74,7 +75,7 @@ export function HomePage({ onScan, onOpenDiary }: HomePageProps) {
       const date = new Date();
       const day = date.getDay();
       date.setDate(date.getDate() - (day === 0 ? 6 : day - 1));
-      return date.toISOString().slice(0, 10);
+      return localIsoDate(date);
     })();
 
     refreshToday();

@@ -13,7 +13,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -48,11 +48,11 @@ public class InsightService {
   // Times the whole retrieve->genai insight path and tags each sample with the
   // outcome, so calorieasy_analytics_insight_duration_seconds{result=...} yields
   // both latency and per-outcome throughput for the business dashboard.
-  public InsightResponse getInsight(UUID userId, String bearerToken, String window) {
+  public InsightResponse getInsight(UUID userId, String bearerToken, String window, ZoneId zone) {
     Timer.Sample sample = Timer.start(metrics);
     String result = RESULT_UNAVAILABLE;
     try {
-      InsightResponse response = computeInsight(userId, bearerToken, window);
+      InsightResponse response = computeInsight(userId, bearerToken, window, zone);
       result = response.result() == null ? RESULT_UNAVAILABLE : response.result();
       return response;
     } finally {
@@ -60,15 +60,16 @@ public class InsightService {
     }
   }
 
-  private InsightResponse computeInsight(UUID userId, String bearerToken, String window) {
+  private InsightResponse computeInsight(
+      UUID userId, String bearerToken, String window, ZoneId zone) {
     String normalizedWindow =
         (window == null || window.isBlank()) ? DEFAULT_WINDOW : window.toLowerCase(Locale.ROOT);
 
-    LocalDate today = LocalDate.now(ZoneOffset.UTC);
+    LocalDate today = LocalDate.now(zone);
     LocalDate from = today.minusDays(WINDOW_DAYS - 1L);
-    List<MealSummary> meals = mealsClient.listForUser(bearerToken, from, today);
+    List<MealSummary> meals = mealsClient.listForUser(bearerToken, from, today, zone);
 
-    GenAiInsightRequest request = buildRequest(normalizedWindow, meals);
+    GenAiInsightRequest request = buildRequest(normalizedWindow, meals, zone);
 
     try {
       GenAiInsightResponse response = genAiInsightClient.generate(request);
@@ -85,9 +86,9 @@ public class InsightService {
     }
   }
 
-  private GenAiInsightRequest buildRequest(String window, List<MealSummary> meals) {
+  private GenAiInsightRequest buildRequest(String window, List<MealSummary> meals, ZoneId zone) {
     return new GenAiInsightRequest(
-        window, aggregateFoods(meals), nutrientTotals(meals), daysLogged(meals));
+        window, aggregateFoods(meals), nutrientTotals(meals), daysLogged(meals, zone));
   }
 
   // Distinct foods keyed by name, with summed quantities. The meals service exposes a
@@ -123,10 +124,10 @@ public class InsightService {
     return totals;
   }
 
-  private int daysLogged(List<MealSummary> meals) {
+  private int daysLogged(List<MealSummary> meals, ZoneId zone) {
     return (int)
         meals.stream()
-            .map(meal -> meal.loggedAt().atZoneSameInstant(ZoneOffset.UTC).toLocalDate())
+            .map(meal -> meal.loggedAt().atZoneSameInstant(zone).toLocalDate())
             .distinct()
             .count();
   }

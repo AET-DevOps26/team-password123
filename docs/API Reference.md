@@ -116,15 +116,6 @@ Replace the current user's profile. All fields are required.
 
 ---
 
-### GET `/api/users/{id}` · bearer
-
-Look up any user by UUID. Used internally by other services.
-
-**Response `200`** — `UserResponse` (same shape as GET `/me`).  
-**Response `404`** — user not found.
-
----
-
 ## meals-service — port 8082
 
 ### POST `/api/meals/manual` · bearer
@@ -206,6 +197,7 @@ List meals within a date range.
 |-------|------|---------|-------|
 | `from` | ISO date | `2026-06-01` | required |
 | `to` | ISO date | `2026-06-18` | required |
+| `tz` | IANA timezone | `Europe/Berlin` | optional; day boundaries for `from`/`to` are bucketed in this zone. Defaults to UTC; a malformed value is a 400. |
 
 **Response `200`** — array of `MealResponse`.
 
@@ -232,6 +224,19 @@ Replace a meal log. Same request body as `POST /api/meals/manual`.
 
 ---
 
+### GET `/api/meals/logged-dates` · bearer
+
+Distinct local dates in the range with at least one logged meal. Used internally by analytics-service for the logging-streak computation — it avoids transferring full meal bodies.
+
+**Query params** — `from` / `to`, ISO dates, both required; optional `tz` (IANA timezone, default UTC) buckets each meal onto its local calendar day (same contract as `GET /api/meals`).
+
+**Response `200`** — sorted array of ISO dates:
+```json
+["2026-06-16", "2026-06-18"]
+```
+
+---
+
 ### POST `/api/meals/analyze` · bearer
 
 Upload a photo and get macro estimates from the GenAI service. The meal is **automatically logged** on success.
@@ -240,6 +245,8 @@ Upload a photo and get macro estimates from the GenAI service. The meal is **aut
 | Part | Type | Notes |
 |------|------|-------|
 | `file` | image (JPG/PNG/WEBP) | required |
+
+**Query params** — optional `tz` (IANA timezone, default UTC): the auto-picked meal slot (breakfast/lunch/dinner/snack) is derived from the hour in this zone.
 
 **Response `200`** — `MealAnalysisResponse`
 ```json
@@ -352,6 +359,9 @@ Daily nutrition totals vs. goal.
 | Param | Type | Example |
 |-------|------|---------|
 | `date` | ISO date | `2026-06-18` |
+| `tz` | IANA timezone (optional) | `Europe/Berlin` |
+
+`tz` (default UTC) sets the day boundary; it is forwarded to meals-service so the totals cover the user's local `date`.
 
 **Response `200`** — `AnalyticsResponse`
 ```json
@@ -383,6 +393,9 @@ Daily nutrition totals vs. goal.
 | Param | Type | Example |
 |-------|------|---------|
 | `weekStart` | ISO date (Monday) | `2026-06-16` |
+| `tz` | IANA timezone (optional) | `Europe/Berlin` |
+
+`tz` (default UTC) sets the day boundary, same as `GET /api/analytics/daily`.
 
 **Response `200`** — same `AnalyticsResponse` shape, `from`=weekStart, `to`=weekStart+6.
 
@@ -391,6 +404,8 @@ Daily nutrition totals vs. goal.
 ### GET `/api/analytics/streak` · bearer
 
 Number of consecutive days the user has logged at least one meal.
+
+**Query params** — optional `tz` (IANA timezone, default UTC): "today" and the day bucketing are computed in this zone, so the streak matches the user's local calendar.
 
 **Response `200`**
 ```json

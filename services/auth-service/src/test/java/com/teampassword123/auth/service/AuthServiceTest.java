@@ -109,7 +109,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.register(request))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessage("Email is already registered");
+                .hasMessage("Registration failed. Check your details and try again.");
 
         verify(users, never()).save(any());
         verify(encoder, never()).encode(any());

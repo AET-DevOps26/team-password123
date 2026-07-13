@@ -26,15 +26,6 @@ jobs:
         service: [auth-service, meals-service, analytics-service]
     steps:
       - uses: actions/checkout@v7
-        # Full history so Spotless's `ratchetFrom origin/main` can diff against
-        # main and only enforce formatting on changed Java.
-        with:
-          fetch-depth: 0
-
-      # On PR builds checkout only wires up the PR ref, so make origin/main
-      # resolvable for the ratchet (no-op when already building main).
-      - name: Fetch main for Spotless ratchet
-        run: git fetch --no-tags origin main:refs/remotes/origin/main || true
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4

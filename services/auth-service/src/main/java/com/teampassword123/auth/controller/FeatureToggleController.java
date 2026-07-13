@@ -20,25 +20,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/features")
 public class FeatureToggleController {
 
-  private final FeatureToggleService featureToggles;
+    private final FeatureToggleService featureToggles;
 
-  public FeatureToggleController(FeatureToggleService featureToggles) {
-    this.featureToggles = featureToggles;
-  }
+    public FeatureToggleController(FeatureToggleService featureToggles) {
+        this.featureToggles = featureToggles;
+    }
 
-  @GetMapping
-  public Map<String, Boolean> listFeatureToggles() {
-    return featureToggles.snapshot();
-  }
+    @GetMapping
+    public Map<String, Boolean> listFeatureToggles() {
+        return featureToggles.snapshot();
+    }
 
-  @GetMapping("/{featureName}")
-  public ResponseEntity<Boolean> getFeatureToggleState(@PathVariable String featureName) {
-    return ResponseEntity.ok(featureToggles.isEnabled(featureName));
-  }
+    @GetMapping("/{featureName}")
+    public ResponseEntity<Boolean> getFeatureToggleState(@PathVariable String featureName) {
+        return ResponseEntity.ok(featureToggles.isEnabled(featureName));
+    }
 
-  @PutMapping("/{featureName}")
-  public ResponseEntity<Boolean> setFeatureToggleState(
-      @PathVariable String featureName, @RequestParam boolean enabled) {
-    return ResponseEntity.ok(featureToggles.setEnabled(featureName, enabled));
-  }
+    @PutMapping("/{featureName}")
+    public ResponseEntity<Boolean> setFeatureToggleState(
+            @PathVariable String featureName, @RequestParam boolean enabled) {
+        return ResponseEntity.ok(featureToggles.setEnabled(featureName, enabled));
+    }
 }

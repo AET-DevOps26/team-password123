@@ -23,68 +23,68 @@ import org.springframework.web.filter.OncePerRequestFilter;
  */
 public class LoginRateLimitFilter extends OncePerRequestFilter {
 
-  private final int maxAttempts;
-  private final long windowMillis;
-  private final ConcurrentHashMap<String, Window> windows = new ConcurrentHashMap<>();
+    private final int maxAttempts;
+    private final long windowMillis;
+    private final ConcurrentHashMap<String, Window> windows = new ConcurrentHashMap<>();
 
-  public LoginRateLimitFilter(int maxAttempts, long windowMillis) {
-    this.maxAttempts = maxAttempts;
-    this.windowMillis = windowMillis;
-  }
-
-  @Override
-  protected boolean shouldNotFilter(HttpServletRequest request) {
-    if (!HttpMethod.POST.matches(request.getMethod())) {
-      return true;
+    public LoginRateLimitFilter(int maxAttempts, long windowMillis) {
+        this.maxAttempts = maxAttempts;
+        this.windowMillis = windowMillis;
     }
-    String path = request.getRequestURI();
-    return !("/api/auth/login".equals(path) || "/api/auth/register".equals(path));
-  }
 
-  @Override
-  protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-      throws ServletException, IOException {
-    if (isOverLimit(clientIp(request))) {
-      response.setStatus(429); // Too Many Requests
-      response.setContentType("application/json");
-      response.getWriter().write("{\"error\":\"Too many requests, please retry later.\"}");
-      return;
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        if (!HttpMethod.POST.matches(request.getMethod())) {
+            return true;
+        }
+        String path = request.getRequestURI();
+        return !("/api/auth/login".equals(path) || "/api/auth/register".equals(path));
     }
-    filterChain.doFilter(request, response);
-  }
 
-  private boolean isOverLimit(String key) {
-    long now = System.currentTimeMillis();
-    // Crude memory bound: if the table grows unreasonably (e.g. an IP-spraying
-    // attack), drop it wholesale. Safe — it only resets counters momentarily.
-    if (windows.size() > 10_000) {
-      windows.clear();
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        if (isOverLimit(clientIp(request))) {
+            response.setStatus(429); // Too Many Requests
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Too many requests, please retry later.\"}");
+            return;
+        }
+        filterChain.doFilter(request, response);
     }
-    Window window =
-        windows.compute(
-            key,
-            (k, existing) ->
-                (existing == null || now - existing.start >= windowMillis)
-                    ? new Window(now)
-                    : existing);
-    return window.count.incrementAndGet() > maxAttempts;
-  }
 
-  private static String clientIp(HttpServletRequest request) {
-    String forwarded = request.getHeader("X-Forwarded-For");
-    if (forwarded != null && !forwarded.isBlank()) {
-      return forwarded.split(",")[0].trim();
+    private boolean isOverLimit(String key) {
+        long now = System.currentTimeMillis();
+        // Crude memory bound: if the table grows unreasonably (e.g. an IP-spraying
+        // attack), drop it wholesale. Safe — it only resets counters momentarily.
+        if (windows.size() > 10_000) {
+            windows.clear();
+        }
+        Window window =
+                windows.compute(
+                        key,
+                        (k, existing) ->
+                                (existing == null || now - existing.start >= windowMillis)
+                                        ? new Window(now)
+                                        : existing);
+        return window.count.incrementAndGet() > maxAttempts;
     }
-    return request.getRemoteAddr();
-  }
 
-  private static final class Window {
-    final long start;
-    final AtomicInteger count = new AtomicInteger();
-
-    Window(long start) {
-      this.start = start;
+    private static String clientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
-  }
+
+    private static final class Window {
+        final long start;
+        final AtomicInteger count = new AtomicInteger();
+
+        Window(long start) {
+            this.start = start;
+        }
+    }
 }

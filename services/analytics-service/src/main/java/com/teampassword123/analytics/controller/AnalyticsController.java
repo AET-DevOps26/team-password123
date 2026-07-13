@@ -22,53 +22,54 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/analytics")
 public class AnalyticsController {
 
-  private final AnalyticsService analyticsService;
-  private final InsightService insightService;
+    private final AnalyticsService analyticsService;
+    private final InsightService insightService;
 
-  public AnalyticsController(AnalyticsService analyticsService, InsightService insightService) {
-    this.analyticsService = analyticsService;
-    this.insightService = insightService;
-  }
+    public AnalyticsController(AnalyticsService analyticsService, InsightService insightService) {
+        this.analyticsService = analyticsService;
+        this.insightService = insightService;
+    }
 
-  @GetMapping("/daily")
-  public AnalyticsResponse daily(
-      @AuthenticationPrincipal AuthenticatedUser user,
-      HttpServletRequest request,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-      @RequestParam(required = false) String tz) {
-    return analyticsService.daily(user.id(), bearerToken(request), date, TimeZones.resolve(tz));
-  }
+    @GetMapping("/daily")
+    public AnalyticsResponse daily(
+            @AuthenticationPrincipal AuthenticatedUser user,
+            HttpServletRequest request,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String tz) {
+        return analyticsService.daily(user.id(), bearerToken(request), date, TimeZones.resolve(tz));
+    }
 
-  @GetMapping("/weekly")
-  public AnalyticsResponse weekly(
-      @AuthenticationPrincipal AuthenticatedUser user,
-      HttpServletRequest request,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStart,
-      @RequestParam(required = false) String tz) {
-    return analyticsService.weekly(
-        user.id(), bearerToken(request), weekStart, TimeZones.resolve(tz));
-  }
+    @GetMapping("/weekly")
+    public AnalyticsResponse weekly(
+            @AuthenticationPrincipal AuthenticatedUser user,
+            HttpServletRequest request,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStart,
+            @RequestParam(required = false) String tz) {
+        return analyticsService.weekly(
+                user.id(), bearerToken(request), weekStart, TimeZones.resolve(tz));
+    }
 
-  @GetMapping("/streak")
-  public StreakResponse streak(
-      @AuthenticationPrincipal AuthenticatedUser user,
-      HttpServletRequest request,
-      @RequestParam(required = false) String tz) {
-    return analyticsService.computeStreak(user.id(), bearerToken(request), TimeZones.resolve(tz));
-  }
+    @GetMapping("/streak")
+    public StreakResponse streak(
+            @AuthenticationPrincipal AuthenticatedUser user,
+            HttpServletRequest request,
+            @RequestParam(required = false) String tz) {
+        return analyticsService.computeStreak(
+                user.id(), bearerToken(request), TimeZones.resolve(tz));
+    }
 
-  @GetMapping("/insight")
-  @Operation(summary = "RAG health insight generated from the user's recently logged meals")
-  public InsightResponse insight(
-      @AuthenticationPrincipal AuthenticatedUser user,
-      HttpServletRequest request,
-      @RequestParam(defaultValue = "week") String window,
-      @RequestParam(required = false) String tz) {
-    return insightService.getInsight(
-        user.id(), bearerToken(request), window, TimeZones.resolve(tz));
-  }
+    @GetMapping("/insight")
+    @Operation(summary = "RAG health insight generated from the user's recently logged meals")
+    public InsightResponse insight(
+            @AuthenticationPrincipal AuthenticatedUser user,
+            HttpServletRequest request,
+            @RequestParam(defaultValue = "week") String window,
+            @RequestParam(required = false) String tz) {
+        return insightService.getInsight(
+                user.id(), bearerToken(request), window, TimeZones.resolve(tz));
+    }
 
-  private String bearerToken(HttpServletRequest request) {
-    return (String) request.getAttribute(JwtAuthenticationFilter.BEARER_TOKEN_ATTRIBUTE);
-  }
+    private String bearerToken(HttpServletRequest request) {
+        return (String) request.getAttribute(JwtAuthenticationFilter.BEARER_TOKEN_ATTRIBUTE);
+    }
 }

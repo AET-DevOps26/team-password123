@@ -16,23 +16,24 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/users")
 public class UserController {
 
-  private final UserService userService;
+    private final UserService userService;
 
-  public UserController(UserService userService) {
-    this.userService = userService;
-  }
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
-  @GetMapping("/me")
-  public UserResponse me(@AuthenticationPrincipal UserPrincipal principal) {
-    return userService.get(principal.id());
-  }
+    @GetMapping("/me")
+    public UserResponse me(@AuthenticationPrincipal UserPrincipal principal) {
+        return userService.get(principal.id());
+    }
 
-  @PutMapping("/me")
-  public UserResponse updateMe(
-      @AuthenticationPrincipal UserPrincipal principal, @Valid @RequestBody UpdateUserRequest req) {
-    return userService.update(principal.id(), req);
-  }
+    @PutMapping("/me")
+    public UserResponse updateMe(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Valid @RequestBody UpdateUserRequest req) {
+        return userService.update(principal.id(), req);
+    }
 
-  // GET /api/users/{id} removed: it returned any user's profile by UUID with no
-  // ownership check (IDOR). Callers use /me, which is scoped to the JWT subject.
+    // GET /api/users/{id} removed: it returned any user's profile by UUID with no
+    // ownership check (IDOR). Callers use /me, which is scoped to the JWT subject.
 }

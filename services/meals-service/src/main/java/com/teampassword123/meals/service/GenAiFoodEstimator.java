@@ -6,9 +6,9 @@ import com.teampassword123.meals.dto.FoodEstimateResponse;
 import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
@@ -37,17 +37,19 @@ public class GenAiFoodEstimator {
         GenAiEstimateRequest body = new GenAiEstimateRequest(foodName);
 
         try {
-            GenAiEstimateResponse raw = client.post()
-                    .uri("/api/estimate")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(body)
-                    .retrieve()
-                    .body(GenAiEstimateResponse.class);
+            GenAiEstimateResponse raw =
+                    client.post()
+                            .uri("/api/estimate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(body)
+                            .retrieve()
+                            .body(GenAiEstimateResponse.class);
             return toResponse(raw);
         } catch (RestClientResponseException ex) {
-            HttpStatus status = ex.getStatusCode().is4xxClientError()
-                    ? HttpStatus.BAD_REQUEST
-                    : HttpStatus.SERVICE_UNAVAILABLE;
+            HttpStatus status =
+                    ex.getStatusCode().is4xxClientError()
+                            ? HttpStatus.BAD_REQUEST
+                            : HttpStatus.SERVICE_UNAVAILABLE;
             throw new ResponseStatusException(status, "AI estimation temporarily unavailable");
         } catch (ResourceAccessException ex) {
             throw new ResponseStatusException(
@@ -65,8 +67,7 @@ public class GenAiFoodEstimator {
                 clamp(r.typicalPortionGrams()),
                 r.typicalPortionLabel() != null ? r.typicalPortionLabel() : "100 g",
                 r.source() != null ? r.source() : "unknown",
-                clamp(r.confidence())
-        );
+                clamp(r.confidence()));
     }
 
     // Floor at zero: a null or negative value from genai must not pass through.
@@ -74,20 +75,17 @@ public class GenAiFoodEstimator {
         return v == null || v.signum() < 0 ? BigDecimal.ZERO : v;
     }
 
-    private record GenAiEstimateRequest(
-            @JsonProperty("food_name") String foodName
-    ) {}
+    private record GenAiEstimateRequest(@JsonProperty("food_name") String foodName) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record GenAiEstimateResponse(
-            @JsonProperty("food_name")              String foodName,
-            @JsonProperty("calories_per_100g")       BigDecimal caloriesPer100g,
-            @JsonProperty("protein_grams_per_100g")  BigDecimal proteinPer100g,
-            @JsonProperty("carbs_grams_per_100g")    BigDecimal carbsPer100g,
-            @JsonProperty("fat_grams_per_100g")      BigDecimal fatPer100g,
-            @JsonProperty("typical_portion_grams")   BigDecimal typicalPortionGrams,
-            @JsonProperty("typical_portion_label")   String typicalPortionLabel,
+            @JsonProperty("food_name") String foodName,
+            @JsonProperty("calories_per_100g") BigDecimal caloriesPer100g,
+            @JsonProperty("protein_grams_per_100g") BigDecimal proteinPer100g,
+            @JsonProperty("carbs_grams_per_100g") BigDecimal carbsPer100g,
+            @JsonProperty("fat_grams_per_100g") BigDecimal fatPer100g,
+            @JsonProperty("typical_portion_grams") BigDecimal typicalPortionGrams,
+            @JsonProperty("typical_portion_label") String typicalPortionLabel,
             String source,
-            BigDecimal confidence
-    ) {}
+            BigDecimal confidence) {}
 }

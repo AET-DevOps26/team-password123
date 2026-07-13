@@ -16,6 +16,4 @@ public record AnalyticsResponse(
         BigDecimal proteinGoalDelta,
         BigDecimal carbsGoalDelta,
         BigDecimal fatGoalDelta,
-        BigDecimal fiberGoalDelta
-) {
-}
+        BigDecimal fiberGoalDelta) {}

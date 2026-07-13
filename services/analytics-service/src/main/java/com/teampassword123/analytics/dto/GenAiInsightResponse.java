@@ -6,7 +6,7 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record GenAiInsightResponse(
-    String insight,
-    @JsonProperty("facts_used") List<FactRef> factsUsed,
-    @JsonProperty("generated_by") String generatedBy,
-    String result) {}
+        String insight,
+        @JsonProperty("facts_used") List<FactRef> factsUsed,
+        @JsonProperty("generated_by") String generatedBy,
+        String result) {}

@@ -21,8 +21,7 @@ public class JwtService {
 
     public JwtService(
             @Value("${app.jwt.secret}") String secret,
-            @Value("${app.jwt.expiration}") Duration expiration
-    ) {
+            @Value("${app.jwt.expiration}") Duration expiration) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = expiration;
     }
@@ -48,10 +47,6 @@ public class JwtService {
     }
 
     private Claims claims(String token) {
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
     }
 }

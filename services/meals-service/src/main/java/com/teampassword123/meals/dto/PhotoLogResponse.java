@@ -10,6 +10,4 @@ public record PhotoLogResponse(
         String contentType,
         PhotoStatus status,
         UUID linkedMealLogId,
-        OffsetDateTime createdAt
-) {
-}
+        OffsetDateTime createdAt) {}

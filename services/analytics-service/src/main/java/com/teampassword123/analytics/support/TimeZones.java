@@ -13,16 +13,16 @@ import java.time.ZoneOffset;
  */
 public final class TimeZones {
 
-  private TimeZones() {}
+    private TimeZones() {}
 
-  public static ZoneId resolve(String tz) {
-    if (tz == null || tz.isBlank()) {
-      return ZoneOffset.UTC;
+    public static ZoneId resolve(String tz) {
+        if (tz == null || tz.isBlank()) {
+            return ZoneOffset.UTC;
+        }
+        try {
+            return ZoneId.of(tz.trim());
+        } catch (DateTimeException e) {
+            throw new BadRequestException("Invalid timezone: " + tz);
+        }
     }
-    try {
-      return ZoneId.of(tz.trim());
-    } catch (DateTimeException e) {
-      throw new BadRequestException("Invalid timezone: " + tz);
-    }
-  }
 }

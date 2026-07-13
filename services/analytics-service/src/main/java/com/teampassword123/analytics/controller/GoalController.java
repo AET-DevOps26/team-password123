@@ -25,7 +25,8 @@ public class GoalController {
 
     @GetMapping
     public ResponseEntity<GoalResponse> get(@AuthenticationPrincipal AuthenticatedUser user) {
-        return goalService.get(user.id())
+        return goalService
+                .get(user.id())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
@@ -33,8 +34,7 @@ public class GoalController {
     @PutMapping
     public GoalResponse upsert(
             @AuthenticationPrincipal AuthenticatedUser user,
-            @Valid @RequestBody GoalRequest request
-    ) {
+            @Valid @RequestBody GoalRequest request) {
         return goalService.upsert(user.id(), request);
     }
 }

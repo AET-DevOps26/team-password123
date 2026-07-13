@@ -122,13 +122,13 @@
                 <artifactId>spotless-maven-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
-                    <!-- Ratchet: only enforce on files changed vs main, so existing
-                         code is never reformatted wholesale; new/changed Java must be
-                         google-formatted with unused imports removed. -->
-                    <ratchetFrom>origin/main</ratchetFrom>
+                    <!-- AOSP = google-java-format's 4-space variant, matching the
+                         existing codebase. Whole repo was reformatted once, so no
+                         ratchet: every file is enforced. -->
                     <java>
                         <googleJavaFormat>
                             <version>1.22.0</version>
+                            <style>AOSP</style>
                         </googleJavaFormat>
                         <removeUnusedImports/>
                     </java>

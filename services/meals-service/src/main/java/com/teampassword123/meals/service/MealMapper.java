@@ -11,8 +11,7 @@ import java.util.List;
 
 final class MealMapper {
 
-    private MealMapper() {
-    }
+    private MealMapper() {}
 
     static MealItem toItem(MealItemRequest request) {
         MealItem item = new MealItem();
@@ -32,9 +31,8 @@ final class MealMapper {
     }
 
     static MealResponse toMealResponse(MealLog meal, PhotoLog photo) {
-        List<MealItemResponse> items = meal.getItems().stream()
-                .map(MealMapper::toItemResponse)
-                .toList();
+        List<MealItemResponse> items =
+                meal.getItems().stream().map(MealMapper::toItemResponse).toList();
         String photoUrl = photo == null ? null : photoRawUrl(photo.getId());
         return new MealResponse(
                 meal.getId(),
@@ -48,8 +46,7 @@ final class MealMapper {
                 meal.getFiberGrams(),
                 meal.getNotes(),
                 photoUrl,
-                items
-        );
+                items);
     }
 
     static String photoRawUrl(java.util.UUID photoId) {
@@ -66,8 +63,7 @@ final class MealMapper {
                 item.getProteinGrams(),
                 item.getCarbsGrams(),
                 item.getFatGrams(),
-                item.getFiberGrams()
-        );
+                item.getFiberGrams());
     }
 
     static PhotoLogResponse toPhotoResponse(PhotoLog photo) {
@@ -77,7 +73,6 @@ final class MealMapper {
                 photo.getContentType(),
                 photo.getStatus(),
                 photo.getLinkedMealLog() == null ? null : photo.getLinkedMealLog().getId(),
-                photo.getCreatedAt()
-        );
+                photo.getCreatedAt());
     }
 }

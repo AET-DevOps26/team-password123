@@ -13,38 +13,35 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 class FeatureToggleControllerTest {
 
-  private MockMvc mockMvc;
+    private MockMvc mockMvc;
 
-  @BeforeEach
-  void setUp() {
-    FeatureToggleService featureToggles = new FeatureToggleService();
-    FeatureToggleController controller = new FeatureToggleController(featureToggles);
-    mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-  }
+    @BeforeEach
+    void setUp() {
+        FeatureToggleService featureToggles = new FeatureToggleService();
+        FeatureToggleController controller = new FeatureToggleController(featureToggles);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    }
 
-  @Test
-  void getUnknownFeatureReturnsFalse() throws Exception {
-    mockMvc
-        .perform(get("/api/features/scan-vision-model-picker"))
-        .andExpect(status().isOk())
-        .andExpect(content().string("false"));
-  }
+    @Test
+    void getUnknownFeatureReturnsFalse() throws Exception {
+        mockMvc.perform(get("/api/features/scan-vision-model-picker"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("false"));
+    }
 
-  @Test
-  void canToggleFeatureViaPut() throws Exception {
-    mockMvc
-        .perform(put("/api/features/scan-vision-model-picker").param("enabled", "true"))
-        .andExpect(status().isOk())
-        .andExpect(content().string("true"));
+    @Test
+    void canToggleFeatureViaPut() throws Exception {
+        mockMvc.perform(put("/api/features/scan-vision-model-picker").param("enabled", "true"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
 
-    mockMvc
-        .perform(get("/api/features/scan-vision-model-picker"))
-        .andExpect(status().isOk())
-        .andExpect(content().string("true"));
-  }
+        mockMvc.perform(get("/api/features/scan-vision-model-picker"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
+    }
 
-  @Test
-  void listEndpointReturnsMap() throws Exception {
-    mockMvc.perform(get("/api/features")).andExpect(status().isOk());
-  }
+    @Test
+    void listEndpointReturnsMap() throws Exception {
+        mockMvc.perform(get("/api/features")).andExpect(status().isOk());
+    }
 }

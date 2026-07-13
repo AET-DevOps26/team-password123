@@ -17,6 +17,4 @@ public record UpdateUserRequest(
         @Min(1) @Max(150) Integer age,
         Sex sex,
         ActivityLevel activityLevel,
-        Goal goal
-) {
-}
+        Goal goal) {}

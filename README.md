@@ -188,6 +188,7 @@ JWT subject is the user's email; the user id is a custom `userId` claim. The aut
 |--------|------|-------|
 | `GET` | `/api/analytics/daily?date=YYYY-MM-DD` | Daily totals + per-macro goal deltas |
 | `GET` | `/api/analytics/weekly?weekStart=YYYY-MM-DD` | 7-day totals + deltas vs. (daily goal × 7) |
+| `GET` | `/api/analytics/range?from=DATE&to=DATE` | Per-day totals for a range (≤400 days, empty days omitted) |
 | `GET` | `/api/analytics/streak` | Consecutive-days logging streak (~5-year window) |
 | `GET` | `/api/analytics/insight?window=week` | RAG health insight from recent meals (via genai) |
 | `GET` | `/api/goals` | Current user's goal, or `204` if none set |

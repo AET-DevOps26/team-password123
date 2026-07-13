@@ -226,8 +226,24 @@ export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
   // Cache of real per-day stats fetched from API: key = YYYY-MM-DD
   const [apiDayCache, setApiDayCache] = useState<Map<string, Stats>>(new Map());
 
-  // Fetch a date range from the API and merge into cache
+  // Fetch a date range and merge into cache. Aggregation happens server-side
+  // (/analytics/range); pulling raw meals and summing them here is only the
+  // fallback for an unavailable analytics-service.
   const fetchRange = useCallback(async (from: Date, to: Date) => {
+    try {
+      const range = await analyticsApi.getRange(isoDate(from), isoDate(to));
+      const byDate = new Map<string, Stats>();
+      for (const day of range.days) {
+        byDate.set(day.date, {
+          cal:     Math.round(day.calories),
+          protein: Math.round(day.proteinGrams),
+          carbs:   Math.round(day.carbsGrams),
+          fat:     Math.round(day.fatGrams),
+        });
+      }
+      setApiDayCache((prev) => new Map([...prev, ...byDate]));
+      return;
+    } catch { /* fall back to client-side aggregation below */ }
     try {
       const raw = await mealApi.getHistory(isoDate(from), isoDate(to));
       if (!raw) return;

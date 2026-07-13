@@ -1,6 +1,7 @@
 package com.teampassword123.analytics.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -11,6 +12,7 @@ import com.teampassword123.analytics.client.MealsClient;
 import com.teampassword123.analytics.domain.NutritionGoal;
 import com.teampassword123.analytics.dto.AnalyticsResponse;
 import com.teampassword123.analytics.dto.MealSummary;
+import com.teampassword123.analytics.dto.RangeAnalyticsResponse;
 import com.teampassword123.analytics.repository.NutritionGoalRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -228,6 +230,77 @@ class AnalyticsServiceTest {
         AnalyticsResponse response = service.daily(USER_ID, TOKEN, date, ZoneOffset.UTC);
 
         assertThat(response.from()).isEqualTo(response.to());
+    }
+
+    @Test
+    void rangeGroupsMealsByLocalDateAndSortsDays() {
+        LocalDate from = LocalDate.of(2026, 5, 1);
+        LocalDate to = LocalDate.of(2026, 5, 31);
+        MealSummary may5a = mealAt(OffsetDateTime.of(2026, 5, 5, 8, 0, 0, 0, ZoneOffset.UTC), 500);
+        MealSummary may5b = mealAt(OffsetDateTime.of(2026, 5, 5, 19, 0, 0, 0, ZoneOffset.UTC), 700);
+        MealSummary may2 = mealAt(OffsetDateTime.of(2026, 5, 2, 12, 0, 0, 0, ZoneOffset.UTC), 300);
+        when(mealsClient.listForUser(eq(TOKEN), eq(from), eq(to), eq(ZoneOffset.UTC)))
+                .thenReturn(List.of(may5a, may2, may5b));
+
+        RangeAnalyticsResponse response = service.range(TOKEN, from, to, ZoneOffset.UTC);
+
+        assertThat(response.from()).isEqualTo(from);
+        assertThat(response.to()).isEqualTo(to);
+        assertThat(response.days()).hasSize(2);
+        assertThat(response.days().get(0).date()).isEqualTo(LocalDate.of(2026, 5, 2));
+        assertThat(response.days().get(0).mealCount()).isEqualTo(1);
+        assertThat(response.days().get(0).calories()).isEqualByComparingTo("300");
+        assertThat(response.days().get(1).date()).isEqualTo(LocalDate.of(2026, 5, 5));
+        assertThat(response.days().get(1).mealCount()).isEqualTo(2);
+        assertThat(response.days().get(1).calories()).isEqualByComparingTo("1200");
+    }
+
+    @Test
+    void rangeBucketsDaysInTheRequestedZone() {
+        LocalDate from = LocalDate.of(2026, 5, 1);
+        LocalDate to = LocalDate.of(2026, 5, 2);
+        // 22:30Z on 1 May is already 2 May in Berlin (UTC+2)
+        MealSummary lateSnack =
+                mealAt(OffsetDateTime.of(2026, 5, 1, 22, 30, 0, 0, ZoneOffset.UTC), 200);
+        java.time.ZoneId berlin = java.time.ZoneId.of("Europe/Berlin");
+        when(mealsClient.listForUser(eq(TOKEN), eq(from), eq(to), eq(berlin)))
+                .thenReturn(List.of(lateSnack));
+
+        RangeAnalyticsResponse response = service.range(TOKEN, from, to, berlin);
+
+        assertThat(response.days()).hasSize(1);
+        assertThat(response.days().get(0).date()).isEqualTo(LocalDate.of(2026, 5, 2));
+    }
+
+    @Test
+    void rangeRejectsInvertedAndOversizedRanges() {
+        assertThatThrownBy(
+                        () ->
+                                service.range(
+                                        TOKEN,
+                                        LocalDate.of(2026, 5, 10),
+                                        LocalDate.of(2026, 5, 1),
+                                        ZoneOffset.UTC))
+                .hasMessage("from must be on or before to");
+        assertThatThrownBy(
+                        () ->
+                                service.range(
+                                        TOKEN,
+                                        LocalDate.of(2025, 1, 1),
+                                        LocalDate.of(2025, 1, 1).plusDays(400),
+                                        ZoneOffset.UTC))
+                .hasMessage("Date range must not exceed 400 days");
+        verify(mealsClient, never()).listForUser(any(), any(), any(), any());
+    }
+
+    private static MealSummary mealAt(OffsetDateTime loggedAt, double cal) {
+        return new MealSummary(
+                loggedAt,
+                BigDecimal.valueOf(cal),
+                BigDecimal.valueOf(10),
+                BigDecimal.valueOf(20),
+                BigDecimal.valueOf(5),
+                BigDecimal.valueOf(2));
     }
 
     @Test

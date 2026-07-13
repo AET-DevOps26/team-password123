@@ -2,6 +2,7 @@ package com.teampassword123.analytics.controller;
 
 import com.teampassword123.analytics.dto.AnalyticsResponse;
 import com.teampassword123.analytics.dto.InsightResponse;
+import com.teampassword123.analytics.dto.RangeAnalyticsResponse;
 import com.teampassword123.analytics.dto.StreakResponse;
 import com.teampassword123.analytics.security.AuthenticatedUser;
 import com.teampassword123.analytics.security.JwtAuthenticationFilter;
@@ -47,6 +48,17 @@ public class AnalyticsController {
             @RequestParam(required = false) String tz) {
         return analyticsService.weekly(
                 user.id(), bearerToken(request), weekStart, TimeZones.resolve(tz));
+    }
+
+    @GetMapping("/range")
+    @Operation(summary = "Per-day nutrition totals for a date range (days without meals omitted)")
+    public RangeAnalyticsResponse range(
+            @AuthenticationPrincipal AuthenticatedUser user,
+            HttpServletRequest request,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String tz) {
+        return analyticsService.range(bearerToken(request), from, to, TimeZones.resolve(tz));
     }
 
     @GetMapping("/streak")

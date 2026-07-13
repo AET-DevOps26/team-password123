@@ -223,6 +223,31 @@ class MealServiceTest {
     }
 
     @Test
+    void list_whenRangeExceedsCap_throwsBadRequest() {
+        LocalDate from = LocalDate.of(2025, 1, 1);
+        LocalDate to = from.plusDays(400);
+
+        assertThatThrownBy(() -> service.list(userId, from, to, ZoneOffset.UTC))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Date range must not exceed 400 days");
+
+        verify(meals, never())
+                .findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(any(), any(), any());
+    }
+
+    @Test
+    void list_whenRangeIsExactlyCap_isAllowed() {
+        when(meals.findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(
+                        any(UUID.class), any(OffsetDateTime.class), any(OffsetDateTime.class)))
+                .thenReturn(List.of());
+
+        LocalDate from = LocalDate.of(2025, 1, 1);
+        List<MealResponse> result = service.list(userId, from, from.plusDays(399), ZoneOffset.UTC);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     void list_whenFromEqualsTo_isAllowed() {
         when(meals.findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(
                         any(UUID.class), any(OffsetDateTime.class), any(OffsetDateTime.class)))

@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -43,6 +44,12 @@ import org.springframework.web.multipart.MultipartFile;
 public class MealService {
 
     private static final Logger log = LoggerFactory.getLogger(MealService.class);
+
+    // Caps the full-body list endpoint so a single request cannot pull the whole
+    // table; 400 days still fits the widest UI window (the year view). The
+    // lightweight logged-dates endpoint is intentionally not capped — the streak
+    // computation scans ~5 years of dates.
+    private static final int MAX_LIST_RANGE_DAYS = 400;
 
     private final MealLogRepository meals;
     private final PhotoLogRepository photos;
@@ -90,6 +97,10 @@ public class MealService {
     public List<MealResponse> list(UUID userId, LocalDate from, LocalDate to, ZoneId zone) {
         if (from.isAfter(to)) {
             throw new BadRequestException("from must be on or before to");
+        }
+        if (ChronoUnit.DAYS.between(from, to) >= MAX_LIST_RANGE_DAYS) {
+            throw new BadRequestException(
+                    "Date range must not exceed " + MAX_LIST_RANGE_DAYS + " days");
         }
         List<MealLog> mealLogs =
                 meals.findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(

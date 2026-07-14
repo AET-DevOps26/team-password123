@@ -49,7 +49,8 @@ public class MealService {
     private static final Logger log = LoggerFactory.getLogger(MealService.class);
 
     // Caps the full-body list endpoint so a single request cannot pull the whole
-    // table; 400 days still fits the widest UI window (the year view). The
+    // table: [from, to] may cover at most this many calendar days, counted
+    // inclusively, so the widest UI window (a leap-year view, 366 days) fits. The
     // lightweight logged-dates endpoint is intentionally not capped — the streak
     // computation scans ~5 years of dates.
     private static final int MAX_LIST_RANGE_DAYS = 400;
@@ -101,7 +102,8 @@ public class MealService {
         if (from.isAfter(to)) {
             throw new BadRequestException("from must be on or before to");
         }
-        if (ChronoUnit.DAYS.between(from, to) >= MAX_LIST_RANGE_DAYS) {
+        long inclusiveDays = ChronoUnit.DAYS.between(from, to) + 1;
+        if (inclusiveDays > MAX_LIST_RANGE_DAYS) {
             throw new BadRequestException(
                     "Date range must not exceed " + MAX_LIST_RANGE_DAYS + " days");
         }

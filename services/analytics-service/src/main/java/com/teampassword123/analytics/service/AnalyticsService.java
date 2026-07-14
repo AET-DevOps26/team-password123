@@ -26,7 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AnalyticsService {
 
-    // Matches the meals-service list cap; the widest UI window (year view) fits.
+    // Matches the meals-service list cap: [from, to] may cover at most this many
+    // calendar days, counted inclusively, so the widest UI window (a leap-year
+    // view, 366 days) fits.
     private static final int MAX_RANGE_DAYS = 400;
 
     private final MealsClient mealsClient;
@@ -56,7 +58,8 @@ public class AnalyticsService {
         if (from.isAfter(to)) {
             throw new BadRequestException("from must be on or before to");
         }
-        if (ChronoUnit.DAYS.between(from, to) >= MAX_RANGE_DAYS) {
+        long inclusiveDays = ChronoUnit.DAYS.between(from, to) + 1;
+        if (inclusiveDays > MAX_RANGE_DAYS) {
             throw new BadRequestException("Date range must not exceed " + MAX_RANGE_DAYS + " days");
         }
         List<MealSummary> meals = mealsClient.listForUser(bearerToken, from, to, zone);

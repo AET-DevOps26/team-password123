@@ -5,7 +5,7 @@ Nutrition goals and daily/weekly progress reports.
 - **Port**: 8083
 - **DB schema**: `analytics` (table: `nutrition_goals`)
 - **Calls** `meals-service` over REST to aggregate meal totals. Propagates the caller's bearer token.
-- **Auth**: validates JWTs issued by `auth-service` using the shared `APP_JWT_SECRET`.
+- **Auth**: verifies RS256 JWTs issued by `auth-service` using the public key only (`APP_JWT_PUBLIC_KEY`) — it cannot mint tokens.
 
 ## Endpoints
 
@@ -32,4 +32,4 @@ Requires:
 - Postgres with the `analytics` schema
 - `meals-service` reachable at `MEALS_SERVICE_URL` (default `http://localhost:8082`)
 - `genai-service` reachable for `/api/analytics/insight` (configured via `GENAI_URL`)
-- `APP_JWT_SECRET` matching `auth-service`
+- `APP_JWT_PUBLIC_KEY` matching auth-service's `APP_JWT_PRIVATE_KEY` (generate a pair with `node scripts/gen-jwt-keys.mjs`)

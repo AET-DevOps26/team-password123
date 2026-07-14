@@ -23,8 +23,8 @@ public class ResourceServerSecurityAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    JwtVerifier jwtVerifier(@Value("${app.jwt.secret}") String secret) {
-        return new JwtVerifier(secret);
+    JwtVerifier jwtVerifier(@Value("${app.jwt.public-key}") String publicKeyPem) {
+        return new JwtVerifier(PemKeys.parsePublicKey(publicKeyPem));
     }
 
     @Bean

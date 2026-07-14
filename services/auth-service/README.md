@@ -4,7 +4,7 @@ Identity, registration, login, and JWT issuance for the nutrition platform.
 
 - **Port**: 8081
 - **DB schema**: `auth` (table: `app_users`)
-- **Issues** JWTs signed with `APP_JWT_SECRET`. Other services validate using the same secret.
+- **Issues** JWTs signed RS256 with the RSA private key (`APP_JWT_PRIVATE_KEY`). Only this service holds signing material; other services verify with the public key (`APP_JWT_PUBLIC_KEY`). Generate a dev keypair with `node scripts/gen-jwt-keys.mjs`.
 
 ## Endpoints
 

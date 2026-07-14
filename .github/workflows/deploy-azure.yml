@@ -50,6 +50,7 @@ jobs:
             -e "ghcr_token=${{ secrets.GHCR_PULL_TOKEN }}" \
             -e "image_tag=latest" \
             -e "postgres_password=${{ secrets.POSTGRES_PASSWORD }}" \
-            -e "jwt_secret=${{ secrets.APP_JWT_SECRET }}" \
+            -e "jwt_private_key=${{ secrets.APP_JWT_PRIVATE_KEY }}" \
+            -e "jwt_public_key=${{ secrets.APP_JWT_PUBLIC_KEY }}" \
             -e "openai_base_url=${{ secrets.LOGOS_BASE_URL }}" \
             -e "openai_api_key=${{ secrets.LOGOS_API_KEY }}"

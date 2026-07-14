@@ -65,11 +65,10 @@ spec:
                 secretKeyRef:
                   name: {{ include "calorieasy.secretName" . }}
                   key: POSTGRES_PASSWORD
-            - name: APP_JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "calorieasy.secretName" . }}
-                  key: APP_JWT_SECRET
+            # Verify-only RS256 public key: not sensitive, so it is a plain
+            # value (not a Secret). This service cannot mint tokens.
+            - name: APP_JWT_PUBLIC_KEY
+              value: {{ required "jwt.publicKey is required (RS256 SPKI PEM body, base64; generate with node scripts/gen-jwt-keys.mjs)" .Values.jwt.publicKey | quote }}
             - name: APP_UPLOAD_DIR
               value: /app/uploads
             {{- if .Values.genai.enabled }}

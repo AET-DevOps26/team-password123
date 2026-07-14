@@ -25,7 +25,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nutrition}?currentSchema=auth
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nutrition}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:?set APP_JWT_SECRET in .env}
+      # RS256 signing key — only auth-service gets the private key.
+      # Generate both keys with: node scripts/gen-jwt-keys.mjs >> .env
+      APP_JWT_PRIVATE_KEY: ${APP_JWT_PRIVATE_KEY:?run "node scripts/gen-jwt-keys.mjs >> .env"}
       APP_JWT_EXPIRATION: ${APP_JWT_EXPIRATION:-PT24H}
       SPRING_PROFILES_ACTIVE: local
       SERVER_PORT: 8081
@@ -47,7 +49,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nutrition}?currentSchema=meals
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nutrition}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:?set APP_JWT_SECRET in .env}
+      # Verify-only RS256 public key (cannot mint tokens).
+      APP_JWT_PUBLIC_KEY: ${APP_JWT_PUBLIC_KEY:?run "node scripts/gen-jwt-keys.mjs >> .env"}
       APP_UPLOAD_DIR: /app/uploads
       # Points the photo-scan flow at the GenAI vision service. Setting this
       # activates GenAiMealAnalyzer; unset (e.g. local non-compose runs) the
@@ -73,7 +76,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nutrition}?currentSchema=analytics
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nutrition}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:?set APP_JWT_SECRET in .env}
+      # Verify-only RS256 public key (cannot mint tokens).
+      APP_JWT_PUBLIC_KEY: ${APP_JWT_PUBLIC_KEY:?run "node scripts/gen-jwt-keys.mjs >> .env"}
       MEALS_SERVICE_URL: http://meals-service:8082
       # RAG health-insights: analytics aggregates recent meals and asks genai
       # to generate the grounded insight.
@@ -188,7 +192,7 @@ services:
     image: grafana/grafana:11.4.0
     environment:
       # No baked-in credentials — set GRAFANA_ADMIN_PASSWORD in .env, same as
-      # POSTGRES_PASSWORD/APP_JWT_SECRET. The deployed chart sources it from a Secret.
+      # POSTGRES_PASSWORD/APP_JWT_PRIVATE_KEY. The deployed chart sources it from a Secret.
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in .env}
       GF_USERS_ALLOW_SIGN_UP: "false"

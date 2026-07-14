@@ -43,11 +43,12 @@ spec:
                 secretKeyRef:
                   name: {{ include "calorieasy.secretName" . }}
                   key: POSTGRES_PASSWORD
-            - name: APP_JWT_SECRET
+            # RS256 signing key — only auth-service holds the private key.
+            - name: APP_JWT_PRIVATE_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ include "calorieasy.secretName" . }}
-                  key: APP_JWT_SECRET
+                  key: APP_JWT_PRIVATE_KEY
             - name: APP_JWT_EXPIRATION
               value: {{ .Values.jwt.expiration | quote }}
             {{- if .Values.tracing.enabled }}

@@ -7,7 +7,7 @@ A nutrition and health companion that removes the friction from food logging, bu
 - **Diary.** Per-day food log with day-to-day navigation.
 - **Analytics.** Daily and weekly aggregates with goal deltas and a logging streak.
 - **Goals.** Per-user nutrition goals (calories + macros), with Mifflin–St Jeor TDEE suggestions in onboarding.
-- **Auth.** Email/password registration and login with JWT; one shared signing secret validated by every service.
+- **Auth.** Email/password registration and login with RS256 JWTs: only `auth-service` holds the RSA private key and can issue tokens; every other service verifies with the public key alone.
 - **iOS app.** SwiftUI + SwiftData client with backend sync (auth, meals, goals, GenAI photo analyze). Water tracking and widget stay local-only.
 
 | Path | What's there |
@@ -24,7 +24,7 @@ A nutrition and health companion that removes the friction from food logging, bu
 
 ## Architecture
 
-A single-page web client and an iOS client talk to three Spring Boot REST microservices behind one PostgreSQL instance (one database, three schemas). The meals service can delegate image recognition to the Python GenAI service. **Only `auth-service` issues JWTs**; meals and analytics validate them with the same shared `APP_JWT_SECRET`. `analytics-service` is a read-side aggregator — it does not store meals; it fetches them live from `meals-service` over HTTP, forwarding the caller's bearer token.
+A single-page web client and an iOS client talk to three Spring Boot REST microservices behind one PostgreSQL instance (one database, three schemas). The meals service can delegate image recognition to the Python GenAI service. **Only `auth-service` issues JWTs** — it signs them RS256 with the RSA private key (`APP_JWT_PRIVATE_KEY`); meals and analytics verify with the public key only (`APP_JWT_PUBLIC_KEY`), so a compromised resource service cannot mint tokens. `analytics-service` is a read-side aggregator — it does not store meals; it fetches them live from `meals-service` over HTTP, forwarding the caller's bearer token.
 
 ```
                          ┌──────────────────────────────────────────────┐
@@ -44,10 +44,10 @@ A single-page web client and an iOS client talk to three Spring Boot REST micros
    │                   │  │   │                   │ GET  │   no meal storage)    │
    └─────────┬─────────┘  │   └─────────┬─────────┘/api/ └───────────┬───────────┘
              │            │             │           meals            │
-             │  shared    │             │ POST /api/analyze          │
-             │  APP_JWT_  │             ▼  (when app.genai.base-url  │
-             │  SECRET    │   ┌───────────────────┐    is set)       │
-             │  (validate)└──►│   genai-service   │                  │
+             │  RS256     │             │ POST /api/analyze          │
+             │  public    │             ▼  (when app.genai.base-url  │
+             │  key       │   ┌───────────────────┐    is set)       │
+             │  (verify)  └──►│   genai-service   │                  │
              │                │      :8084        │                  │
              │                │  FastAPI + vision │                  │
              │                │  LLM (Gemini +   │                  │
@@ -68,7 +68,7 @@ Design docs live in [`docs/`](docs/): [`Problem Statement.md`](docs/Problem%20St
 |-------|-----------|
 | Web client | React 18.2, TypeScript 5.3, Vite 5, Zustand 5, CSS Modules, Vitest |
 | Backend services | Java 21, Spring Boot 3.5.13 (Web MVC, Data JPA, Security, Actuator, Validation), Maven |
-| Auth | JJWT 0.12.6 (HMAC-SHA), BCrypt, shared `APP_JWT_SECRET` |
+| Auth | JJWT 0.13.0 (RS256), BCrypt — auth signs with `APP_JWT_PRIVATE_KEY`, other services verify with `APP_JWT_PUBLIC_KEY` |
 | Persistence | PostgreSQL 16, Flyway migrations, Hibernate `ddl-auto=validate` |
 | GenAI service | Python 3.11, FastAPI 0.104, uvicorn, LangChain, Pydantic 2 |
 | Vision LLMs | Google Gemini (primary, OpenAI-compatible), Nemotron via OpenRouter (backup) |
@@ -91,6 +91,7 @@ Requires Docker and Node.js 18+.
 ```bash
 # From the repo root:
 cp .env.example .env
+node scripts/gen-jwt-keys.mjs >> .env   # generate the RS256 JWT keypair
 
 # 1. Start everything except the GenAI service (postgres + the 3 services + web):
 docker compose up --build postgres auth-service meals-service analytics-service web
@@ -124,7 +125,8 @@ Brings up Postgres + the three Spring services + the GenAI service + the web cli
 
 ### Run
 ```bash
-cp .env.example .env   # fill OPENAI_API_KEY + BACKUP_OPENAI_API_KEY
+cp .env.example .env                    # fill OPENAI_API_KEY + BACKUP_OPENAI_API_KEY
+node scripts/gen-jwt-keys.mjs >> .env   # generate the RS256 JWT keypair
 docker compose up --build
 ```
 
@@ -232,7 +234,8 @@ Goal deltas are `actual − target`; with no goal set, target is treated as 0. I
 | `POSTGRES_DB` | `nutrition` | Database name |
 | `POSTGRES_USER` | `nutrition` | DB user |
 | `POSTGRES_PASSWORD` | `nutrition` (dev) | DB password — **required** in prod |
-| `APP_JWT_SECRET` | dev placeholder | HMAC secret shared by all Spring services — **override in prod** |
+| `APP_JWT_PRIVATE_KEY` | — (generate) | RS256 signing key (PKCS#8, base64) — **auth-service only**; `node scripts/gen-jwt-keys.mjs >> .env` |
+| `APP_JWT_PUBLIC_KEY` | — (generate) | RS256 verification key (SPKI, base64) for meals/analytics — verify-only, cannot mint tokens |
 | `APP_JWT_EXPIRATION` | `PT24H` | JWT TTL (ISO-8601 duration) |
 
 ### Spring services
@@ -321,11 +324,12 @@ terraform apply -var ssh_public_key="$(cat ~/.ssh/calorieasy_id.pub)"
 cd ../ansible
 cp inventory.example.ini inventory.ini   # fill in the public IP
 ansible-playbook -i inventory.ini playbook.yml \
-  -e ghcr_user=... -e ghcr_token=... -e postgres_password=... -e jwt_secret=...
+  -e ghcr_user=... -e ghcr_token=... -e postgres_password=... \
+  -e jwt_private_key=... -e jwt_public_key=...
 ```
 The prod Compose stack ([`docker-compose.prod.yml`](docker-compose.prod.yml)) pulls prebuilt GHCR images and serves the web client via nginx on `:80` (Postgres is not published externally). See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the full operator runbook, secrets, and variables.
 
-> **Security note:** default secrets (`APP_JWT_SECRET`, `POSTGRES_PASSWORD`, Helm `jwt.secret`/`postgres.password`) are placeholders and must be overridden for any real deployment. The prod Compose stack enforces this via required (`:?`) variables.
+> **Security note:** secrets (`APP_JWT_PRIVATE_KEY`, `POSTGRES_PASSWORD`, Helm `jwt.privateKey`/`postgres.password`) have no committed defaults and must be provided for any deployment. The prod Compose stack enforces this via required (`:?`) variables. The JWT public key (`APP_JWT_PUBLIC_KEY` / `jwt.publicKey`) is not sensitive — it only verifies tokens.
 
 ## Roadmap
 

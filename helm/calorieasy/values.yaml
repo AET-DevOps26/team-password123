@@ -11,23 +11,28 @@ imagePullSecrets:
   - name: ghcr-pull
 
 # Secret provisioning. Leave existingSecret empty to let the chart create
-# "calorieasy-secrets" from the values below (jwt.secret + postgres.password are
-# then REQUIRED — a deploy without them fails closed). For production, create a
-# Secret out-of-band with keys APP_JWT_SECRET, POSTGRES_PASSWORD, OPENAI_API_KEY,
+# "calorieasy-secrets" from the values below (jwt.privateKey + postgres.password
+# are then REQUIRED — a deploy without them fails closed). For production, create
+# a Secret out-of-band with keys APP_JWT_PRIVATE_KEY, POSTGRES_PASSWORD, OPENAI_API_KEY,
 # BACKUP_OPENAI_API_KEY, TEXT_OPENAI_API_KEY, USDA_FDC_API_KEY, GRAFANA_ADMIN_PASSWORD and set its name
 # here so secrets never live in values/history:
 #   kubectl -n <ns> create secret generic calorieasy-secrets \
-#     --from-literal=APP_JWT_SECRET=$(openssl rand -hex 32) \
+#     --from-literal=APP_JWT_PRIVATE_KEY=<pkcs8-base64> \
 #     --from-literal=POSTGRES_PASSWORD=$(openssl rand -hex 24) ...
+# (jwt.publicKey is not in the Secret — it is not sensitive and is always
+# passed as a plain value below, even with an existingSecret.)
 secrets:
   existingSecret: ""
 
-# Shared JWT signing key — all services validate with it; only auth-service issues
-# tokens. HS256 requires >= 32 bytes. Provide at install (chart-managed Secret):
-#   --set jwt.secret=$(openssl rand -hex 32)
-# No default: a working key must never be committed.
+# RS256 JWT keypair. Only auth-service gets the PRIVATE key (via the Secret) and
+# can issue tokens; meals/analytics verify with the PUBLIC key alone, so holding
+# a verification key no longer allows minting tokens. Values are PEM bodies —
+# headerless single-line base64 of the DER (PKCS#8 private / SPKI public) works
+# with --set. Generate a pair with: node scripts/gen-jwt-keys.mjs
+# No defaults: a working key must never be committed.
 jwt:
-  secret: ""
+  privateKey: ""   # SECRET — required unless secrets.existingSecret is set
+  publicKey: ""    # not sensitive — required, injected as a plain env value
   expiration: "PT24H"
 
 postgres:

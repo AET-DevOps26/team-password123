@@ -1,28 +1,40 @@
 package com.teampassword123.auth.security;
 
+import com.teampassword123.common.security.PemKeys;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
+import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.RSAPublicKeySpec;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
-import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+/**
+ * Issues RS256 JWTs signed with the RSA private key ({@code APP_JWT_PRIVATE_KEY}). Resource
+ * services verify with the public key only, so auth-service is the single place able to mint
+ * tokens. The public key used for this service's own token parsing is derived from the private key,
+ * so auth needs no separate public-key configuration.
+ */
 @Service
 public class JwtService {
 
-    private final SecretKey key;
+    private final RSAPrivateKey privateKey;
+    private final RSAPublicKey publicKey;
     private final Duration expiration;
 
     public JwtService(
-            @Value("${app.jwt.secret}") String secret,
+            @Value("${app.jwt.private-key}") String privateKeyPem,
             @Value("${app.jwt.expiration}") Duration expiration) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.privateKey = PemKeys.parsePrivateKey(privateKeyPem);
+        this.publicKey = derivePublicKey(this.privateKey);
         this.expiration = expiration;
     }
 
@@ -34,7 +46,7 @@ public class JwtService {
                 .claim("userId", principal.id().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expires))
-                .signWith(key)
+                .signWith(privateKey, Jwts.SIG.RS256)
                 .compact();
     }
 
@@ -47,6 +59,23 @@ public class JwtService {
     }
 
     private Claims claims(String token) {
-        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        return Jwts.parser().verifyWith(publicKey).build().parseSignedClaims(token).getPayload();
+    }
+
+    private static RSAPublicKey derivePublicKey(RSAPrivateKey privateKey) {
+        if (!(privateKey instanceof RSAPrivateCrtKey crtKey)) {
+            throw new IllegalArgumentException(
+                    "APP_JWT_PRIVATE_KEY must be a standard (CRT-form) PKCS#8 RSA key so the"
+                            + " public key can be derived from it");
+        }
+        try {
+            return (RSAPublicKey)
+                    KeyFactory.getInstance("RSA")
+                            .generatePublic(
+                                    new RSAPublicKeySpec(
+                                            crtKey.getModulus(), crtKey.getPublicExponent()));
+        } catch (GeneralSecurityException e) {
+            throw new IllegalStateException("Failed to derive the RSA public key", e);
+        }
     }
 }

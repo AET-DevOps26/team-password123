@@ -24,8 +24,20 @@ kubectl create secret docker-registry ghcr-pull \
 
 ## Secrets
 
-The chart no longer ships working default secrets. `jwt.secret` and
-`postgres.password` are **required** — a deploy without them fails closed.
+The chart no longer ships working default secrets. `jwt.privateKey` (secret),
+`jwt.publicKey` (not secret) and `postgres.password` are **required** — a deploy
+without them fails closed.
+
+JWTs use **RS256**: only auth-service receives the RSA private key
+(`APP_JWT_PRIVATE_KEY`, from the Secret) and can issue tokens; meals/analytics
+verify with the public key alone (`APP_JWT_PUBLIC_KEY`, a plain env value from
+`jwt.publicKey` — it is not sensitive), so compromising a resource service no
+longer allows minting tokens. Generate a keypair (headerless single-line base64
+of the PKCS#8/SPKI DER, ready for `--set`) with:
+
+```bash
+node scripts/gen-jwt-keys.mjs   # prints APP_JWT_PRIVATE_KEY=... / APP_JWT_PUBLIC_KEY=...
+```
 
 **Option A — externally-managed Secret (recommended for production).** Create the
 Secret once, out-of-band, then point the chart at it. Survives `helm upgrade` and
@@ -33,35 +45,40 @@ keeps secrets out of `values.yaml` / shell history / the Helm release:
 
 ```bash
 kubectl -n team-password123 create secret generic calorieasy-secrets \
-  --from-literal=APP_JWT_SECRET=$(openssl rand -hex 32) \
+  --from-literal=APP_JWT_PRIVATE_KEY=<pkcs8-base64> \
   --from-literal=POSTGRES_PASSWORD=$(openssl rand -hex 24) \
   --from-literal=OPENAI_API_KEY=<gemini-key> \
   --from-literal=BACKUP_OPENAI_API_KEY=<openrouter-key> \
   --from-literal=TEXT_OPENAI_API_KEY=<logos-key> \
   --from-literal=USDA_FDC_API_KEY=
 # then install with: --set secrets.existingSecret=calorieasy-secrets
+# jwt.publicKey is NOT part of the Secret — always pass it as a value:
+#   --set jwt.publicKey=<spki-base64>
 ```
 
 **Option B — chart-managed Secret.** Pass the same values on every upgrade:
 
 ```bash
---set jwt.secret=$(openssl rand -hex 32) --set postgres.password=$(openssl rand -hex 24)
+--set jwt.privateKey=<pkcs8-base64> --set jwt.publicKey=<spki-base64> \
+--set postgres.password=$(openssl rand -hex 24)
 ```
 
-> HS256 requires a key of at least 32 bytes (`openssl rand -hex 32` = 64 hex chars).
-> Rotate by updating the Secret and `kubectl rollout restart` the three Java
-> services — existing JWTs are invalidated and users simply log in again.
+> Rotate by generating a new keypair, updating the private key in the Secret and
+> `jwt.publicKey`, then `kubectl rollout restart` the three Java services —
+> existing JWTs are invalidated and users simply log in again.
 
 ## Install / upgrade
 
 ```bash
 # Option A — external Secret created above:
 helm upgrade --install app . --namespace team-password123 \
-  --set secrets.existingSecret=calorieasy-secrets
+  --set secrets.existingSecret=calorieasy-secrets \
+  --set jwt.publicKey=<spki-base64>
 
 # Option B — chart-managed Secret:
 helm upgrade --install app . --namespace team-password123 \
-  --set jwt.secret=$(openssl rand -hex 32) \
+  --set jwt.privateKey=<pkcs8-base64> \
+  --set jwt.publicKey=<spki-base64> \
   --set postgres.password=$(openssl rand -hex 24)
 ```
 

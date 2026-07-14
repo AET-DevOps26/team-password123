@@ -16,7 +16,7 @@ once (`mvn -f services/common-security/pom.xml install`) so Maven can resolve it
 
 ## Cross-cutting design
 
-**JWT.** `auth-service` issues tokens; the other two validate them with the same `APP_JWT_SECRET`. Token validation lives in the shared [common-security](common-security) module: a thin `JwtVerifier` (decode + extract `userId`, no DB lookup) and a `JwtAuthenticationFilter`, wired by auto-configuration in meals/analytics. auth-service defines its own `SecurityFilterChain` (public login/register endpoints), so the shared resource-server chain backs off there; it reuses the module's error-handling classes.
+**JWT.** `auth-service` issues tokens, signing them RS256 with the RSA private key (`APP_JWT_PRIVATE_KEY`) it alone holds; the other two verify with the public key only (`APP_JWT_PUBLIC_KEY`), so they cannot mint tokens. Token validation lives in the shared [common-security](common-security) module: a thin `JwtVerifier` (decode + extract `userId`, no DB lookup) and a `JwtAuthenticationFilter`, wired by auto-configuration in meals/analytics. auth-service defines its own `SecurityFilterChain` (public login/register endpoints), so the shared resource-server chain backs off there; it reuses the module's error-handling classes.
 
 **Database.** One PostgreSQL instance, three schemas. Each service owns its schema and its Flyway migrations live under `src/main/resources/db/migration/`. The schemas themselves are created by `infra/postgres/init/01-create-schemas.sql` on first container start.
 

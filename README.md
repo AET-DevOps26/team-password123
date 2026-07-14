@@ -217,8 +217,7 @@ Goal deltas are `actual − target`; with no goal set, target is treated as 0. I
 |--------|------|-------|
 | `GET` | `/health` | Readiness (`ok` / `degraded`) |
 | `POST` | `/api/analyze` | Multipart `file` → `NutritionResponse` (foods, calories, protein/carbs/fat/fiber grams, confidence) |
-| `POST` | `/api/analyze/base64` | JSON `{ "image": "<base64>" }` → `NutritionResponse` |
-| `POST` | `/api/analyze/compare` | Run two providers and compare calorie estimates |
+| `POST` | `/api/analyze/compare` | Internal (hidden from OpenAPI): run two providers and compare calorie estimates |
 | `POST` | `/api/estimate` | JSON `{ "foodName": "..." }` → per-100g nutrition estimate |
 | `POST` | `/api/insight` | JSON eating profile → RAG health insight |
 

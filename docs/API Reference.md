@@ -461,22 +461,11 @@ Analyze a food image. Returns macro estimates and a confidence score.
 
 ---
 
-### POST `/api/analyze/base64` · public
-
-Same analysis but accepts a base64-encoded image in JSON.
-
-**Request body**
-```json
-{ "image": "<base64-encoded-image-string>" }
-```
-
-**Response `200`** — same shape as `/api/analyze`.
-
----
-
-### POST `/api/analyze/compare` · public
+### POST `/api/analyze/compare` · internal
 
 Analyze the same image with two providers and compare calorie estimates.
+Manual-experiment tool for comparing vision providers — hidden from the
+OpenAPI schema and not called by any service.
 
 **Request** — `multipart/form-data` with `file` part.
 

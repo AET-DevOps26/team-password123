@@ -21,6 +21,7 @@ import base64
 import logging
 import os
 import time
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from pydantic import BaseModel
@@ -42,11 +43,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    _build_health_index_on_startup()
+    yield
+
+
 # Create FastAPI app
 app = FastAPI(
     title="Nutrition GenAI Service",
     description="Analyzes food images and returns nutritional estimates using Google Gemini with an OpenAI-compatible backup endpoint",
-    version="0.1.0"
+    version="0.1.0",
+    lifespan=_lifespan,
 )
 
 # Reject oversized bodies before Starlette buffers them into memory, so a huge
@@ -166,7 +174,6 @@ def get_insight_engine() -> HealthInsightEngine:
     return _insight_engine
 
 
-@app.on_event("startup")
 def _build_health_index_on_startup() -> None:
     """Best-effort: populate the HealthFact index if Weaviate is up and empty.
     Must never crash the app — a down/unconfigured Weaviate is tolerated."""
@@ -332,41 +339,8 @@ def analyze_meal(
         )
 
 
-@app.post("/api/analyze/base64", response_model=NutritionResponse)
-def analyze_meal_base64(request_data: dict):
-    """
-    Analyze a meal using base64-encoded image.
-    
-    Request body:
-        {"image": "base64_encoded_image_string"}
-    
-    Returns:
-        NutritionResponse with estimated macros
-    """
-    if not analyzer:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="GenAI service not initialized"
-        )
-    
-    try:
-        image_base64 = request_data.get("image")
-        if not image_base64:
-            raise ValueError("Missing 'image' field in request body")
-        
-        logger.info("Analyzing base64-encoded image")
-        result = analyzer.analyze(image_base64)
-        
-        return result
-        
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except Exception as e:
-        logger.error(f"Error: {e}", exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
-
-
-@app.post("/api/analyze/compare", response_model=NutritionComparisonResponse)
+# Manual-experiment tool, not part of the service API — hidden from OpenAPI.
+@app.post("/api/analyze/compare", response_model=NutritionComparisonResponse, include_in_schema=False)
 def compare_meal(file: UploadFile = File(...)):
     """Analyze the same image with two providers and compare calorie estimates."""
     if not analyzer:
@@ -470,5 +444,5 @@ def health_insight(request: InsightRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=PORT, debug=DEBUG)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
 

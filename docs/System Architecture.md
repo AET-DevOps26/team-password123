@@ -144,7 +144,7 @@ Provides daily and weekly nutrition summaries, goal progress, streak calculation
 Python FastAPI microservice that powers photo-based meal analysis, food-name estimation, and RAG health insights. It accepts an image or food name, sends it to a configurable vision/text LLM, parses the structured response, and resolves nutritional data from the USDA FDC API (with a local fallback cache). Returns calories, protein, carbs, fat, fiber, and a confidence score.
 
 **Supported LLM providers:** Google Gemini (primary vision), OpenRouter Nemotron (backup vision), AET Logos gpt-oss-120b (text estimate + RAG)  
-**Key endpoints:** `POST /api/analyze`, `POST /api/analyze/base64`, `POST /api/estimate`, `POST /api/insight`
+**Key endpoints:** `POST /api/analyze`, `POST /api/estimate`, `POST /api/insight`
 
 ## Database
 

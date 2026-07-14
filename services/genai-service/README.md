@@ -24,8 +24,7 @@ Multi-modal LLM-powered food image recognition and nutritional inference microse
 |--------|------|-------|--------|
 | GET | `/health` | — | `{"status": "ok", "analyzer_ready": true}` |
 | POST | `/api/analyze` | multipart image file | `NutritionResponse` |
-| POST | `/api/analyze/base64` | `{"image": "<base64>"}` | `NutritionResponse` |
-| POST | `/api/analyze/compare` | multipart image file | `NutritionComparisonResponse` |
+| POST | `/api/analyze/compare` | multipart image file (internal, hidden from OpenAPI) | `NutritionComparisonResponse` |
 | POST | `/api/estimate` | JSON `{ "foodName": "..." }` | `FoodEstimateResponse` (per-100g macros) |
 | POST | `/api/insight` | JSON eating profile | `InsightResponse` (RAG health insight) |
 

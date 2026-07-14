@@ -188,6 +188,7 @@ JWT subject is the user's email; the user id is a custom `userId` claim. The aut
 |--------|------|-------|
 | `GET` | `/api/analytics/daily?date=YYYY-MM-DD` | Daily totals + per-macro goal deltas |
 | `GET` | `/api/analytics/weekly?weekStart=YYYY-MM-DD` | 7-day totals + deltas vs. (daily goal × 7) |
+| `GET` | `/api/analytics/range?from=DATE&to=DATE` | Per-day totals for a range (≤400 days, empty days omitted) |
 | `GET` | `/api/analytics/streak` | Consecutive-days logging streak (~5-year window) |
 | `GET` | `/api/analytics/insight?window=week` | RAG health insight from recent meals (via genai) |
 | `GET` | `/api/goals` | Current user's goal, or `204` if none set |
@@ -273,9 +274,7 @@ Gemini is reached via `LLM_PROVIDER=openai` plus a Gemini OpenAI-compatible `OPE
 | Component | Command | Coverage |
 |-----------|---------|----------|
 | Web client | `cd calorie-app && npm test` | Vitest, 39 unit tests (profile goals, mappers, health insight card). No full-page component tests. |
-| auth-service | `cd services/auth-service && mvn test` | JUnit 5 + Mockito, unit-only (JwtService, AuthService, UserService) |
-| meals-service | `cd services/meals-service && mvn test` | JUnit 5 + Mockito, unit-only (MealService, MealMapper, GenAiMealAnalyzer mapping) |
-| analytics-service | `cd services/analytics-service && mvn test` | JUnit 5 + Mockito, unit-only (AnalyticsService, GoalService) |
+| Backend services | `cd services && mvn test` | JUnit 5 + Mockito, unit-only; the aggregator builds the shared common-security module first, then auth (JwtService, AuthService, UserService), meals (MealService, MealMapper, GenAiMealAnalyzer mapping) and analytics (AnalyticsService, GoalService) |
 | genai-service (unit) | `cd services/genai-service && pytest tests/test_nutrition_lookup.py -v` | Pure unit tests, no running server |
 | genai-service (vision) | `pytest tests/test_vision_fallback.py -v -m "not integration"` | Gemini primary + backup fallback (mocked, no keys) |
 | genai-service (backup smoke) | `pytest tests/test_vision_fallback.py -v -m "integration and backup"` | OpenRouter backup smoke only (skips without key) |
@@ -288,7 +287,7 @@ Backend tests are unit-only (mocked collaborators, no Spring context / DB). Ther
 
 Four GitHub Actions workflows in [`.github/workflows/`](.github/workflows/):
 
-- **`ci.yml`** — on every PR and push to `main`: a 3-way backend matrix runs `mvn -B -ntp verify` (JDK 21 temurin) for auth/meals/analytics; the frontend job runs `npm ci`, lint, `npm run build` (strict `tsc` + Vite build) and `npm test` (Node 20); a Playwright **e2e** job runs the browser flows; and a **genai** job runs `ruff` + `pytest` on the headless unit suites (Python 3.11).
+- **`ci.yml`** — on every PR and push to `main`: a 3-way backend matrix installs the shared common-security module and runs `mvn -B -ntp verify` (JDK 21 temurin) for auth/meals/analytics; the frontend job runs `npm ci`, lint, `npm run build` (strict `tsc` + Vite build) and `npm test` (Node 20); a Playwright **e2e** job runs the browser flows; and a **genai** job runs `ruff` + `pytest` on the headless unit suites (Python 3.11).
 - **`build-images.yml`** — on push to `main` (or manual dispatch): builds five `linux/amd64` images (auth-service, meals-service, analytics-service, genai-service, web) and pushes them to GHCR tagged `:latest` and `:<sha>`.
 - **`deploy-aet.yml`** — auto-runs after a successful image build on `main`; deploys the Helm chart to the AET Kubernetes cluster **by commit SHA** (immutable tag).
 - **`deploy-azure.yml`** — manual-only (`workflow_dispatch`): Terraform `fmt`/`validate` then an Ansible Docker Compose deploy to an Azure VM (paused to save credits).

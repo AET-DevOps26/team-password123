@@ -77,6 +77,13 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!-- Shared API error handling; auth keeps its own SecurityFilterChain, so the
+             module's resource-server auto-configuration backs off. -->
+        <dependency>
+            <groupId>com.teampassword123</groupId>
+            <artifactId>common-security</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>

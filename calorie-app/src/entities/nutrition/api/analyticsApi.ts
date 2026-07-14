@@ -1,6 +1,6 @@
 import { apiClient } from '../../../shared/api/client';
 import { clientTimeZone } from '../../../shared/lib/timezone';
-import type { AnalyticsResponse, InsightResponse, StreakResponse } from './backendTypes';
+import type { AnalyticsResponse, InsightResponse, RangeAnalyticsResponse, StreakResponse } from './backendTypes';
 
 // The client's zone travels on every call so day/week/streak boundaries match
 // the calendar the user sees rather than UTC.
@@ -14,6 +14,10 @@ export const analyticsApi = {
   /** GET /analytics/weekly?weekStart=YYYY-MM-DD */
   getWeekly: (weekStart: string): Promise<AnalyticsResponse> =>
     apiClient.get<AnalyticsResponse>(`/analytics/weekly?weekStart=${weekStart}&${tz()}`),
+
+  /** GET /analytics/range?from=YYYY-MM-DD&to=YYYY-MM-DD — per-day totals, empty days omitted */
+  getRange: (from: string, to: string): Promise<RangeAnalyticsResponse> =>
+    apiClient.get<RangeAnalyticsResponse>(`/analytics/range?from=${from}&to=${to}&${tz()}`),
 
   /** GET /analytics/streak */
   getStreak: (): Promise<StreakResponse> =>

@@ -34,6 +34,22 @@ export interface GoalRequest {
   fiberGrams: number;
 }
 
+export interface DayTotals {
+  date: string;               // ISO LocalDate
+  mealCount: number;
+  calories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+  fiberGrams: number;
+}
+
+export interface RangeAnalyticsResponse {
+  from: string;
+  to: string;
+  days: DayTotals[];          // days without meals are omitted
+}
+
 export interface StreakResponse {
   streak: number;
 }

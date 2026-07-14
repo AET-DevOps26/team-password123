@@ -27,16 +27,23 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # The Spring services build from the services/ context so their
+          # Dockerfiles can include the shared common-security module.
           - name: auth-service
-            context: services/auth-service
+            context: services
+            dockerfile: services/auth-service/Dockerfile
           - name: meals-service
-            context: services/meals-service
+            context: services
+            dockerfile: services/meals-service/Dockerfile
           - name: analytics-service
-            context: services/analytics-service
+            context: services
+            dockerfile: services/analytics-service/Dockerfile
           - name: genai-service
             context: services/genai-service
+            dockerfile: services/genai-service/Dockerfile
           - name: web
             context: calorie-app
+            dockerfile: calorie-app/Dockerfile
     steps:
       # On workflow_run the default checkout ref is the branch tip, which may be
       # ahead of the commit CI actually tested; pin to the tested SHA so the
@@ -72,6 +79,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           platforms: linux/amd64
           push: true
           tags: |

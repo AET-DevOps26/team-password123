@@ -4,10 +4,10 @@ import com.teampassword123.auth.domain.AppUser;
 import com.teampassword123.auth.dto.AuthResponse;
 import com.teampassword123.auth.dto.LoginRequest;
 import com.teampassword123.auth.dto.RegisterRequest;
-import com.teampassword123.auth.exception.BadRequestException;
 import com.teampassword123.auth.repository.AppUserRepository;
 import com.teampassword123.auth.security.JwtService;
 import com.teampassword123.auth.security.UserPrincipal;
+import com.teampassword123.common.web.BadRequestException;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.OffsetDateTime;
 import org.slf4j.Logger;
@@ -48,8 +48,10 @@ public class AuthService {
         String email = request.email().trim().toLowerCase();
         if (users.existsByEmailIgnoreCase(email)) {
             metrics.counter("calorieasy.auth.registrations", "result", "duplicate").increment();
-            log.warn("Registration rejected: email already registered ({})", email);
-            throw new BadRequestException("Email is already registered");
+            log.warn("Registration rejected: duplicate email");
+            // Deliberately indistinguishable from other registration failures so the
+            // endpoint can't be used to probe which emails have an account.
+            throw new BadRequestException("Registration failed. Check your details and try again.");
         }
 
         AppUser user = new AppUser();
@@ -60,7 +62,7 @@ public class AuthService {
         AppUser saved = users.save(user);
 
         metrics.counter("calorieasy.auth.registrations", "result", "success").increment();
-        log.info("Registered new user id={} email={}", saved.getId(), email);
+        log.info("Registered new user id={}", saved.getId());
         return tokenResponse(saved);
     }
 
@@ -71,14 +73,14 @@ public class AuthService {
                     new UsernamePasswordAuthenticationToken(email, request.password()));
         } catch (AuthenticationException e) {
             metrics.counter("calorieasy.auth.logins", "result", "failure").increment();
-            log.warn("Login failed for {}: {}", email, e.getMessage());
+            log.warn("Login failed: {}", e.getMessage());
             throw e;
         }
         AppUser user =
                 users.findByEmailIgnoreCase(email)
                         .orElseThrow(() -> new BadRequestException("Invalid email or password"));
         metrics.counter("calorieasy.auth.logins", "result", "success").increment();
-        log.info("Login ok user id={} email={}", user.getId(), email);
+        log.info("Login ok user id={}", user.getId());
         return tokenResponse(user);
     }
 

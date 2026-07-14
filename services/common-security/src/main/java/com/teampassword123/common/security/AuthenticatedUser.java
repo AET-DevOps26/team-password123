@@ -1,4 +1,4 @@
-package com.teampassword123.analytics.security;
+package com.teampassword123.common.security;
 
 import java.util.UUID;
 

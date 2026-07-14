@@ -43,11 +43,6 @@ management:
     tracing:
       endpoint: ${MANAGEMENT_OTLP_TRACING_ENDPOINT:http://tempo:4318/v1/traces}
 
-logging:
-  level:
-    com.teampassword123: DEBUG
-    org.hibernate.SQL: DEBUG
-
 app:
   jwt:
     secret: ${APP_JWT_SECRET}
@@ -56,3 +51,16 @@ app:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+---
+# Verbose logging only for local development (SPRING_PROFILES_ACTIVE=local);
+# every other environment stays on the default INFO level.
+spring:
+  config:
+    activate:
+      on-profile: local
+
+logging:
+  level:
+    com.teampassword123: DEBUG
+    org.hibernate.SQL: DEBUG

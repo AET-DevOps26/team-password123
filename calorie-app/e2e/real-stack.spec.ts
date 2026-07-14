@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 //
 // Guarded so the default (mocked) suite reports it as skipped, never failed.
 test.skip(
-  !process.env.E2E_REAL_STACK,
+  process.env.E2E_REAL_STACK !== '1',
   'real-stack smoke: set E2E_REAL_STACK=1 with the compose backend (postgres, auth-service, meals-service) running',
 );
 

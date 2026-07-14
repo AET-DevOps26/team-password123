@@ -7,7 +7,10 @@ export function periodLabel(range: Range, ws: Date, md: Date, yn: number): strin
     const we = addDays(ws, 6);
     const sm = MO_SHORT[ws.getMonth()], em = MO_SHORT[we.getMonth()];
     if (sm === em) return `${ws.getDate()}–${we.getDate()} ${sm} ${ws.getFullYear()}`;
-    return `${ws.getDate()} ${sm} – ${we.getDate()} ${em} ${ws.getFullYear()}`;
+    if (ws.getFullYear() === we.getFullYear()) {
+      return `${ws.getDate()} ${sm} – ${we.getDate()} ${em} ${we.getFullYear()}`;
+    }
+    return `${ws.getDate()} ${sm} ${ws.getFullYear()} – ${we.getDate()} ${em} ${we.getFullYear()}`;
   }
   if (range === 'Month') return `${MO_LONG[md.getMonth()]} ${md.getFullYear()}`;
   return String(yn);

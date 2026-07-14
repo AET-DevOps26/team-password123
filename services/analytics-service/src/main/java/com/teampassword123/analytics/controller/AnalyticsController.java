@@ -50,10 +50,11 @@ public class AnalyticsController {
                 user.id(), bearerToken(request), weekStart, TimeZones.resolve(tz));
     }
 
+    // No principal parameter: authentication is enforced by the filter chain, and
+    // user scoping happens in meals-service via the forwarded bearer token.
     @GetMapping("/range")
     @Operation(summary = "Per-day nutrition totals for a date range (days without meals omitted)")
     public RangeAnalyticsResponse range(
-            @AuthenticationPrincipal AuthenticatedUser user,
             HttpServletRequest request,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,

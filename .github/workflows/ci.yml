@@ -147,7 +147,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          # setuptools too: pip-audit audits the whole environment, and the
+          # runner's preinstalled setuptools trips known CVEs (e.g. PYSEC-2026-3447).
+          python -m pip install --upgrade pip setuptools
           pip install -r requirements.txt ruff pip-audit pip-tools
 
       # The Dockerfile installs the pinned lock (requirements.txt). Recompile it
@@ -199,6 +201,38 @@ jobs:
           BACKUP_OPENAI_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           BACKUP_VISION_TIMEOUT_SEC: "45"
         run: pytest tests/test_vision_fallback.py -v -m "integration and backup"
+
+  helm:
+    name: Helm chart (lint + kubeconform)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Same pin as deploy-aet.yml, so CI validates with the Helm that deploys.
+      - uses: azure/setup-helm@v4
+        with:
+          version: v4.2.3
+
+      # The chart `require`s three secret values; dummy --set values satisfy them.
+      # Rendered twice — defaults, and with the A/B canary tier enabled — so
+      # web-canary.yaml doesn't rot unvalidated behind its off-by-default flag.
+      - name: Lint and render chart
+        run: |
+          SET='--set jwt.secret=ci --set postgres.password=ci --set monitoring.grafana.adminPassword=ci'
+          helm lint helm/calorieasy $SET
+          helm template app helm/calorieasy $SET > rendered-default.yaml
+          helm template app helm/calorieasy $SET \
+            --set abTest.enabled=true --set abTest.imageTag=ci > rendered-canary.yaml
+
+      # Schema-validate the rendered manifests against the Kubernetes OpenAPI
+      # specs — catches typos (bad apiVersion, misplaced fields) that only an
+      # actual deploy would have surfaced before.
+      - name: Validate manifests (kubeconform)
+        run: |
+          VERSION=0.6.7
+          curl -sSfL "https://github.com/yannh/kubeconform/releases/download/v${VERSION}/kubeconform-linux-amd64.tar.gz" \
+            | tar -xz kubeconform
+          ./kubeconform -strict -summary rendered-default.yaml rendered-canary.yaml
 
   secret-scan:
     name: Secret scan (gitleaks)

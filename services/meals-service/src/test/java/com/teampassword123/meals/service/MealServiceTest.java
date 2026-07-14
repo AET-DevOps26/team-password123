@@ -375,6 +375,13 @@ class MealServiceTest {
         verify(meals).delete(meal);
     }
 
+    /** A minimal payload that carries a real JPEG signature (FF D8 FF). */
+    private static byte[] jpegBytes() {
+        return new byte[] {
+            (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0, 0x10, 'J', 'F', 'I', 'F', 0, 1
+        };
+    }
+
     @Test
     void createPhoto_whenFileEmpty_throwsBadRequest() {
         MockMultipartFile empty =
@@ -390,7 +397,7 @@ class MealServiceTest {
     @Test
     void createPhoto_whenValid_storesFileAndReturnsAiNotAvailable() {
         MockMultipartFile file =
-                new MockMultipartFile("file", "meal.jpg", "image/jpeg", "binarycontent".getBytes());
+                new MockMultipartFile("file", "meal.jpg", "image/jpeg", jpegBytes());
         when(photos.save(any(PhotoLog.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         PhotoLogResponse response = service.createPhoto(userId, file);
@@ -425,6 +432,21 @@ class MealServiceTest {
     }
 
     @Test
+    void createPhoto_whenContentTypeSpoofed_throwsBadRequestAndStoresNothing() {
+        // Declared image/jpeg, but the payload carries no image signature.
+        MockMultipartFile spoofed =
+                new MockMultipartFile(
+                        "file", "meal.jpg", "image/jpeg", "%PDF-1.7 not a photo".getBytes());
+
+        assertThatThrownBy(() -> service.createPhoto(userId, spoofed))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Only image uploads are supported");
+
+        verify(photos, never()).save(any());
+        assertThat(uploadDir).isEmptyDirectory();
+    }
+
+    @Test
     void analyzePhoto_whenNotAnImage_throwsBadRequestAndStoresNothing() {
         MockMultipartFile pdf =
                 new MockMultipartFile(
@@ -441,7 +463,7 @@ class MealServiceTest {
     @Test
     void analyzePhoto_whenAnalyzerFails_deletesStoredFile() {
         MockMultipartFile file =
-                new MockMultipartFile("file", "meal.jpg", "image/jpeg", "binarycontent".getBytes());
+                new MockMultipartFile("file", "meal.jpg", "image/jpeg", jpegBytes());
         when(analyzer.analyze(any(), any(), any())).thenThrow(new IllegalStateException("boom"));
 
         assertThatThrownBy(() -> service.analyzePhoto(userId, file, null, ZoneOffset.UTC))

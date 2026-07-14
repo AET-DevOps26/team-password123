@@ -17,9 +17,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *
  * <p>ponytail: in-memory and per-pod — enough to stop a single-source scripted flood, but a
  * distributed attacker or a multi-replica (HPA) deploy needs a shared store (Redis / bucket4j).
- * Client IP comes from X-Forwarded-For (behind Traefik), which a determined attacker can spoof to
- * dodge the per-IP key; the proper fix is a trusted-proxy forwarded-header config. Swap the map +
- * IP source for those if strict limiting is required.
+ * Client IP comes from X-Forwarded-For (appended by ingress-nginx and the in-pod web nginx), which
+ * a determined attacker can spoof to dodge the per-IP key; the proper fix is a trusted-proxy
+ * forwarded-header config. Swap the map + IP source for those if strict limiting is required.
  */
 public class LoginRateLimitFilter extends OncePerRequestFilter {
 

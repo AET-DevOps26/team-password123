@@ -1,0 +1,95 @@
+{{- if and .Values.abTest.enabled .Values.ingress.enabled .Values.ingress.host }}
+# A/B canary web tier: a second SPA deployment fed a slice of / traffic by the
+# ingress-nginx canary Ingress below. Labels are deliberately app: web-canary so
+# the stable "web" Service (selector app: web) never picks up canary pods.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-canary
+  labels:
+    app: web-canary
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-canary
+  template:
+    metadata:
+      labels:
+        app: web-canary
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        # nginx resolves the backend service names at startup, so wait for them to exist.
+        - name: wait-for-backends
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z auth-service 8081 && nc -z meals-service 8082 && nc -z analytics-service 8083; do echo waiting for backends; sleep 2; done']
+      containers:
+        - name: web
+          image: {{ printf "%s/%s/web:%s" .Values.image.registry .Values.image.repository (required "abTest.imageTag is required when abTest.enabled — set it to a pushed web image tag" .Values.abTest.imageTag) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet: { path: /, port: 8080 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket: { port: 8080 }
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.web.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-canary
+  labels:
+    app: web-canary
+    {{- include "calorieasy.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: web-canary
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+# Canary Ingress: same host/path as the primary; ingress-nginx attaches it as an
+# alternative backend on the / location and splits by weight. No tls block and no
+# cert-manager annotation — TLS comes from the primary Ingress for this host, and
+# a second Certificate owner on the same secret would just churn certs. /grafana
+# is untouched (it matches the primary's more-specific path, which has no canary).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: calorieasy-canary
+  labels:
+    {{- include "calorieasy.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-weight: {{ .Values.abTest.weight | quote }}
+    {{- if .Values.abTest.cookie }}
+    # QA override, checked before weight: cookie value "always" forces the
+    # canary, "never" forces stable; anything else falls through to the weight.
+    nginx.ingress.kubernetes.io/canary-by-cookie: {{ .Values.abTest.cookie | quote }}
+    {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-canary
+                port:
+                  number: 80
+{{- end }}

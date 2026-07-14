@@ -23,7 +23,7 @@ flowchart TB
     end
 
     subgraph Edge["Edge / routing"]
-        Proxy["Reverse proxy<br/>Vite dev · nginx · k8s Traefik<br/>routes /api/*"]
+        Proxy["Reverse proxy<br/>dev: Vite proxy<br/>k8s: ingress-nginx → web:80 nginx<br/>serves SPA · proxies /api/* to backends"]
     end
 
     subgraph App["Application subsystem — Spring Boot"]
@@ -92,8 +92,8 @@ flowchart TB
          │  JWT  (all API calls)
          ▼
 ┌──────────────────────────────────────────────────────────────┐
-│                        NGINX / Traefik                        │
-│                  (reverse proxy / ingress)                    │
+│                             NGINX                             │
+│              (reverse proxy · k8s ingress-nginx)              │
 └───────┬──────────────────┬────────────────┬──────────────────┘
         │                  │                │
         ▼                  ▼                ▼

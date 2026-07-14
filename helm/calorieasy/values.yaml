@@ -193,20 +193,18 @@ monitoring:
       requests: { cpu: "20m", memory: "64Mi" }
       limits:   { cpu: "100m", memory: "128Mi" }
 
-# Traefik runs in-namespace as the L7 load balancer / router in front of the app.
-# The AET cluster exposes no Traefik ingress class, so we ship our own via the
-# file provider — no cluster-scoped RBAC or CRDs required. It routes /api/* to the
-# backend services and / to the (multi-replica) web tier, load-balancing each.
-traefik:
-  enabled: true
-  image: traefik:v3.1
-  replicas: 1
-  service:
-    type: ClusterIP   # set NodePort (+ nodePort) or LoadBalancer to expose externally
-    nodePort: ""
-  resources:
-    requests: { cpu: "50m", memory: "64Mi" }
-    limits:   { cpu: "300m", memory: "128Mi" }
+# A/B testing via ingress-nginx canary annotations (no extra components).
+# OFF by default. Deploys a second web tier (web-canary) from abTest.imageTag and
+# a canary Ingress that splits / by weight; the primary Ingress gains cookie
+# session-affinity so a user sticks to one variant (a raw per-request split would
+# serve variant A's index.html and then 404 its hashed assets on variant B).
+# Drive experiments via a committed values change: deploy-aet.yml passes no
+# abTest flags, so an out-of-band --set is reverted on the next main deploy.
+abTest:
+  enabled: false
+  imageTag: ""         # REQUIRED when enabled: a pushed web image tag (SHA tag from build-images.yml)
+  weight: 20           # % of NEW sessions sent to the canary (affinity cookie pins the rest)
+  cookie: "ab-variant" # QA override: send Cookie ab-variant=always to force canary, =never to force stable
 
 ingress:
   enabled: true

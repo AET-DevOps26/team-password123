@@ -4,7 +4,7 @@ The app deploys to two targets, both from prebuilt GHCR images:
 
 | Target | How | Workflow |
 |--------|-----|----------|
-| **AET Kubernetes cluster** | Helm chart `helm/calorieasy` (Traefik LB in-namespace) | `.github/workflows/deploy-aet.yml` |
+| **AET Kubernetes cluster** | Helm chart `helm/calorieasy` (ingress-nginx → web nginx) | `.github/workflows/deploy-aet.yml` |
 | **Azure VM** | Terraform (provision) + Ansible (Docker Compose) | `.github/workflows/deploy-azure.yml` |
 
 Images for all services are built and pushed to GHCR by

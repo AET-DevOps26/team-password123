@@ -67,23 +67,46 @@ helm upgrade --install app . --namespace team-password123 \
 
 ## Access
 
-Traefik runs in-namespace as the load balancer / entrypoint. It routes `/` to the
-multi-replica web tier and `/api/*` to the backend services, load-balancing each.
-Reach the app via port-forward to the Traefik service:
+The front door is the cluster's ingress-nginx: the Ingress routes `/` to the
+`web` Service (the in-pod nginx serves the SPA and reverse-proxies `/api/*` to
+the backends) and `/grafana` to Grafana. Load balancing is plain Kubernetes:
+kube-proxy spreads connections across the web replicas, and the auth-service
+HPA scales 1–4 pods on CPU. Without the ingress, port-forward the web tier:
 
 ```bash
-kubectl port-forward -n team-password123 svc/traefik 8080:80
+kubectl port-forward -n team-password123 svc/web 8080:80
 # open http://localhost:8080
 ```
 
-For external access, expose Traefik via `traefik.service.type=NodePort` (or
-LoadBalancer), or point the cluster ingress at the `traefik` service and set
-`ingress.host`:
+External access is via the Ingress host:
 
 ```bash
 helm upgrade --install app . --namespace team-password123 \
   --set ingress.host=<your-host>.ase.cit.tum.de
 ```
+
+## A/B testing (ingress-nginx canary)
+
+`abTest.*` in `values.yaml` deploys a second web tier (`web-canary`) from any
+pushed web image tag and a canary Ingress that sends `abTest.weight`% of new
+sessions to it. The primary Ingress gains cookie session-affinity while an
+experiment runs, so each user sticks to one variant (index.html and its hashed
+assets must come from the same build). QA can force a variant with the
+`ab-variant` cookie: `always` → canary, `never` → stable.
+
+Rollout recipe:
+
+1. Mint the B image: `workflow_dispatch` `build-images.yml` on the variant
+   branch — it pushes `web:<branch-sha>` to GHCR and does **not** trigger a
+   deploy (deploy-aet only fires on main).
+2. Dark-launch: commit `abTest: { enabled: true, imageTag: <branch-sha>, weight: 0 }`
+   and smoke-test via the cookie override before any real traffic sees it.
+3. Raise `weight` via committed values changes (deploy-aet passes no abTest
+   flags, so an out-of-band `--set` is reverted on the next main deploy).
+
+Caveats: the `/` split includes `/api/*` (proxied through the web pod), and
+nothing emits per-variant metrics yet — add an `X-AB-Variant` header or a
+frontend analytics tag to the variant build if you need measurable results.
 
 ## GenAI configuration
 

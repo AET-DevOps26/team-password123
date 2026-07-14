@@ -30,7 +30,7 @@ A single-page web client and an iOS client talk to three Spring Boot REST micros
                          ┌──────────────────────────────────────────────┐
    Web client (SPA)      │  Reverse proxy (/api/*)                       │
    Vite dev :3000        │  · dev:  Vite proxy (per-service)             │
-   nginx prod :80   ───► │  · prod: nginx / k8s Traefik                  │
+   nginx prod :80   ───► │  · prod: nginx (in the web image)             │
    iOS app (local-only)  └───────────────┬──────────────────────────────┘
                                           │  Authorization: Bearer <JWT>
               ┌───────────────────────────┼───────────────────────────┐
@@ -294,7 +294,7 @@ Four GitHub Actions workflows in [`.github/workflows/`](.github/workflows/):
 - **`deploy-azure.yml`** — manual-only (`workflow_dispatch`): Terraform `fmt`/`validate` then an Ansible Docker Compose deploy to an Azure VM (paused to save credits).
 
 ### AET Kubernetes (Helm)
-The chart [`helm/calorieasy/`](helm/calorieasy/) deploys (release `app`) to namespace **`team-password123`**. It ships an in-namespace **Traefik** router for `/api/*` path routing and a K8s **Ingress** to `web:80` with **cert-manager** TLS (cluster-issuer `letsencrypt-prod`, secret `team-password123-tls`). Ingress host: `team-password123-devops-ss26.stud.k8s.aet.cit.tum.de`. Images come from `ghcr.io/aet-devops26/team-password123/*`.
+The chart [`helm/calorieasy/`](helm/calorieasy/) deploys (release `app`) to namespace **`team-password123`**. A K8s **Ingress** routes to `web:80` — the web pod's nginx serves the SPA and reverse-proxies `/api/*` to the backends — with **cert-manager** TLS (cluster-issuer `letsencrypt-prod`, secret `team-password123-tls`). Ingress host: `team-password123-devops-ss26.stud.k8s.aet.cit.tum.de`. Images come from `ghcr.io/aet-devops26/team-password123/*`.
 
 ```bash
 # pull secret for the private GHCR packages
@@ -308,7 +308,7 @@ helm upgrade --install app helm/calorieasy \
   --set genai.openaiApiKey=<key>
 
 # access via port-forward
-kubectl port-forward -n team-password123 svc/traefik 8080:80
+kubectl port-forward -n team-password123 svc/web 8080:80
 ```
 
 ### Azure VM (manual, Docker Compose)
@@ -337,7 +337,7 @@ The prod Compose stack ([`docker-compose.prod.yml`](docker-compose.prod.yml)) pu
 - [x] Docker Compose (dev + prod) — one-command local setup
 - [x] GitHub Actions CI — build + test all services, Vitest, Playwright e2e, genai pytest
 - [x] GHCR image build & push (5 images, immutable SHA tags)
-- [x] Helm chart + Kubernetes deployment (AET cluster, Traefik, TLS via cert-manager)
+- [x] Helm chart + Kubernetes deployment (AET cluster, ingress-nginx, TLS via cert-manager)
 - [x] Terraform (Azure VM) + Ansible IaC
 - [x] Prometheus + Grafana observability (metrics, dashboard, alert rules)
 - [ ] Wire `APP_GENAI_BASE_URL` in dev Compose so photo scan hits genai locally (k8s already wired)

@@ -3,7 +3,10 @@ FROM maven:3-eclipse-temurin-26 AS build
 WORKDIR /workspace
 COPY common-security/pom.xml common-security/pom.xml
 COPY common-security/src common-security/src
-RUN mvn -B -q -f common-security/pom.xml -DskipTests install
+# Formatting is enforced by the CI backend job (JDK 21); google-java-format
+# cannot run on this newer build-stage JDK, and an image build shouldn't gate
+# on style anyway.
+RUN mvn -B -q -f common-security/pom.xml -DskipTests -Dspotless.check.skip=true install
 COPY auth-service/pom.xml auth-service/pom.xml
 RUN mvn -B -q -f auth-service/pom.xml -DskipTests dependency:go-offline
 COPY auth-service/src auth-service/src

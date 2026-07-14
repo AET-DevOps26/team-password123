@@ -5,8 +5,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-nutrition}
       POSTGRES_USER: ${POSTGRES_USER:-nutrition}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
-    ports:
-      - "5432:5432"
+    # Not published by default; uncomment to reach it from the host (psql, or a
+    # Spring service run outside compose — their application.yml defaults to localhost:5432).
+    # ports:
+    #   - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -93,7 +95,7 @@ services:
   web:
     image: node:20-alpine
     working_dir: /app
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    command: sh -c "npm install --prefer-offline --no-audit --no-fund && npm run dev -- --host 0.0.0.0"
     environment:
       VITE_AUTH_API_URL: http://auth-service:8081
       VITE_MEALS_API_URL: http://meals-service:8082
@@ -135,8 +137,10 @@ services:
       # local = in-process fastembed (no key); openai = cloud embeddings.
       WEAVIATE_URL: ${WEAVIATE_URL:-http://weaviate:8080}
       EMBED_PROVIDER: ${EMBED_PROVIDER:-local}
-    ports:
-      - "8084:8084"
+    # No auth on genai's endpoints — not published by default. Uncomment for the
+    # smoke tests (they default to localhost:8084) or manual curl debugging.
+    # ports:
+    #   - "8084:8084"
     depends_on:
       postgres:
         condition: service_healthy
@@ -161,8 +165,10 @@ services:
       QUERY_DEFAULTS_LIMIT: "25"
       CLUSTER_HOSTNAME: node1
       PROMETHEUS_MONITORING_ENABLED: "true"   # exposes /metrics on :2112
-    ports:
-      - "8080:8080"
+    # Anonymous access is enabled — not published by default. In-stack consumers
+    # (genai) use the compose network; uncomment for host debugging.
+    # ports:
+    #   - "8080:8080"
     volumes:
       - weaviate-data:/var/lib/weaviate
 
@@ -212,8 +218,10 @@ services:
   loki:
     image: grafana/loki:3.1.1
     command: -config.file=/etc/loki/local-config.yaml
-    ports:
-      - "3100:3100"
+    # Only Grafana/Promtail talk to Loki, both in-network. Uncomment to query it
+    # from the host (logcli / curl).
+    # ports:
+    #   - "3100:3100"
     volumes:
       - loki-data:/loki
 

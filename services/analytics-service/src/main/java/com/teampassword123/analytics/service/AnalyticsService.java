@@ -3,22 +3,31 @@ package com.teampassword123.analytics.service;
 import com.teampassword123.analytics.client.MealsClient;
 import com.teampassword123.analytics.domain.NutritionGoal;
 import com.teampassword123.analytics.dto.AnalyticsResponse;
+import com.teampassword123.analytics.dto.DayTotals;
 import com.teampassword123.analytics.dto.MealSummary;
+import com.teampassword123.analytics.dto.RangeAnalyticsResponse;
 import com.teampassword123.analytics.dto.StreakResponse;
-import com.teampassword123.analytics.exception.BadRequestException;
 import com.teampassword123.analytics.repository.NutritionGoalRepository;
+import com.teampassword123.common.web.BadRequestException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AnalyticsService {
+
+    // Matches the meals-service list cap; the widest UI window (year view) fits.
+    private static final int MAX_RANGE_DAYS = 400;
 
     private final MealsClient mealsClient;
     private final NutritionGoalRepository goals;
@@ -38,6 +47,42 @@ public class AnalyticsService {
             UUID userId, String bearerToken, LocalDate weekStart, ZoneId zone) {
         return summarize(
                 userId, bearerToken, weekStart, weekStart.plusDays(6), BigDecimal.valueOf(7), zone);
+    }
+
+    // Per-day totals for the Insights charts: one call per visible range instead
+    // of the client pulling raw meal bodies and aggregating them itself.
+    public RangeAnalyticsResponse range(
+            String bearerToken, LocalDate from, LocalDate to, ZoneId zone) {
+        if (from.isAfter(to)) {
+            throw new BadRequestException("from must be on or before to");
+        }
+        if (ChronoUnit.DAYS.between(from, to) >= MAX_RANGE_DAYS) {
+            throw new BadRequestException("Date range must not exceed " + MAX_RANGE_DAYS + " days");
+        }
+        List<MealSummary> meals = mealsClient.listForUser(bearerToken, from, to, zone);
+        Map<LocalDate, List<MealSummary>> byDay =
+                meals.stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        m -> m.loggedAt().atZoneSameInstant(zone).toLocalDate()));
+        List<DayTotals> days =
+                byDay.entrySet().stream()
+                        .map(e -> dayTotals(e.getKey(), e.getValue()))
+                        .sorted(Comparator.comparing(DayTotals::date))
+                        .toList();
+        return new RangeAnalyticsResponse(from, to, days);
+    }
+
+    private DayTotals dayTotals(LocalDate date, List<MealSummary> meals) {
+        Totals totals = Totals.from(meals);
+        return new DayTotals(
+                date,
+                meals.size(),
+                totals.calories,
+                totals.protein,
+                totals.carbs,
+                totals.fat,
+                totals.fiber);
     }
 
     @Transactional(readOnly = true)

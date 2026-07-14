@@ -1,12 +1,12 @@
 package com.teampassword123.meals.controller;
 
+import com.teampassword123.common.security.AuthenticatedUser;
 import com.teampassword123.meals.dto.FoodEstimateRequest;
 import com.teampassword123.meals.dto.FoodEstimateResponse;
 import com.teampassword123.meals.dto.ManualMealRequest;
 import com.teampassword123.meals.dto.MealAnalysisResponse;
 import com.teampassword123.meals.dto.MealResponse;
 import com.teampassword123.meals.dto.PhotoLogResponse;
-import com.teampassword123.meals.security.AuthenticatedUser;
 import com.teampassword123.meals.service.GenAiFoodEstimator;
 import com.teampassword123.meals.service.MealService;
 import com.teampassword123.meals.service.MealService.StoredPhoto;

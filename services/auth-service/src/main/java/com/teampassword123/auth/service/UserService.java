@@ -3,8 +3,8 @@ package com.teampassword123.auth.service;
 import com.teampassword123.auth.domain.AppUser;
 import com.teampassword123.auth.dto.UpdateUserRequest;
 import com.teampassword123.auth.dto.UserResponse;
-import com.teampassword123.auth.exception.NotFoundException;
 import com.teampassword123.auth.repository.AppUserRepository;
+import com.teampassword123.common.web.NotFoundException;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 

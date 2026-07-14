@@ -11,10 +11,10 @@ import com.teampassword123.auth.domain.AppUser;
 import com.teampassword123.auth.dto.AuthResponse;
 import com.teampassword123.auth.dto.LoginRequest;
 import com.teampassword123.auth.dto.RegisterRequest;
-import com.teampassword123.auth.exception.BadRequestException;
 import com.teampassword123.auth.repository.AppUserRepository;
 import com.teampassword123.auth.security.JwtService;
 import com.teampassword123.auth.security.UserPrincipal;
+import com.teampassword123.common.web.BadRequestException;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -109,7 +109,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.register(request))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessage("Email is already registered");
+                .hasMessage("Registration failed. Check your details and try again.");
 
         verify(users, never()).save(any());
         verify(encoder, never()).encode(any());

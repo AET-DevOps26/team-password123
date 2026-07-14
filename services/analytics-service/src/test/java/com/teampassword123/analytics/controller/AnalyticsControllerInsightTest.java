@@ -5,10 +5,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.teampassword123.analytics.dto.InsightResponse;
-import com.teampassword123.analytics.security.AuthenticatedUser;
-import com.teampassword123.analytics.security.JwtAuthenticationFilter;
 import com.teampassword123.analytics.service.AnalyticsService;
 import com.teampassword123.analytics.service.InsightService;
+import com.teampassword123.common.security.AuthenticatedUser;
+import com.teampassword123.common.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.ZoneOffset;
 import java.util.List;

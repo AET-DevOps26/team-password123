@@ -8,6 +8,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.teampassword123.common.web.BadRequestException;
+import com.teampassword123.common.web.NotFoundException;
 import com.teampassword123.meals.config.StorageProperties;
 import com.teampassword123.meals.domain.MealLog;
 import com.teampassword123.meals.domain.MealType;
@@ -18,8 +20,6 @@ import com.teampassword123.meals.dto.ManualMealRequest;
 import com.teampassword123.meals.dto.MealItemRequest;
 import com.teampassword123.meals.dto.MealResponse;
 import com.teampassword123.meals.dto.PhotoLogResponse;
-import com.teampassword123.meals.exception.BadRequestException;
-import com.teampassword123.meals.exception.NotFoundException;
 import com.teampassword123.meals.repository.MealLogRepository;
 import com.teampassword123.meals.repository.PhotoLogRepository;
 import java.math.BigDecimal;
@@ -223,6 +223,31 @@ class MealServiceTest {
     }
 
     @Test
+    void list_whenRangeExceedsCap_throwsBadRequest() {
+        LocalDate from = LocalDate.of(2025, 1, 1);
+        LocalDate to = from.plusDays(400);
+
+        assertThatThrownBy(() -> service.list(userId, from, to, ZoneOffset.UTC))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Date range must not exceed 400 days");
+
+        verify(meals, never())
+                .findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(any(), any(), any());
+    }
+
+    @Test
+    void list_whenRangeIsExactlyCap_isAllowed() {
+        when(meals.findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(
+                        any(UUID.class), any(OffsetDateTime.class), any(OffsetDateTime.class)))
+                .thenReturn(List.of());
+
+        LocalDate from = LocalDate.of(2025, 1, 1);
+        List<MealResponse> result = service.list(userId, from, from.plusDays(399), ZoneOffset.UTC);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     void list_whenFromEqualsTo_isAllowed() {
         when(meals.findByUserIdAndLoggedAtBetweenOrderByLoggedAtDesc(
                         any(UUID.class), any(OffsetDateTime.class), any(OffsetDateTime.class)))
@@ -383,6 +408,47 @@ class MealServiceTest {
         assertThat(saved.getStatus()).isEqualTo(PhotoStatus.AI_NOT_AVAILABLE);
         assertThat(saved.getStoredFilename()).endsWith("-meal.jpg");
         assertThat(uploadDir.resolve(saved.getStoredFilename())).exists();
+    }
+
+    @Test
+    void createPhoto_whenNotAnImage_throwsBadRequestAndStoresNothing() {
+        MockMultipartFile pdf =
+                new MockMultipartFile(
+                        "file", "invoice.pdf", "application/pdf", "binarycontent".getBytes());
+
+        assertThatThrownBy(() -> service.createPhoto(userId, pdf))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Only image uploads are supported");
+
+        verify(photos, never()).save(any());
+        assertThat(uploadDir).isEmptyDirectory();
+    }
+
+    @Test
+    void analyzePhoto_whenNotAnImage_throwsBadRequestAndStoresNothing() {
+        MockMultipartFile pdf =
+                new MockMultipartFile(
+                        "file", "invoice.pdf", "application/pdf", "binarycontent".getBytes());
+
+        assertThatThrownBy(() -> service.analyzePhoto(userId, pdf, null, ZoneOffset.UTC))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Only image uploads are supported");
+
+        verify(analyzer, never()).analyze(any(), any(), any());
+        assertThat(uploadDir).isEmptyDirectory();
+    }
+
+    @Test
+    void analyzePhoto_whenAnalyzerFails_deletesStoredFile() {
+        MockMultipartFile file =
+                new MockMultipartFile("file", "meal.jpg", "image/jpeg", "binarycontent".getBytes());
+        when(analyzer.analyze(any(), any(), any())).thenThrow(new IllegalStateException("boom"));
+
+        assertThatThrownBy(() -> service.analyzePhoto(userId, file, null, ZoneOffset.UTC))
+                .isInstanceOf(IllegalStateException.class);
+
+        verify(meals, never()).save(any());
+        assertThat(uploadDir).isEmptyDirectory();
     }
 
     @Test

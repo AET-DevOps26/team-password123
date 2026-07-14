@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.teampassword123</groupId>
+    <artifactId>services</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Calorieasy Services</name>
+    <description>Aggregator that builds the shared module before the Spring services.</description>
+
+    <modules>
+        <module>common-security</module>
+        <module>auth-service</module>
+        <module>meals-service</module>
+        <module>analytics-service</module>
+    </modules>
+</project>

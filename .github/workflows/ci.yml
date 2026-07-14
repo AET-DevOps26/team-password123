@@ -34,6 +34,12 @@ jobs:
           java-version: '21'
           cache: maven
 
+      # The services depend on the shared common-security module, which must be
+      # in the local repository before a service can resolve it.
+      - name: Install shared common-security module
+        working-directory: services/common-security
+        run: mvn -B -ntp install
+
       # `verify` compiles, runs the unit tests, and packages the deployable
       # (Spring Boot repackage) — i.e. it both builds AND tests the service.
       - name: Build & test ${{ matrix.service }}

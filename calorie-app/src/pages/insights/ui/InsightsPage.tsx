@@ -243,7 +243,9 @@ export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
       }
       setApiDayCache((prev) => new Map([...prev, ...byDate]));
       return;
-    } catch { /* fall back to client-side aggregation below */ }
+    } catch (e) {
+      console.warn('Analytics range fetch failed, falling back to raw meals aggregation', e);
+    }
     try {
       const raw = await mealApi.getHistory(isoDate(from), isoDate(to));
       if (!raw) return;
@@ -259,7 +261,9 @@ export function InsightsPage({ onOpenDay, initialState }: InsightsPageProps) {
         });
       }
       setApiDayCache((prev) => new Map([...prev, ...byDate]));
-    } catch { /* keep cached data */ }
+    } catch (e) {
+      console.warn('Meals fallback fetch failed, keeping cached data', e);
+    }
   }, []);
 
   // Fetch when visible range changes

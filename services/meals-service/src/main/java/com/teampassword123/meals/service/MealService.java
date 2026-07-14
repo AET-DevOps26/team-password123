@@ -19,14 +19,17 @@ import com.teampassword123.meals.repository.MealLogRepository;
 import com.teampassword123.meals.repository.PhotoLogRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -46,7 +49,8 @@ public class MealService {
     private static final Logger log = LoggerFactory.getLogger(MealService.class);
 
     // Caps the full-body list endpoint so a single request cannot pull the whole
-    // table; 400 days still fits the widest UI window (the year view). The
+    // table: [from, to] may cover at most this many calendar days, counted
+    // inclusively, so the widest UI window (a leap-year view, 366 days) fits. The
     // lightweight logged-dates endpoint is intentionally not capped — the streak
     // computation scans ~5 years of dates.
     private static final int MAX_LIST_RANGE_DAYS = 400;
@@ -98,7 +102,8 @@ public class MealService {
         if (from.isAfter(to)) {
             throw new BadRequestException("from must be on or before to");
         }
-        if (ChronoUnit.DAYS.between(from, to) >= MAX_LIST_RANGE_DAYS) {
+        long inclusiveDays = ChronoUnit.DAYS.between(from, to) + 1;
+        if (inclusiveDays > MAX_LIST_RANGE_DAYS) {
             throw new BadRequestException(
                     "Date range must not exceed " + MAX_LIST_RANGE_DAYS + " days");
         }
@@ -284,6 +289,11 @@ public class MealService {
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new BadRequestException("Only image uploads are supported");
         }
+        // The declared content type is client-controlled, so also check the file
+        // signature — anyone can label an arbitrary payload image/jpeg.
+        if (!looksLikeImage(readMagicPrefix(file))) {
+            throw new BadRequestException("Only image uploads are supported");
+        }
         String originalFilename =
                 StringUtils.cleanPath(
                         file.getOriginalFilename() == null
@@ -299,6 +309,55 @@ public class MealService {
             throw new BadRequestException("Could not store uploaded photo");
         }
         return new StoredFile(originalFilename, storedFilename);
+    }
+
+    private byte[] readMagicPrefix(MultipartFile file) {
+        byte[] prefix = new byte[12];
+        try (InputStream in = file.getInputStream()) {
+            int read = in.readNBytes(prefix, 0, prefix.length);
+            return read == prefix.length ? prefix : Arrays.copyOf(prefix, read);
+        } catch (IOException exception) {
+            throw new BadRequestException("Could not read uploaded photo");
+        }
+    }
+
+    // Accepts the formats phones and browsers actually produce: JPEG, PNG, GIF,
+    // WebP and the HEIC/HEIF/AVIF family (iPhone camera output).
+    private boolean looksLikeImage(byte[] p) {
+        if (p.length >= 3
+                && (p[0] & 0xFF) == 0xFF
+                && (p[1] & 0xFF) == 0xD8
+                && (p[2] & 0xFF) == 0xFF) {
+            return true; // JPEG
+        }
+        if (startsWith(p, 0, new byte[] {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A})) {
+            return true; // PNG
+        }
+        if (startsWith(p, 0, "GIF8".getBytes(StandardCharsets.US_ASCII))) {
+            return true; // GIF
+        }
+        if (startsWith(p, 0, "RIFF".getBytes(StandardCharsets.US_ASCII))
+                && startsWith(p, 8, "WEBP".getBytes(StandardCharsets.US_ASCII))) {
+            return true; // WebP
+        }
+        if (startsWith(p, 4, "ftyp".getBytes(StandardCharsets.US_ASCII))) {
+            String brand = new String(p, 8, Math.min(4, p.length - 8), StandardCharsets.US_ASCII);
+            return List.of("heic", "heix", "hevc", "heif", "mif1", "msf1", "avif")
+                    .contains(brand); // HEIC/HEIF/AVIF
+        }
+        return false;
+    }
+
+    private boolean startsWith(byte[] data, int offset, byte[] expected) {
+        if (data.length < offset + expected.length) {
+            return false;
+        }
+        for (int i = 0; i < expected.length; i++) {
+            if (data[offset + i] != expected[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void deleteStoredFile(String storedFilename) {

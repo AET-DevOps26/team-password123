@@ -38,13 +38,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = header.substring(7);
         try {
             AuthenticatedUser user = jwtVerifier.verify(token);
+            // Stash the validated token even when authentication is already set, so
+            // fan-out calls can always forward the caller's credentials.
+            request.setAttribute(BEARER_TOKEN_ATTRIBUTE, token);
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(user, null, List.of());
                 authentication.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                request.setAttribute(BEARER_TOKEN_ATTRIBUTE, token);
             }
         } catch (RuntimeException ignored) {
             SecurityContextHolder.clearContext();

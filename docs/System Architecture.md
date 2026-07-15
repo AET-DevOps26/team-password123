@@ -67,8 +67,8 @@ flowchart TB
     Prom -. scrapes .-> Genai
     Graf --> Prom
 
-    Auth -. shared APP_JWT_SECRET .-> Meals
-    Auth -. shared APP_JWT_SECRET .-> Analytics
+    Auth -. RS256 public key, verify-only .-> Meals
+    Auth -. RS256 public key, verify-only .-> Analytics
 ```
 
 ### Component / Architecture Diagram
@@ -126,7 +126,7 @@ flowchart TB
 ## Services
 
 ### auth-service (port 8081)
-Handles user registration, login, and JWT issuance. Uses a shared JWT secret so the other services can verify tokens locally without a round-trip to auth. Stores users and profile fields (body metrics, activity, goal kind) in the `auth` schema. Nutrition targets (calories/macros) live in `analytics-service`.
+Handles user registration, login, and JWT issuance. Signs tokens RS256 with an RSA private key it alone holds; the other services verify tokens locally with the public key, without a round-trip to auth. Stores users and profile fields (body metrics, activity, goal kind) in the `auth` schema. Nutrition targets (calories/macros) live in `analytics-service`.
 
 **Key endpoints:** `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/users/me`, `PUT /api/users/me`
 
@@ -152,7 +152,7 @@ A single PostgreSQL 16 instance with three schemas for schema-level isolation. E
 
 ## Authentication
 
-JWT with a shared HMAC secret (`APP_JWT_SECRET`). auth-service signs tokens; meals-service and analytics-service verify them locally using Spring Security. Token expiry is configured per environment.
+JWT with RS256 asymmetric signing. auth-service signs tokens with the RSA private key (`APP_JWT_PRIVATE_KEY`); meals-service and analytics-service verify them locally using Spring Security with the public key only (`APP_JWT_PUBLIC_KEY`). Because verification requires no signing material, a compromised resource service cannot issue tokens. Token expiry is configured per environment.
 
 ## Frontend — React Web Client
 

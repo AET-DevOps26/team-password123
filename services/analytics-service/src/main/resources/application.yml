@@ -43,7 +43,10 @@ management:
 
 app:
   jwt:
-    secret: ${APP_JWT_SECRET}
+    # RS256 verification key (X.509/SPKI PEM or its headerless base64 body).
+    # Verify-only: this service cannot mint tokens; auth-service signs them
+    # with the matching private key.
+    public-key: ${APP_JWT_PUBLIC_KEY}
   meals-service:
     base-url: ${MEALS_SERVICE_URL:http://localhost:8082}
   genai:

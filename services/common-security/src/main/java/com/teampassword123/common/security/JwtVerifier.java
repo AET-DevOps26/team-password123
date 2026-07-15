@@ -2,21 +2,24 @@ package com.teampassword123.common.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import java.nio.charset.StandardCharsets;
+import java.security.interfaces.RSAPublicKey;
 import java.util.UUID;
-import javax.crypto.SecretKey;
 
+/**
+ * Verifies RS256 JWTs issued by auth-service using the RSA public key only — resource services hold
+ * no signing material and therefore cannot mint tokens.
+ */
 public class JwtVerifier {
 
-    private final SecretKey key;
+    private final RSAPublicKey publicKey;
 
-    public JwtVerifier(String secret) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    public JwtVerifier(RSAPublicKey publicKey) {
+        this.publicKey = publicKey;
     }
 
     public AuthenticatedUser verify(String token) {
-        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        Claims claims =
+                Jwts.parser().verifyWith(publicKey).build().parseSignedClaims(token).getPayload();
         UUID userId = UUID.fromString(claims.get("userId", String.class));
         return new AuthenticatedUser(userId, claims.getSubject());
     }

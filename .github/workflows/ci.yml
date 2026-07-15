@@ -304,12 +304,13 @@ jobs:
         with:
           version: v4.2.3
 
-      # The chart `require`s three secret values; dummy --set values satisfy them.
+      # The chart `require`s four values (JWT keypair, postgres password,
+      # Grafana admin password); dummy --set values satisfy them.
       # Rendered twice — defaults, and with the A/B canary tier enabled — so
       # web-canary.yaml doesn't rot unvalidated behind its off-by-default flag.
       - name: Lint and render chart
         run: |
-          SET='--set jwt.secret=ci --set postgres.password=ci --set monitoring.grafana.adminPassword=ci'
+          SET='--set jwt.privateKey=ci --set jwt.publicKey=ci --set postgres.password=ci --set monitoring.grafana.adminPassword=ci'
           helm lint helm/calorieasy $SET
           helm template app helm/calorieasy $SET > rendered-default.yaml
           helm template app helm/calorieasy $SET \

@@ -5,7 +5,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
 {{- end -}}
 
-{{/* Name of the Secret holding APP_JWT_SECRET / POSTGRES_PASSWORD / API keys.
+{{/* Name of the Secret holding APP_JWT_PRIVATE_KEY / POSTGRES_PASSWORD / API keys.
      Defaults to the chart-managed "calorieasy-secrets"; set secrets.existingSecret
      to point every service at a Secret you created out-of-band instead. */}}
 {{- define "calorieasy.secretName" -}}

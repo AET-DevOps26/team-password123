@@ -28,7 +28,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nutrition}?currentSchema=auth
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nutrition}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:?set APP_JWT_SECRET}
+      # RS256 signing key — only auth-service gets the private key.
+      APP_JWT_PRIVATE_KEY: ${APP_JWT_PRIVATE_KEY:?set APP_JWT_PRIVATE_KEY}
       APP_JWT_EXPIRATION: ${APP_JWT_EXPIRATION:-PT24H}
       SERVER_PORT: 8081
     depends_on:
@@ -42,7 +43,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nutrition}?currentSchema=meals
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nutrition}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:?}
+      APP_JWT_PUBLIC_KEY: ${APP_JWT_PUBLIC_KEY:?}
       APP_UPLOAD_DIR: /app/uploads
       SERVER_PORT: 8082
     volumes:
@@ -58,7 +59,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nutrition}?currentSchema=analytics
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nutrition}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:?}
+      APP_JWT_PUBLIC_KEY: ${APP_JWT_PUBLIC_KEY:?}
       MEALS_SERVICE_URL: http://meals-service:8082
       SERVER_PORT: 8083
     depends_on:

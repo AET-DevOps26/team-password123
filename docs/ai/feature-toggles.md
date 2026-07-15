@@ -23,7 +23,8 @@ When `false` (default), scans use **`auto`** (Gemini with Nemotron fallback) wit
 **1. Start services** (from repo root):
 
 ```bash
-cp .env.example .env   # set POSTGRES_PASSWORD, APP_JWT_SECRET, GEMINI_API_KEY, OPENROUTER_API_KEY
+cp .env.example .env                    # set POSTGRES_PASSWORD, GEMINI_API_KEY, OPENROUTER_API_KEY
+node scripts/gen-jwt-keys.mjs >> .env   # generate the RS256 JWT keypair
 docker compose up --build
 ```
 

@@ -46,7 +46,8 @@ Secrets / vars (repo → Settings → Secrets and variables → Actions):
 | `LOGOS_API_KEY` | secret | Logos API key |
 | `GEMINI_API_KEY` | secret | Google AI Studio key → genai primary vision (Gemini) |
 | `OPENROUTER_API_KEY` | secret | OpenRouter key → genai backup vision (Nemotron) |
-| `APP_JWT_SECRET` | secret | Shared JWT signing key |
+| `APP_JWT_PRIVATE_KEY` | secret | RS256 JWT signing key (PKCS#8, base64) — auth-service only |
+| `APP_JWT_PUBLIC_KEY` | secret* | RS256 JWT verification key (SPKI, base64) for meals/analytics. *Not sensitive, stored as a secret only for symmetry. Generate the pair with `node scripts/gen-jwt-keys.mjs` |
 | `POSTGRES_PASSWORD` | secret | Postgres password |
 | `GRAFANA_ADMIN_PASSWORD` | secret | Grafana admin login |
 | `LOGOS_MODEL` | var | Text LLM model name (default `openai/gpt-oss-120b`) |
@@ -76,7 +77,8 @@ cd infra/ansible
 ansible-playbook -i "<vm-ip>," playbook.yml -u azureuser \
   --private-key ~/.ssh/calorieasy_id \
   -e ghcr_user=<user> -e ghcr_token=<read:packages token> \
-  -e postgres_password=<pw> -e jwt_secret=<secret> \
+  -e postgres_password=<pw> \
+  -e jwt_private_key=<pkcs8-base64> -e jwt_public_key=<spki-base64> \
   -e openai_base_url=<logos-url> -e openai_api_key=<logos-key>
 ```
 
@@ -94,6 +96,7 @@ Secrets / vars:
 | `AZURE_USER` | var | SSH user on the VM |
 | `AZURE_PRIVATE_KEY` | secret | SSH private key for the VM |
 | `POSTGRES_PASSWORD` | secret | postgres password (**required**) |
-| `APP_JWT_SECRET` | secret | shared JWT secret (**required**) |
+| `APP_JWT_PRIVATE_KEY` | secret | RS256 JWT signing key, auth-service only (**required**) |
+| `APP_JWT_PUBLIC_KEY` | secret | RS256 JWT verification key for meals/analytics (**required**; not sensitive) |
 | `GHCR_PULL_TOKEN` | secret | VM `docker login ghcr.io` (only if images are private) |
 | `LOGOS_BASE_URL` / `LOGOS_API_KEY` | secret | genai → Logos (optional) |

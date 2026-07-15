@@ -78,7 +78,8 @@ jobs:
           helm upgrade --install app helm/calorieasy \
             --namespace team-password123 \
             --set image.tag="${{ steps.ctx.outputs.tag }}" \
-            --set jwt.secret="${{ secrets.APP_JWT_SECRET }}" \
+            --set jwt.privateKey="${{ secrets.APP_JWT_PRIVATE_KEY }}" \
+            --set jwt.publicKey="${{ secrets.APP_JWT_PUBLIC_KEY }}" \
             --set postgres.password="${{ secrets.POSTGRES_PASSWORD }}" \
             --set monitoring.grafana.adminPassword="${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
             --set genai.openaiApiKey="${{ secrets.GEMINI_API_KEY }}" \

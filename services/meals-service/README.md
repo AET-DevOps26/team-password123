@@ -4,7 +4,7 @@ Manual meal logging, photo analysis, and food-name estimation.
 
 - **Port**: 8082
 - **DB schema**: `meals` (tables: `meal_logs`, `meal_items`, `photo_logs`)
-- **Auth**: validates JWTs issued by `auth-service` using the shared `APP_JWT_SECRET`. Does not own users.
+- **Auth**: verifies RS256 JWTs issued by `auth-service` using the public key only (`APP_JWT_PUBLIC_KEY`) — it cannot mint tokens. Does not own users.
 
 Photo uploads via `POST /api/meals/analyze` are routed to genai-service when `APP_GENAI_BASE_URL` / `GENAI_SERVICE_URL` is set (Helm/k8s). Otherwise a deterministic placeholder analyzer is used for local dev. Photo logs without analysis can be converted to manual meals via `POST /api/meals/photo/{id}/convert-manual`.
 
@@ -33,4 +33,4 @@ Swagger UI: <http://localhost:8082/swagger-ui.html>
 mvn spring-boot:run
 ```
 
-Requires Postgres running with the `meals` schema. Set `APP_JWT_SECRET` to the same value as `auth-service`. Set `APP_GENAI_BASE_URL=http://localhost:8084` to use the real GenAI analyzer locally.
+Requires Postgres running with the `meals` schema. Set `APP_JWT_PUBLIC_KEY` to the public key matching auth-service's `APP_JWT_PRIVATE_KEY` (generate a pair with `node scripts/gen-jwt-keys.mjs`). Set `APP_GENAI_BASE_URL=http://localhost:8084` to use the real GenAI analyzer locally.

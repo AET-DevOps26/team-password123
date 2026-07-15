@@ -4,7 +4,7 @@ the analyze endpoints buffer them into memory, capping the memory-exhaustion DoS
 
 Requires the service deps (fastapi, langchain, PIL) — runs in the genai CI python
 job. TestClient is built without a `with` block on purpose, so the Weaviate-touching
-startup event does not run.
+lifespan startup hook does not run.
 """
 
 import sys

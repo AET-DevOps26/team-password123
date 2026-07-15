@@ -6,6 +6,12 @@ Include it as: `Authorization: Bearer <token>`
 
 Live interactive docs (Swagger UI) are available at each service's `/swagger-ui.html`.
 
+**Versioning:** routes are deliberately unversioned (`/api/*`) — the web client ships
+in lockstep with the services, so URI versioning buys nothing today. If a breaking
+change ever requires parallel versions, the seam is the web pod's nginx
+(`calorie-app/nginx.conf`): one `location /api/v1/` rewrite block plus a matching
+Vite proxy alias introduces `/api/v1` without touching any service.
+
 ---
 
 ## auth-service — port 8081

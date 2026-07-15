@@ -323,7 +323,7 @@ cp inventory.example.ini inventory.ini   # fill in the public IP
 ansible-playbook -i inventory.ini playbook.yml \
   -e ghcr_user=... -e ghcr_token=... -e postgres_password=... -e jwt_secret=...
 ```
-The prod Compose stack ([`docker-compose.prod.yml`](docker-compose.prod.yml)) pulls prebuilt GHCR images and serves the web client via nginx on `:80` (Postgres is not published externally). See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the full operator runbook, secrets, and variables.
+The prod Compose stack ([`docker-compose.prod.yml`](docker-compose.prod.yml)) pulls prebuilt GHCR images and serves the web client via nginx on `:80` (Postgres is not published externally). It is a simplified fallback environment — no monitoring stack or Weaviate, so insights run in degraded mode; the full observable deployment is the AET cluster. See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the full operator runbook, secrets, and variables.
 
 > **Security note:** default secrets (`APP_JWT_SECRET`, `POSTGRES_PASSWORD`, Helm `jwt.secret`/`postgres.password`) are placeholders and must be overridden for any real deployment. The prod Compose stack enforces this via required (`:?`) variables.
 

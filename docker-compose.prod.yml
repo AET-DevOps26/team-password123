@@ -1,6 +1,10 @@
 # Production compose for the Azure VM deploy. Pulls prebuilt GHCR images (no build).
 # Secrets and the image tag come from a .env file placed next to this file on the host
 # (Ansible templates it). Bring up with: docker compose -f docker-compose.prod.yml up -d
+#
+# Simplified fallback environment — deliberately omits the monitoring stack
+# (Prometheus/Grafana/Loki) and Weaviate; /api/insight runs degraded (generic tips,
+# no RAG). The full observable deployment is the AET k8s cluster (helm/calorieasy).
 services:
   postgres:
     image: postgres:16-alpine

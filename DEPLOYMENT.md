@@ -53,6 +53,12 @@ Secrets / vars (repo → Settings → Secrets and variables → Actions):
 
 ## Azure VM
 
+> **Simplified fallback environment.** The Azure compose stack deliberately omits
+> the monitoring stack (Prometheus/Grafana/Loki) and Weaviate: there is no
+> observability on the VM, and `/api/insight` runs in degraded mode (generic
+> profile-based tips, no RAG retrieval). The full production deployment is the
+> AET Kubernetes cluster above.
+
 **One-time provisioning (run locally, or via the workflow with a remote backend):**
 
 ```bash

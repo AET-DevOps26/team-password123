@@ -94,11 +94,16 @@ cp .env.example .env
 node scripts/gen-jwt-keys.mjs >> .env   # generate the RS256 JWT keypair
 
 # 1. Start everything except the GenAI service (postgres + the 3 services + web):
-docker compose up --build postgres auth-service meals-service analytics-service web
+docker compose up --build --no-deps -d postgres auth-service meals-service analytics-service web
 
 # 2. Once the services are up, seed one demo user + ~10 days of meals:
 node scripts/seed.mjs          # or: make seed
 ```
+
+`--no-deps` is what actually keeps the AI stack out: `meals-service` and
+`analytics-service` declare `depends_on: genai-service`, which in turn depends on
+`weaviate`, so without the flag Compose starts both of them transitively even
+though they aren't listed.
 
 Then open <http://localhost:3000> and log in with:
 

@@ -136,12 +136,11 @@ jobs:
     timeout-minutes: 30
     # Compose interpolates the WHOLE file before deciding which services to
     # start, so every `:?`-guarded variable needs a value even for services
-    # that never run (grafana). Dummy CI-only values; APP_JWT_SECRET must be
-    # ≥ 32 characters or Keys.hmacShaKeyFor rejects it at service startup.
+    # that never run (grafana). Dummy CI-only values; the JWT keypair is
+    # generated per run in the step below.
     env:
       POSTGRES_PASSWORD: ci-only-postgres-password
       GRAFANA_ADMIN_PASSWORD: ci-only-grafana-password-unused
-      APP_JWT_SECRET: ci-only-dummy-jwt-secret-0123456789abcdef
     steps:
       - uses: actions/checkout@v7
 
@@ -152,14 +151,14 @@ jobs:
           cache: npm
           cache-dependency-path: calorie-app/package-lock.json
 
-      # Forward-compatible with the RS256 JWT migration (feat/jwt-rs256):
-      # satisfies compose's APP_JWT_PRIVATE_KEY/APP_JWT_PUBLIC_KEY guards once
-      # that lands; unused (and harmless) while compose still reads APP_JWT_SECRET.
+      # Satisfies compose's APP_JWT_PRIVATE_KEY/APP_JWT_PUBLIC_KEY guards with a
+      # fresh throwaway pair per run — CI never needs the real deploy keys. Uses
+      # the repo's own generator, which already prints the two `NAME=value` lines
+      # $GITHUB_ENV wants, so CI exercises the same PKCS#8/SPKI encoding that
+      # local dev and the deploys use. (`openssl genpkey -outform DER` emits
+      # PKCS#1, which PemKeys' PKCS8EncodedKeySpec rejects.)
       - name: Generate throwaway JWT keypair
-        run: |
-          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -outform DER -out /tmp/jwt.der
-          echo "APP_JWT_PRIVATE_KEY=$(base64 -w0 /tmp/jwt.der)" >> "$GITHUB_ENV"
-          echo "APP_JWT_PUBLIC_KEY=$(openssl pkey -inform DER -in /tmp/jwt.der -pubout -outform DER | base64 -w0)" >> "$GITHUB_ENV"
+        run: node scripts/gen-jwt-keys.mjs >> "$GITHUB_ENV"
 
       # Only what the smoke flow needs: register/login (auth), manual meal +
       # diary (meals). genai/weaviate are deliberately skipped — POST

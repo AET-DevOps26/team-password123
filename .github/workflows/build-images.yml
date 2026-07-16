@@ -1,23 +1,16 @@
-# ⚠ Do NOT rename this workflow without updating deploy-aet.yml:
-# its `workflow_run.workflows: ["Build & Push Images"]` trigger matches this
-# `name` string. A rename silently breaks CD (no error anywhere — deploys just
-# stop firing). Same caveat applies to the ["CI"] reference below.
 name: Build & Push Images
 
 # Builds all service images (linux/amd64) and pushes them to GHCR so the
 # Kubernetes cluster can pull them.
 #
-# Runs AFTER "CI" succeeds on main (via workflow_run): images are only produced
-# from a green build (tests + lint passed). Since deploy-aet.yml keys off THIS
-# workflow, the full gate is CI → build → deploy — a failing test can no longer
-# reach the cluster. Manual dispatch rebuilds the current ref on demand, but
-# only main builds move the `latest` tag (see "Resolve build ref").
+# Reusable workflow: ci.yml calls it (workflow_call) after all test jobs pass
+# on a push to main, so images are only produced from a green build and the
+# runner itself enforces the CI → build → deploy gate via `needs`. In that
+# context github.sha IS the tested commit — no head_sha resolution needed.
+# Manual dispatch rebuilds the current ref on demand, but only main builds
+# move the `latest` tag (see the metadata step).
 on:
-  workflow_run:
-    # Must match the `name:` in ci.yml exactly — keep the two in sync.
-    workflows: ["CI"]
-    types: [completed]
-    branches: [main]
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -27,8 +20,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Only build when the triggering CI run passed (or on manual dispatch).
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     strategy:
       fail-fast: false
       matrix:
@@ -51,29 +42,7 @@ jobs:
             context: calorie-app
             dockerfile: calorie-app/Dockerfile
     steps:
-      # On workflow_run the default checkout ref is the branch tip, which may be
-      # ahead of the commit CI actually tested; pin to the tested SHA so the
-      # image tag matches what deploy-aet.yml resolves (workflow_run.head_sha
-      # propagates through the chain).
-      #
-      # `latest` only moves for main builds: deploy-azure pulls image_tag=latest,
-      # so letting a workflow_dispatch from a feature branch retag `latest` would
-      # bypass the CI → build → deploy gate with untested code. A non-main
-      # dispatch still builds and pushes its immutable SHA tag.
-      - name: Resolve build ref
-        id: ctx
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            echo "ref=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
-            echo "latest=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ref=${{ github.sha }}" >> "$GITHUB_OUTPUT"
-            echo "latest=${{ github.ref == 'refs/heads/main' }}" >> "$GITHUB_OUTPUT"
-          fi
-
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ steps.ctx.outputs.ref }}
 
       - uses: docker/setup-buildx-action@v3
 
@@ -88,16 +57,19 @@ jobs:
         id: repo
         run: echo "name=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
-      # `enable=` gates the `latest` tag on the ctx output, so non-main builds
-      # produce only their immutable SHA tag.
+      # `latest` only moves for main builds (chain calls from ci.yml are always
+      # main; enable= covers manual dispatches): deploy-azure pulls
+      # image_tag=latest, so a feature-branch dispatch retagging `latest` would
+      # bypass the CI → build → deploy gate with untested code. A non-main
+      # dispatch still pushes its immutable SHA tag.
       - name: Docker metadata (tags)
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ steps.repo.outputs.name }}/${{ matrix.name }}
           tags: |
-            type=raw,value=${{ steps.ctx.outputs.ref }}
-            type=raw,value=latest,enable=${{ steps.ctx.outputs.latest }}
+            type=raw,value=${{ github.sha }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build & push ${{ matrix.name }}
         uses: docker/build-push-action@v6

@@ -1,0 +1,85 @@
+name: iOS
+
+# Live integration tests for the SwiftUI/SwiftData iOS client.
+#
+# The suite (ios-app/NutritionAppTests/LiveIntegrationTests.swift) drives the
+# app's REAL networking + sync code (APIClient, DTOMapper, SyncService) against
+# the LIVE AET backend — AppConfig.baseURL defaults to the AET ingress, so the
+# tests need no local stack. Two consequences to be aware of:
+#   * the job depends on the AET cluster being reachable from the runner, and
+#   * each run registers throwaway `ios-e2e-*@example.com` users on that backend
+#     (the created meals are deleted by the tests; the users are not).
+#
+# Kept in its own workflow — not ci.yml — because it needs a macOS runner and
+# only matters when ios-app/ changes. It is path-filtered and deliberately NOT
+# wired into the build-images / deploy-aet graph: the iOS client is not part of
+# the deployed system, so it must never gate a production deploy.
+#
+# NOTE: this workflow is path-filtered at the WORKFLOW level, so it reports no
+# status on PRs that don't touch ios-app/. Do NOT mark it a required status check
+# under branch protection unless the filter is first moved to the job level (so
+# the job always runs and reports) — otherwise non-iOS PRs would block forever.
+on:
+  pull_request:
+    paths:
+      - 'ios-app/**'
+      - '.github/workflows/ios.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ios-app/**'
+      - '.github/workflows/ios.yml'
+  workflow_dispatch:
+
+# Cancel superseded PR runs to save (expensive) macOS minutes; main runs queue.
+concurrency:
+  group: ios-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  live-integration:
+    name: iOS · live integration tests
+    runs-on: macos-15
+    # Bounded so a hung (not down) AET backend can't burn ~6h of macOS minutes.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      # Print the toolchain + available simulators so a runner-image change that
+      # drops the pinned device below fails with an obvious, debuggable log.
+      - name: Show toolchain and simulators
+        run: |
+          xcodebuild -version
+          xcrun simctl list devices available | grep -i iphone || true
+
+      # Build + run straight from the committed .xcodeproj. The repo's project.yml
+      # is for xcodegen, which does NOT include the NutritionAppTests target, so a
+      # generated project would silently skip the whole suite — do not run xcodegen.
+      # SWIFT_VERSION=5.0 / deployment target 17.0 build fine on the runner's
+      # Xcode 16 + iOS 18 simulator. -retry-tests-on-failure softens the inherent
+      # flakiness of hitting a live network backend without hiding a real failure.
+      # Triage note: test_03 exercises the GenAI photo path, so a red there can
+      # mean the deployed GenAI vision key is degraded, not an iOS regression —
+      # check the AET genai-service config before assuming an app bug.
+      - name: Run live integration tests (vs AET backend)
+        run: |
+          xcodebuild test \
+            -project ios-app/NutritionApp.xcodeproj \
+            -scheme NutritionApp \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -resultBundlePath TestResults.xcresult \
+            -test-iterations 3 \
+            -retry-tests-on-failure \
+            CODE_SIGNING_ALLOWED=NO
+
+      # Keep the .xcresult bundle (test logs, failures, attachments) for triage.
+      - name: Upload xcresult bundle
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-xcresult
+          path: TestResults.xcresult
+          if-no-files-found: ignore

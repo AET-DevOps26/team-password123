@@ -27,21 +27,52 @@ Run with `--offline` for a no-network guest session.
 
 ## Requirements
 
-- Xcode 15.0+
+- Xcode 16.0+
 - iOS 17.0+ (SwiftData)
 - Swift 5.9+
-- [xcodegen](https://github.com/yonaskolb/XcodeGen) (to generate the Xcode project)
+- [xcodegen](https://github.com/yonaskolb/XcodeGen) — optional; see the warning under "Opening in Xcode"
 
 ## Opening in Xcode
 
 ```bash
 cd ios-app
-xcodegen generate
-open NutritionApp.xcodeproj
-# select the NutritionApp scheme + an iOS 17 simulator, then Cmd-R
+open NutritionApp.xcodeproj   # committed project — already includes the NutritionAppTests target
+# select the NutritionApp scheme + an iOS 17+ simulator, then Cmd-R
 ```
 
+> ⚠️ The committed `NutritionApp.xcodeproj` is the source of truth: it carries the
+> `NutritionAppTests` target that CI runs. `xcodegen generate` rebuilds the project
+> from `project.yml`, which does **not** define that target, so regenerating drops
+> the tests. Only run it if you re-add the test target afterwards.
+
 Optional scheme launch arguments: `--seed-sample-data` (7 days of meals/water), `--skip-onboarding`, `--offline`.
+
+## Tests
+
+`NutritionAppTests/` (part of the committed `NutritionApp.xcodeproj`) holds fast
+unit tests — `GoalCalculatorTests`, `StreakCalculatorTests`, `FoodLogTests`,
+`SyncMappingTests`, `CSVExporterTests`, `WidgetSnapshotTests` — plus
+`LiveIntegrationTests`, which drives the app's real `APIClient` + `SyncService`
+against the live AET backend (register → goals → meal round-trip, `SyncService`
+cache pull, GenAI photo analyze).
+
+CI runs the whole target on every `ios-app/**` PR via
+[`.github/workflows/ios.yml`](../.github/workflows/ios.yml). Locally:
+
+```bash
+# unit tests only (no backend needed):
+xcodebuild test -project NutritionApp.xcodeproj -scheme NutritionApp \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  -skip-testing:NutritionAppTests/LiveIntegrationTests
+# drop -skip-testing to also run the live-backend tests
+```
+
+> The `-destination` device is an example — use any installed iOS 17+ simulator
+> (CI uses `iPhone 16` on Xcode 16; local dev on Xcode 26 uses `iPhone 17`).
+>
+> `LiveIntegrationTests` needs the AET backend reachable and registers throwaway
+> users on it; `test_03` also depends on the deployed GenAI vision key, so a red
+> there can mean a backend-config issue, not an app bug.
 
 ## Domain model (vs `docs/object-diagram.md`)
 
@@ -58,13 +89,5 @@ Analytics stay compute-on-read here too: `AnalyticsView` derives charts from syn
 
 ## Known gaps
 
-- No UI test target. Unit tests + live-backend integration tests live in `NutritionAppTests`
-  (part of the committed `NutritionApp.xcodeproj` — regenerating with xcodegen drops the test target):
-
-  ```bash
-  xcodebuild test -project NutritionApp.xcodeproj -scheme NutritionApp \
-    -destination 'platform=iOS Simulator,name=iPhone 17' \
-    -skip-testing:NutritionAppTests/LiveIntegrationTests   # omit to also hit the live backend
-  ```
 - Water tracking is local-only (no backend endpoint)
 - Health-insight RAG card exists on web but not yet on iOS

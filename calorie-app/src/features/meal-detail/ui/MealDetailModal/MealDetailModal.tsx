@@ -81,7 +81,7 @@ export function MealDetailModal({ meal, onClose, onSaved, onDeleted }: MealDetai
   );
 
   return (
-    <Modal title="Meal details" onClose={onClose} footer={footer} narrow>
+    <Modal title="Meal details" onClose={onClose} footer={footer} narrow dismissOnOverlayClick={false}>
       <div className={styles.meta}>
         <span className={styles.time}>{meal.time}</span>
         {!detail.persisted && (

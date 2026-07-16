@@ -58,7 +58,7 @@ export function ManualEntryModal({ onClose, onAdded, defaultSlot, loggedAt }: Ma
   );
 
   return (
-    <Modal title="Add ingredients" onClose={onClose} footer={footer} narrow>
+    <Modal title="Add ingredients" onClose={onClose} footer={footer} narrow dismissOnOverlayClick={false}>
       <p className={styles.hint}>
         For home-made meals, type ingredients for 100% accuracy.
       </p>

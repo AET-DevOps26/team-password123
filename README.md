@@ -89,6 +89,22 @@ Design docs live in [`docs/`](docs/): [`Problem Statement.md`](docs/Problem%20St
 
 ## Quick start (Docker Compose)
 
+### One command
+
+```bash
+make start
+```
+
+Builds and starts the entire stack (Postgres, the three Spring services, GenAI +
+Weaviate, web client, monitoring), waits until the services answer, and seeds
+demo data. On the first run it also creates `.env` with a fresh RS256 JWT
+keypair. Then open <http://localhost:3000> and log in with
+`dev@local.com` / `password123`.
+
+Requires Docker and Node.js 18+. Without a Gemini key, photo scan falls back to
+the manual nutrition form; add `OPENAI_API_KEY` to `.env` for real AI analysis
+(see [Configuration](#configuration)).
+
 ### Run locally without AI (seeded demo data)
 
 The fastest way to try the full web app. This skips the GenAI service entirely
@@ -136,9 +152,15 @@ Brings up Postgres + the three Spring services + the GenAI service + the web cli
 - Docker + Docker Compose v2
 - A **Google AI Studio** key for Gemini (primary) and optionally an **OpenRouter** key for the Nemotron backup — see [Configuration](#configuration)
 
-> The dev Compose stack does **not** wire `meals-service` to `genai-service` (no `APP_GENAI_BASE_URL`), so under Compose photo analysis uses a deterministic placeholder analyzer rather than the real GenAI link. The GenAI service still runs and is reachable directly on `:8084`. The GenAI link is wired only in the Helm/k8s path.
+> The dev Compose stack wires `meals-service` to `genai-service` by default (`APP_GENAI_BASE_URL` defaults to `http://genai-service:8084`), so photo analysis uses the real GenAI link as long as an API key is configured; without keys the UI falls back to the manual nutrition form.
 
 ### Run
+```bash
+make start    # then add OPENAI_API_KEY (+ optional BACKUP_OPENAI_API_KEY) to .env and re-run
+```
+
+or manually:
+
 ```bash
 cp .env.example .env                    # fill OPENAI_API_KEY + BACKUP_OPENAI_API_KEY
 node scripts/gen-jwt-keys.mjs >> .env   # generate the RS256 JWT keypair

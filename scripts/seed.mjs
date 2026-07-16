@@ -35,7 +35,8 @@ const cfg = {
 
 // How far back to look when clearing the seed user's existing meals — wider than
 // any seed window and the insights history range, so reseeds start fully clean.
-const CLEAR_LOOKBACK_DAYS = 400;
+// Must stay under the meals API's 400-day range cap (lookback + tomorrow < 400).
+const CLEAR_LOOKBACK_DAYS = 398;
 
 // Demo user physical profile → mirrors what onboarding would produce.
 const PROFILE = {
@@ -212,7 +213,10 @@ async function clearMeals(token) {
   const to   = new Date(today); to.setDate(to.getDate() + 1);
   const existing = await api('GET',
     `${cfg.mealsUrl}/api/meals?from=${isoDate(from)}&to=${isoDate(to)}`, { token });
-  if (!existing.ok || !Array.isArray(existing.data)) return 0;
+  if (!existing.ok || !Array.isArray(existing.data)) {
+    // Failing silently here means reseeds duplicate meals instead of replacing them.
+    throw new Error(`GET /meals for clear failed (${existing.status}): ${JSON.stringify(existing.data)}`);
+  }
 
   let deleted = 0;
   for (const meal of existing.data) {

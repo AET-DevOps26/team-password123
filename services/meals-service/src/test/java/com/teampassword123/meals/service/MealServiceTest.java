@@ -353,6 +353,118 @@ class MealServiceTest {
     }
 
     @Test
+    void loggedDates_isNotCappedLikeList_soStreaksCanScanYears() {
+        // The streak computation requests ~5 years of dates; adding the list cap
+        // here would silently zero every streak. Pin the intentional asymmetry.
+        when(meals.findLoggedAtInRange(
+                        any(UUID.class), any(OffsetDateTime.class), any(OffsetDateTime.class)))
+                .thenReturn(List.of());
+
+        LocalDate to = LocalDate.of(2026, 5, 29);
+        List<LocalDate> result =
+                service.loggedDates(userId, to.minusDays(1830), to, ZoneOffset.UTC);
+
+        assertThat(result).isEmpty();
+        verify(meals).findLoggedAtInRange(any(UUID.class), any(), any());
+    }
+
+    @Test
+    void update_whenMealBelongsToAnotherUser_throwsNotFoundAndNeverSaves() {
+        // IDOR guard: the lookup must be scoped to the caller, so user B updating
+        // user A's meal id sees a plain 404 — not a hit on the foreign row.
+        UUID mealId = UUID.randomUUID();
+        UUID attackerId = UUID.randomUUID();
+        when(meals.findByIdAndUserId(mealId, attackerId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.update(attackerId, mealId, twoItemRequest()))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Meal log not found");
+
+        verify(meals).findByIdAndUserId(mealId, attackerId);
+        verify(meals, never()).save(any());
+    }
+
+    @Test
+    void update_replacesItemsAndRecomputesTotals() {
+        UUID mealId = UUID.randomUUID();
+        MealLog existing = new MealLog();
+        existing.setUserId(userId);
+        existing.setSourceType(SourceType.MANUAL);
+        existing.setMealType(MealType.DINNER);
+        existing.setCalories(new BigDecimal("999"));
+        existing.setProteinGrams(new BigDecimal("99"));
+        existing.replaceItems(
+                List.of(
+                        MealMapper.toItem(
+                                item(
+                                        "Old",
+                                        BigDecimal.ONE,
+                                        BigDecimal.ONE,
+                                        BigDecimal.ONE,
+                                        BigDecimal.ONE,
+                                        BigDecimal.ONE))));
+        when(meals.findByIdAndUserId(mealId, userId)).thenReturn(Optional.of(existing));
+        when(photos.findByLinkedMealLogId(mealId)).thenReturn(Optional.empty());
+
+        MealResponse response = service.update(userId, mealId, twoItemRequest());
+
+        // Totals are recomputed from the new items, not carried over.
+        assertThat(response.calories()).isEqualByComparingTo("150");
+        assertThat(response.proteinGrams()).isEqualByComparingTo("14");
+        assertThat(response.carbsGrams()).isEqualByComparingTo("23");
+        assertThat(response.fatGrams()).isEqualByComparingTo("7");
+        assertThat(response.fiberGrams()).isEqualByComparingTo("1.5");
+        assertThat(response.items()).hasSize(2);
+        assertThat(response.mealType()).isEqualTo(MealType.LUNCH);
+        // The original source is preserved: an edit does not turn a meal MANUAL.
+        assertThat(response.sourceType()).isEqualTo(SourceType.MANUAL);
+
+        verify(meals).save(existing);
+        assertThat(existing.getItems()).hasSize(2);
+    }
+
+    @Test
+    void loadPhoto_whenPhotoBelongsToAnotherUser_throwsNotFound() {
+        UUID photoId = UUID.randomUUID();
+        UUID attackerId = UUID.randomUUID();
+        when(photos.findByIdAndUserId(photoId, attackerId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.loadPhoto(attackerId, photoId))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Photo log not found");
+    }
+
+    @Test
+    void loadPhoto_whenStoredFileMissingOnDisk_throwsCleanNotFound() {
+        // The DB row can outlive the file (volume wipe, pod reschedule): the raw
+        // endpoint must degrade to a 404, not a 500 from an unreadable resource.
+        UUID photoId = UUID.randomUUID();
+        PhotoLog photo = new PhotoLog();
+        photo.setStoredFilename("gone-forever.jpg");
+        when(photos.findByIdAndUserId(photoId, userId)).thenReturn(Optional.of(photo));
+
+        assertThatThrownBy(() -> service.loadPhoto(userId, photoId))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Photo file not found");
+    }
+
+    @Test
+    void loadPhoto_whenOwnedAndFileExists_returnsReadableResource() throws Exception {
+        UUID photoId = UUID.randomUUID();
+        PhotoLog photo = new PhotoLog();
+        photo.setStoredFilename("stored-meal.jpg");
+        photo.setContentType("image/jpeg");
+        java.nio.file.Files.write(uploadDir.resolve("stored-meal.jpg"), jpegBytes());
+        when(photos.findByIdAndUserId(photoId, userId)).thenReturn(Optional.of(photo));
+
+        MealService.StoredPhoto stored = service.loadPhoto(userId, photoId);
+
+        assertThat(stored.contentType()).isEqualTo("image/jpeg");
+        assertThat(stored.resource().exists()).isTrue();
+        assertThat(stored.resource().isReadable()).isTrue();
+    }
+
+    @Test
     void delete_whenMealNotFound_throwsNotFound() {
         UUID mealId = UUID.randomUUID();
         when(meals.findByIdAndUserId(mealId, userId)).thenReturn(Optional.empty());

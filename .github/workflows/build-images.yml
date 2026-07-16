@@ -6,7 +6,8 @@ name: Build & Push Images
 # Runs AFTER "CI" succeeds on main (via workflow_run): images are only produced
 # from a green build (tests + lint passed). Since deploy-aet.yml keys off THIS
 # workflow, the full gate is CI → build → deploy — a failing test can no longer
-# reach the cluster. Manual dispatch rebuilds the current ref on demand.
+# reach the cluster. Manual dispatch rebuilds the current ref on demand, but
+# only main builds move the `latest` tag (see "Resolve build ref").
 on:
   workflow_run:
     workflows: ["CI"]
@@ -49,13 +50,20 @@ jobs:
       # ahead of the commit CI actually tested; pin to the tested SHA so the
       # image tag matches what deploy-aet.yml resolves (workflow_run.head_sha
       # propagates through the chain).
+      #
+      # `latest` only moves for main builds: deploy-azure pulls image_tag=latest,
+      # so letting a workflow_dispatch from a feature branch retag `latest` would
+      # bypass the CI → build → deploy gate with untested code. A non-main
+      # dispatch still builds and pushes its immutable SHA tag.
       - name: Resolve build ref
         id: ctx
         run: |
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
             echo "ref=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+            echo "latest=true" >> "$GITHUB_OUTPUT"
           else
             echo "ref=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+            echo "latest=${{ github.ref == 'refs/heads/main' }}" >> "$GITHUB_OUTPUT"
           fi
 
       - uses: actions/checkout@v7
@@ -75,6 +83,17 @@ jobs:
         id: repo
         run: echo "name=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
+      # `enable=` gates the `latest` tag on the ctx output, so non-main builds
+      # produce only their immutable SHA tag.
+      - name: Docker metadata (tags)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ steps.repo.outputs.name }}/${{ matrix.name }}
+          tags: |
+            type=raw,value=${{ steps.ctx.outputs.ref }}
+            type=raw,value=latest,enable=${{ steps.ctx.outputs.latest }}
+
       - name: Build & push ${{ matrix.name }}
         uses: docker/build-push-action@v6
         with:
@@ -82,9 +101,7 @@ jobs:
           file: ${{ matrix.dockerfile }}
           platforms: linux/amd64
           push: true
-          tags: |
-            ghcr.io/${{ steps.repo.outputs.name }}/${{ matrix.name }}:latest
-            ghcr.io/${{ steps.repo.outputs.name }}/${{ matrix.name }}:${{ steps.ctx.outputs.ref }}
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           # Supply-chain attestations attached to each GHCR image: an SBOM of the

@@ -41,13 +41,24 @@ jobs:
           cache: maven
 
       # The services depend on the shared common-security module, which must be
-      # in the local repository before a service can resolve it.
+      # in the local repository before a service can resolve it. `install` runs
+      # through `verify`, so the module passes the same Spotless + Checkstyle
+      # gates as the services below.
       - name: Install shared common-security module
         working-directory: services/common-security
         run: mvn -B -ntp install
 
-      # `verify` compiles, runs the unit tests, and packages the deployable
-      # (Spring Boot repackage) — i.e. it both builds AND tests the service.
+      # Static analysis: Checkstyle with the shared bug-pattern ruleset in
+      # services/checkstyle.xml (formatting is Spotless's job, run in `verify`
+      # below). Also bound to `verify`; this explicit step just fails fast
+      # with a clear name in the checks UI.
+      - name: Static analysis (Checkstyle)
+        working-directory: services/${{ matrix.service }}
+        run: mvn -B -ntp checkstyle:check
+
+      # `verify` compiles, runs the unit tests, packages the deployable
+      # (Spring Boot repackage) and re-runs the Spotless + Checkstyle checks —
+      # i.e. it builds, tests AND lints the service.
       - name: Build & test ${{ matrix.service }}
         working-directory: services/${{ matrix.service }}
         run: mvn -B -ntp verify

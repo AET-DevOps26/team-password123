@@ -70,7 +70,7 @@ A single-page web client and an iOS client talk to three Spring Boot REST micros
    └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-Design docs live in [`docs/`](docs/): [`Problem Statement.md`](docs/Problem%20Statement.md), [`System Architecture.md`](docs/System%20Architecture.md), and the UML diagrams (`usecase-diagram.png`, `sys-architecture.png`, `object-diagram.png`). Note the architecture diagram predates the split into three Spring services and still shows a single "Spring Boot API" box.
+Design docs live in [`docs/`](docs/): [`Problem Statement.md`](docs/Problem%20Statement.md), [`System Architecture.md`](docs/System%20Architecture.md) (with the Subsystem Decomposition), and the UML diagrams [`usecase-diagram.md`](docs/usecase-diagram.md) and [`object-diagram.md`](docs/object-diagram.md). The original design-phase sketches are kept as `docs/OLD_*.png` to show how the architecture evolved.
 
 ## Tech stack
 

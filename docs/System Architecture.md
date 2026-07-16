@@ -7,7 +7,9 @@ Calorieasy is a nutrition tracking platform that uses GenAI to reduce the fricti
 ## UML Diagrams
 
 ### Use Case Diagram
-![Use Case Diagram](usecase-diagram.png)
+
+See [`usecase-diagram.md`](usecase-diagram.md) — all implemented use cases (web + iOS) with a
+use-case → implementation mapping.
 
 ### Subsystem Decomposition
 
@@ -71,15 +73,14 @@ flowchart TB
     Auth -. RS256 public key, verify-only .-> Analytics
 ```
 
-### Component / Architecture Diagram
-![System Architecture Diagram](sys-architecture.png)
+### Analysis Object Model
 
-> Note: `sys-architecture.png` predates the split into three Spring services and
-> still shows a single "Spring Boot API" box. Use the **Subsystem Decomposition**
-> above for the current service boundaries.
+See [`object-diagram.md`](object-diagram.md) — the persisted entities per service, exactly as
+implemented, plus the iOS SwiftData mirror.
 
-### Class Diagram
-![Class Diagram](object-diagram.png)
+> The original design-phase sketches are preserved as `OLD_sys-architecture.png`,
+> `OLD_usecase-diagram.png`, and `OLD_object-diagram.png` to show how the
+> architecture evolved during the project.
 
 
 ## Architecture Overview (current implementation)

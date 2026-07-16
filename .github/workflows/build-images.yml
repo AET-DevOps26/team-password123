@@ -4,11 +4,10 @@ name: Build & Push Images
 # Kubernetes cluster can pull them.
 #
 # Reusable workflow: ci.yml calls it (workflow_call) after all test jobs pass
-# on a push to main, so images are only produced from a green build and the
-# runner itself enforces the CI → build → deploy gate via `needs`. In that
-# context github.sha IS the tested commit — no head_sha resolution needed.
-# Manual dispatch rebuilds the current ref on demand, but only main builds
-# move the `latest` tag (see the metadata step).
+# on a push to main, so images are only produced from a green build, the runner
+# itself enforces the CI → build → deploy gate via `needs`, and github.sha is
+# exactly the commit CI tested. Manual dispatch rebuilds the current ref on
+# demand, but only main builds move the `latest` tag (see the metadata step).
 on:
   workflow_call:
   workflow_dispatch:

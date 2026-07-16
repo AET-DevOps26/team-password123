@@ -371,7 +371,7 @@ jobs:
   # CD chain — push to main only. Referenced by file path (uses:), so the
   # dependency is checked by the runner itself: a failing test blocks the build,
   # a failed build blocks the deploy, and a renamed workflow file fails the run
-  # instead of silently detaching the chain (the old workflow_run behaviour).
+  # loudly.
   # ---------------------------------------------------------------------------
   build-images:
     name: Build & push images

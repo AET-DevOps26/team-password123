@@ -1,3 +1,7 @@
+# ⚠ Do NOT rename this workflow without updating deploy-aet.yml:
+# its `workflow_run.workflows: ["Build & Push Images"]` trigger matches this
+# `name` string. A rename silently breaks CD (no error anywhere — deploys just
+# stop firing). Same caveat applies to the ["CI"] reference below.
 name: Build & Push Images
 
 # Builds all service images (linux/amd64) and pushes them to GHCR so the
@@ -10,6 +14,7 @@ name: Build & Push Images
 # only main builds move the `latest` tag (see "Resolve build ref").
 on:
   workflow_run:
+    # Must match the `name:` in ci.yml exactly — keep the two in sync.
     workflows: ["CI"]
     types: [completed]
     branches: [main]

@@ -9,6 +9,7 @@ name: Deploy to AET cluster
 # pinned to a stale `latest`.
 on:
   workflow_run:
+    # Must match the `name:` in build-images.yml exactly — keep the two in sync.
     workflows: ["Build & Push Images"]
     types: [completed]
     branches: [main]

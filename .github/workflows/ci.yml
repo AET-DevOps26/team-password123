@@ -1,3 +1,7 @@
+# ⚠ Do NOT rename this workflow without updating build-images.yml:
+# its `workflow_run.workflows: ["CI"]` trigger matches this `name` string.
+# A rename silently breaks the CI → build → deploy chain (no error anywhere —
+# images just stop being built).
 name: CI
 
 # Continuous Integration: builds and tests every service on each PR and on

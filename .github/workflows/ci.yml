@@ -177,21 +177,24 @@ jobs:
       - name: Generate throwaway JWT keypair
         run: node scripts/gen-jwt-keys.mjs >> "$GITHUB_ENV"
 
-      # Only what the smoke flow needs: register/login (auth), manual meal +
-      # diary (meals). genai/weaviate are deliberately skipped — POST
-      # /api/meals/manual never calls the analyzer — and --no-deps keeps
-      # compose from dragging them in. analytics-service stays down too: every
-      # call to it in the exercised flow is non-blocking in the app.
-      - name: Start backend stack (postgres, auth, meals)
+      # What the smoke flows need: register/login (auth), manual meal + diary
+      # (meals), and the photo-scan chain (meals → genai-service → fake-llm).
+      # The docker-compose.ci.yml overlay points the REAL genai-service at a
+      # canned OpenAI-compatible stub, so no cloud key is needed and the model
+      # output is deterministic. weaviate stays down (analyze never touches it;
+      # the health-index build is best-effort) and --no-deps keeps compose from
+      # dragging it in. analytics-service stays down too: every call to it in
+      # the exercised flows is non-blocking in the app.
+      - name: Start backend stack (postgres, auth, meals, genai + fake LLM)
         run: |
-          docker compose up -d --build postgres auth-service
-          docker compose up -d --no-deps --build meals-service
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --build postgres auth-service
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --no-deps --build fake-llm genai-service meals-service
 
-      # Both actuator health endpoints are unauthenticated; poll until UP with
-      # a hard timeout so a broken boot fails fast instead of hanging the job.
+      # All health endpoints are unauthenticated; poll until UP with a hard
+      # timeout so a broken boot fails fast instead of hanging the job.
       - name: Wait for services to be healthy
         run: |
-          for url in http://localhost:8081/actuator/health http://localhost:8082/actuator/health; do
+          for url in http://localhost:8081/actuator/health http://localhost:8082/actuator/health http://localhost:8084/health; do
             for i in $(seq 1 60); do
               if curl -sf "$url" > /dev/null; then
                 echo "$url is up"
@@ -200,9 +203,15 @@ jobs:
               sleep 5
             done
             echo "::error::$url did not become healthy within its 300s poll window"
-            docker compose logs
+            docker compose -f docker-compose.yml -f docker-compose.ci.yml logs
             exit 1
           done
+          # genai's /health answers 200 even when the analyzer failed to
+          # initialize (status: degraded) — require the real readiness signal.
+          curl -s http://localhost:8084/health | jq -e '.analyzer_ready == true' > /dev/null \
+            || { echo "::error::genai-service is up but analyzer_ready is not true"; \
+                 curl -s http://localhost:8084/health; \
+                 docker compose -f docker-compose.yml -f docker-compose.ci.yml logs genai-service; exit 1; }
 
       - name: Install dependencies
         working-directory: calorie-app
@@ -224,7 +233,7 @@ jobs:
 
       - name: Dump compose logs on failure
         if: failure()
-        run: docker compose logs
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml logs
 
       - name: Upload Playwright report
         if: failure()

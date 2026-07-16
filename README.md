@@ -318,7 +318,7 @@ Gemini is reached via `LLM_PROVIDER=openai` plus a Gemini OpenAI-compatible `OPE
 | genai-service (vision) | `pytest tests/test_vision_fallback.py -v -m "not integration"` | Gemini primary + backup fallback (mocked, no keys) |
 | genai-service (backup smoke) | `pytest tests/test_vision_fallback.py -v -m "integration and backup"` | OpenRouter backup smoke only (skips without key) |
 | genai-service (smoke) | `pytest tests/test_smoke.py -v` | HTTP smoke tests against a running service (auto-skips if down) |
-| iOS app | — | No tests (the xcodegen project defines no test target) |
+| iOS app | `xcodebuild test` (committed `.xcodeproj`) | Live backend integration tests in `NutritionAppTests/LiveIntegrationTests.swift`. Note: the xcodegen `project.yml` does not define a test target, so `xcodegen generate` drops it — use the committed `.xcodeproj`. |
 
 Backend tests are unit-only (mocked collaborators, no Spring context / DB). There are no `@SpringBootTest`/`@WebMvcTest` integration tests.
 
@@ -379,7 +379,6 @@ The prod Compose stack ([`docker-compose.prod.yml`](docker-compose.prod.yml)) pu
 - [x] Helm chart + Kubernetes deployment (AET cluster, ingress-nginx, TLS via cert-manager)
 - [x] Terraform (Azure VM) + Ansible IaC
 - [x] Prometheus + Grafana observability (metrics, dashboard, alert rules)
-- [ ] Wire `APP_GENAI_BASE_URL` in dev Compose so photo scan hits genai locally (k8s already wired)
 - [ ] iOS unit/UI test target
 - [ ] Resilience4j circuit-breaker on analytics → meals call (Sprint 5 stretch)
 

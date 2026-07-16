@@ -29,7 +29,7 @@ src/
 ├── features/     User interactions (auth, scan-meal, manual-entry, onboarding, health-insight)
 ├── entities/     Domain models + API clients (meal, nutrition, user)
 ├── widgets/      Composite UI pieces (Sidebar, Tabbar, Toast)
-└── shared/       API client, config flags, reusable UI primitives
+└── shared/       API client, lib helpers, reusable UI primitives
 ```
 
 ## Local development

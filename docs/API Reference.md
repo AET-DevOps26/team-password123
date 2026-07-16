@@ -288,12 +288,12 @@ Upload a photo without triggering analysis (stores raw photo only).
   "id": "uuid",
   "originalFilename": "lunch.jpg",
   "contentType": "image/jpeg",
-  "status": "PENDING",
+  "status": "AI_NOT_AVAILABLE",
   "linkedMealLogId": null,
   "createdAt": "2026-06-18T12:30:00Z"
 }
 ```
-`status` values: `PENDING`, `ANALYZED`, `FAILED`, `AI_NOT_AVAILABLE`
+`status` values: `AI_NOT_AVAILABLE`, `MANUALLY_COMPLETED`, `ANALYZED`
 
 ---
 

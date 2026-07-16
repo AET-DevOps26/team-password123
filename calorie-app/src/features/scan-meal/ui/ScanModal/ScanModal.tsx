@@ -259,7 +259,7 @@ export function ScanModal({ onClose, onAdded }: ScanModalProps) {
   );
 }
 
-/* ── Inline icons ── */
+/* ── Inline helpers ── */
 function VisionProviderPicker({
   value,
   onChange,

@@ -1,4 +1,4 @@
-export function norm(d: Date): Date { const r = new Date(d); r.setHours(0, 0, 0, 0); return r; }
+function norm(d: Date): Date { const r = new Date(d); r.setHours(0, 0, 0, 0); return r; }
 export function addDays(d: Date, n: number): Date { const r = norm(d); r.setDate(r.getDate() + n); return r; }
 export function diffDays(a: Date, b: Date): number {
   return Math.round((norm(a).getTime() - norm(b).getTime()) / 86400000);

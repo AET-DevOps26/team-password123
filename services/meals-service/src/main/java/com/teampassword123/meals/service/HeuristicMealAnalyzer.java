@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component;
  * Deterministic placeholder {@link MealAnalyzer} for local dev when no GenAI service is configured.
  * This performs NO image recognition: it deterministically maps the image bytes to a fixed catalog
  * entry via a stable hash, so the same image always yields the same dish, macros, and confidence.
- * {@link GenAiMealAnalyzer} ({@code @Primary}) takes over whenever {@code app.genai.base-url} is set.
+ * {@link GenAiMealAnalyzer} ({@code @Primary}) takes over whenever {@code app.genai.base-url} is
+ * set.
  */
 @Component
 public class HeuristicMealAnalyzer implements MealAnalyzer {

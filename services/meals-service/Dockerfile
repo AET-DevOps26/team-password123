@@ -3,10 +3,11 @@ FROM maven:3-eclipse-temurin-26 AS build
 WORKDIR /workspace
 COPY common-security/pom.xml common-security/pom.xml
 COPY common-security/src common-security/src
-# Formatting is enforced by the CI backend job (JDK 21); google-java-format
-# cannot run on this newer build-stage JDK, and an image build shouldn't gate
-# on style anyway.
-RUN mvn -B -q -f common-security/pom.xml -DskipTests -Dspotless.check.skip=true install
+# Formatting and static analysis are enforced by the CI backend job (JDK 21);
+# google-java-format cannot run on this newer build-stage JDK, the shared
+# checkstyle.xml is not part of the copied context, and an image build
+# shouldn't gate on style anyway.
+RUN mvn -B -q -f common-security/pom.xml -DskipTests -Dspotless.check.skip=true -Dcheckstyle.skip=true install
 COPY meals-service/pom.xml meals-service/pom.xml
 RUN mvn -B -q -f meals-service/pom.xml -DskipTests dependency:go-offline
 COPY meals-service/src meals-service/src

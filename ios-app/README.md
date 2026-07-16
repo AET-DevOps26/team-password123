@@ -58,6 +58,13 @@ Analytics stay compute-on-read here too: `AnalyticsView` derives charts from syn
 
 ## Known gaps
 
-- No unit/UI test target in the xcodegen project
+- No UI test target. Unit tests + live-backend integration tests live in `NutritionAppTests`
+  (part of the committed `NutritionApp.xcodeproj` — regenerating with xcodegen drops the test target):
+
+  ```bash
+  xcodebuild test -project NutritionApp.xcodeproj -scheme NutritionApp \
+    -destination 'platform=iOS Simulator,name=iPhone 17' \
+    -skip-testing:NutritionAppTests/LiveIntegrationTests   # omit to also hit the live backend
+  ```
 - Water tracking is local-only (no backend endpoint)
 - Health-insight RAG card exists on web but not yet on iOS

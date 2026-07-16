@@ -9,7 +9,12 @@ struct LogMealView: View {
         var id: String { rawValue }
     }
 
+    /// Called after a successful save. The Log tab uses this to jump to History;
+    /// when presented as a sheet it can stay nil (the editor dismisses itself).
+    var onSaved: (() -> Void)? = nil
+
     @State private var mode: Mode = .manual
+    @State private var session = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,8 +24,11 @@ struct LogMealView: View {
             .pickerStyle(.segmented)
             .padding()
 
-            MealEditorView(mode: .create(isPhoto: mode == .photo))
-                .id(mode)  // reset state when switching
+            MealEditorView(mode: .create(isPhoto: mode == .photo), onSaved: {
+                session += 1   // fresh editor for the next meal
+                onSaved?()
+            })
+            .id("\(mode.rawValue)-\(session)")  // reset state on mode switch or save
         }
         .navigationTitle("Log a meal")
         .navigationBarTitleDisplayMode(.inline)

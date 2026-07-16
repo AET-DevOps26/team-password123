@@ -14,6 +14,10 @@ struct MealEditorView: View {
     @Environment(SyncService.self) private var sync
 
     let mode: Mode
+    /// Called after a successful save, before `dismiss()`. `dismiss()` is a no-op
+    /// when this view lives in the Log tab (not presented), so the tab host uses
+    /// this to reset the form and jump to History.
+    var onSaved: (() -> Void)? = nil
 
     // Meal fields
     @State private var name: String = ""
@@ -39,6 +43,7 @@ struct MealEditorView: View {
     @State private var aiConfidence: Double?
     @State private var analyzing = false
     @State private var aiError: String?
+    @State private var isSaving = false
     // Tracks the in-flight analysis so cancel/re-analyze can disown its result. A
     // reference type (not @State) so the running task still sees `abandoned` after
     // the view is dismissed.
@@ -161,9 +166,18 @@ struct MealEditorView: View {
             }
 
             Section {
-                Button(saveButtonLabel) { save() }
-                    .disabled(!canSave)
-                    .frame(maxWidth: .infinity)
+                Button {
+                    save()
+                } label: {
+                    if isSaving {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        Text(saveButtonLabel)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                .disabled(!canSave || isSaving)
             }
         }
         .navigationBarTitleDisplayMode(.inline)
@@ -349,6 +363,10 @@ struct MealEditorView: View {
     }
 
     private func save() {
+        // Re-entry guard: a second tap before the UI settles must not log twice.
+        guard !isSaving else { return }
+        isSaving = true
+
         let trimmedName = name.trimmingCharacters(in: .whitespaces)
         let finalCal: Int
         let finalP: Double
@@ -430,6 +448,7 @@ struct MealEditorView: View {
             sync.updateMeal(log)
         }
 
+        onSaved?()
         dismiss()
     }
 }

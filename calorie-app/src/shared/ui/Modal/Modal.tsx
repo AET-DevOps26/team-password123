@@ -7,9 +7,17 @@ interface ModalProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   narrow?: boolean;
+  dismissOnOverlayClick?: boolean;
 }
 
-export function Modal({ title, onClose, children, footer, narrow }: ModalProps) {
+export function Modal({
+  title,
+  onClose,
+  children,
+  footer,
+  narrow,
+  dismissOnOverlayClick = true,
+}: ModalProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
 
   // Close on Escape
@@ -27,7 +35,7 @@ export function Modal({ title, onClose, children, footer, narrow }: ModalProps) 
   }, []);
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
+    <div className={styles.overlay} onClick={dismissOnOverlayClick ? onClose : undefined}>
       <div
         ref={sheetRef}
         className={`${styles.sheet} ${narrow ? styles.narrow : ''}`}

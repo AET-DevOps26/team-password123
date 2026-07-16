@@ -331,6 +331,40 @@ jobs:
             | tar -xz kubeconform
           ./kubeconform -strict -summary rendered-default.yaml rendered-canary.yaml
 
+  terraform:
+    name: Terraform (fmt + validate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # ci.yml can't take a workflow-level `paths:` filter (every other job
+      # must run on all changes), so the gate lives at the job level: the
+      # validate steps below only run when the Terraform config — or this
+      # workflow — changes.
+      - name: Detect Terraform changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            terraform:
+              - 'infra/terraform/**'
+              - '.github/workflows/ci.yml'
+
+      - uses: hashicorp/setup-terraform@v4
+        if: steps.changes.outputs.terraform == 'true'
+
+      # Same checks deploy-azure.yml runs before a deploy, but on every PR that
+      # touches the config — previously a Terraform-breaking change could land
+      # on main unnoticed until the next (manual, rare) Azure deploy.
+      # -backend=false: validation needs no state or cloud credentials.
+      - name: Validate
+        if: steps.changes.outputs.terraform == 'true'
+        working-directory: infra/terraform
+        run: |
+          terraform fmt -check -recursive
+          terraform init -backend=false
+          terraform validate
+
   secret-scan:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest

@@ -1,0 +1,30 @@
+# CI-only overlay for the e2e-smoke job: runs the REAL genai-service against a
+# canned OpenAI-compatible stub (fake-llm), so the photo-scan flow is exercised
+# end-to-end with no cloud key and deterministic model output.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.ci.yml \
+#     up -d --no-deps --build fake-llm genai-service
+#
+# Weaviate stays down on purpose: /api/analyze never touches it and the
+# startup health-index build is best-effort (a down Weaviate is tolerated).
+# `--no-deps` keeps compose from dragging it in via genai's base depends_on.
+services:
+  fake-llm:
+    build: ./infra/ci/fake-openai
+
+  genai-service:
+    environment:
+      LLM_PROVIDER: openai
+      OPENAI_API_KEY: ci-stub
+      OPENAI_MODEL: ci-stub-vision
+      OPENAI_BASE_URL: http://fake-llm:9990/v1
+      # Blank every other provider path so nothing can fall back to a real LLM.
+      BACKUP_OPENAI_BASE_URL: ""
+      BACKUP_OPENAI_MODEL: ""
+      BACKUP_OPENAI_API_KEY: ""
+      TEXT_OPENAI_API_KEY: ""
+      # Hermetic nutrition lookups from the committed nutrition_db.json.
+      NUTRITION_DATA_PROVIDER: local
+    # Not published in the base file; the CI readiness poll needs it on the host.
+    ports:
+      - "8084:8084"

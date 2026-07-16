@@ -2,6 +2,12 @@ import SwiftUI
 import SwiftData
 
 struct RootTabView: View {
+    private enum Tab: Hashable {
+        case today, history, log, analytics, profile
+    }
+
+    @State private var selectedTab: Tab = .today
+
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var scenePhase
     @Environment(Session.self) private var session
@@ -24,21 +30,28 @@ struct RootTabView: View {
     }
 
     private var mainTabs: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             TodayView()
                 .tabItem { Label("Today", systemImage: "sun.max") }
+                .tag(Tab.today)
 
             HistoryView()
                 .tabItem { Label("History", systemImage: "list.bullet.rectangle") }
+                .tag(Tab.history)
 
-            LogMealView()
+            // Saving from the Log tab has nothing to dismiss, so jump to History
+            // to show the freshly logged meal.
+            LogMealView(onSaved: { selectedTab = .history })
                 .tabItem { Label("Log", systemImage: "plus.circle.fill") }
+                .tag(Tab.log)
 
             AnalyticsView()
                 .tabItem { Label("Analytics", systemImage: "chart.bar.xaxis") }
+                .tag(Tab.analytics)
 
             ProfileView()
                 .tabItem { Label("Profile", systemImage: "person.crop.circle") }
+                .tag(Tab.profile)
         }
         .sheet(isPresented: showOnboardingBinding) {
             if let profile {

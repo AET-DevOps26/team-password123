@@ -22,6 +22,16 @@ A nutrition and health companion that removes the friction from food logging, bu
 | [`infra/`](infra) | Terraform (Azure VM) + Ansible (Docker Compose deploy). |
 | [`docs/`](docs) | Problem statement, system architecture, API reference, sprint plan. |
 
+## Team & responsibilities
+
+Each student owns one primary subsystem (client / server / GenAI, per the course model) and shares the DevOps workflow. Ownership means being the main author and reviewer for that area — integration, deployment, and debugging were done collaboratively across subsystem boundaries. Contributions are traceable through commit and PR authorship, code-review participation on merged PRs, and the per-person weekly reports in [`docs/weekly-reports/`](docs/weekly-reports).
+
+| Student | GitHub | Primary subsystem | Key artifacts |
+|---------|--------|-------------------|---------------|
+| Pavel Tkachuk | [@dedvnutree](https://github.com/dedvnutree) | **Web client** | [`calorie-app/`](calorie-app) — React SPA (FSD architecture, Zustand stores, diary / insights / profile / scan flows); Playwright e2e suites incl. the real-stack smoke test ([`calorie-app/e2e/`](calorie-app/e2e)); DB seed tooling ([`scripts/seed.mjs`](scripts/seed.mjs)); shared JWT verification module ([`services/common-security/`](services/common-security)); security & code-review hardening across the Spring services |
+| Melisa Şahinoğlu | [@sahinoglumelisa](https://github.com/sahinoglumelisa) | **GenAI service** | [`services/genai-service/`](services/genai-service) — vision pipeline (Gemini primary + OpenRouter Nemotron fallback), RAG health insights (Weaviate + fastembed), pytest suites and the RAG retrieval eval; substantial parts of the Spring services (photo-scan flow, auth/analytics endpoints); [`docs/System Architecture.md`](docs/System%20Architecture.md) |
+| Deniz Öztürk | [@StateofDisarray](https://github.com/StateofDisarray) | **Server & operations** | Spring Boot backend (initial skeleton → three services); Helm chart ([`helm/calorieasy/`](helm/calorieasy)); CI/CD workflows ([`.github/workflows/`](.github/workflows)); observability stack (Prometheus / Grafana / Loki — dashboards & alert rules); IaC ([`infra/terraform/`](infra/terraform), [`infra/ansible/`](infra/ansible)); HPA & canary bonus features; iOS ([`ios-app/`](ios-app)) |
+
 ## Architecture
 
 A single-page web client and an iOS client talk to three Spring Boot REST microservices behind one PostgreSQL instance (one database, three schemas). The meals service can delegate image recognition to the Python GenAI service. **Only `auth-service` issues JWTs** — it signs them RS256 with the RSA private key (`APP_JWT_PRIVATE_KEY`); meals and analytics verify with the public key only (`APP_JWT_PUBLIC_KEY`), so a compromised resource service cannot mint tokens. `analytics-service` is a read-side aggregator — it does not store meals; it fetches them live from `meals-service` over HTTP, forwarding the caller's bearer token.

@@ -43,16 +43,18 @@ open NutritionApp.xcodeproj
 
 Optional scheme launch arguments: `--seed-sample-data` (7 days of meals/water), `--skip-onboarding`, `--offline`.
 
-## Domain model (vs `docs/object-diagram.png`)
+## Domain model (vs `docs/object-diagram.md`)
 
-| Doc class         | Implementation                                                              |
-|-------------------|-----------------------------------------------------------------------------|
-| `User`            | `UserProfile` — synced from auth-service; JWT in Keychain                   |
-| `FoodLog`         | `FoodLog` — id, timestamp, name, notes, isManual, imageData                 |
-| `NutritionData`   | **Inlined** onto `FoodLog` (calories, protein, carbs, fats, confidenceScore) |
-| `AnalyticsReport` | Computed in `AnalyticsView` from synced data + `@Query`, not persisted      |
+| Backend entity | iOS `@Model` |
+|----------------|--------------|
+| `AppUser` (auth) + `NutritionGoal` (analytics) | `UserProfile` — one local record, synced via `PUT /api/users/me` + `PUT /api/goals`; JWT in Keychain |
+| `MealLog` | `FoodLog` — adds `serverId` + `dirty` flag for offline-first sync |
+| `MealItem` | `Ingredient` |
+| `PhotoLog` | none — `imageData` inlined on `FoodLog` (`.externalStorage`) |
+| — | `WaterLog` — iOS-only, never synced (no backend endpoint) |
 
-The `NutritionData` 1:1 relationship from the class diagram is collapsed into `FoodLog` — SwiftData makes one-to-one relationships verbose with no real upside here, and analytics queries get cleaner.
+Analytics stay compute-on-read here too: `AnalyticsView` derives charts from synced data via
+`@Query`, matching the backend, which persists no aggregates.
 
 ## Known gaps
 

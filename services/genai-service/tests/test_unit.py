@@ -1,6 +1,6 @@
 """Headless unit tests for nutrition_analyzer core logic.
 
-No running service, Ollama, or external API required. They exercise the
+No running service or external API required. They exercise the
 normalization, JSON parsing, calorie-math pipeline, and nutrition-DB lookup in
 isolation using lightweight fakes.
 

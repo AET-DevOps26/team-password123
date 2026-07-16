@@ -7,7 +7,6 @@ interface MealStore {
   updateEntry:  (entry: MealEntry) => void;
   removeEntry:  (id: string) => void;
   setEntries:   (entries: MealEntry[]) => void;
-  clearEntries: () => void;
 }
 
 export const useMealStore = create<MealStore>((set) => ({
@@ -25,5 +24,4 @@ export const useMealStore = create<MealStore>((set) => ({
     set((s) => ({ entries: s.entries.filter((e) => e.id !== id) })),
 
   setEntries:   (entries) => set({ entries }),
-  clearEntries: ()       => set({ entries: [] }),
 }));

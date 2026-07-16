@@ -1,6 +1,5 @@
 """Request-size limit middleware: oversized bodies are rejected with 413 before
-the analyze endpoints buffer them into memory, capping the memory-exhaustion DoS
-(and neutralising the reachable path of the pinned Starlette's multipart CVE).
+the analyze endpoints buffer them into memory, capping the memory-exhaustion DoS.
 
 Requires the service deps (fastapi, langchain, PIL) — runs in the genai CI python
 job. TestClient is built without a `with` block on purpose, so the Weaviate-touching

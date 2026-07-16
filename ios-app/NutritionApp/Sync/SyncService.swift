@@ -9,7 +9,6 @@ import SwiftData
 @MainActor
 @Observable
 final class SyncService {
-    var streak: Int = 0
     var lastSyncFailed = false
     /// Set when a sync call hits an expired/invalid token (401 or empty-body 403).
     /// RootTabView observes this and signs the user out so they can log in again.
@@ -40,7 +39,6 @@ final class SyncService {
         await pushUnsynced()
         await pullProfile()
         await pullGoals()
-        await pullStreak()
         await pullMeals()
     }
 
@@ -59,10 +57,6 @@ final class SyncService {
         // Server-side goals exist → this account has already onboarded.
         profile.onboardingComplete = true
         try? context.save()
-    }
-
-    private func pullStreak() async {
-        if let dto = try? await api.streak() { streak = dto.streak }
     }
 
     private func pullMeals() async {

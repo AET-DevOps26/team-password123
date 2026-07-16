@@ -25,7 +25,7 @@ Open **http://localhost:3000**
 
 #### Option B — Full stack with GenAI
 
-Requires Ollama with `llava` or OpenAI credentials in `.env`. See [README](../README.md#full-stack-with-genai).
+Requires a Google AI Studio (Gemini) key, and optionally an OpenRouter key for the Nemotron backup, in `.env`. See [README](../README.md#full-stack-with-genai).
 
 After any compose change, hard-refresh the browser tab if the app was already open.
 
@@ -284,7 +284,7 @@ Same as HOME-03 but on Diary page; verify slot group updates after edit/delete.
 
 ### SCN-03 · With AI available (P1)
 
-**Precondition:** Ollama running + GenAI linked (see README / branch `photo-logging-a11y-cleanup` compose).
+**Precondition:** GenAI service running and linked (`APP_GENAI_BASE_URL` set — the compose default; Gemini/OpenRouter key configured, see README).
 
 | Step | Action | Expected |
 |------|--------|----------|

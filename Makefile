@@ -21,7 +21,7 @@ start: .env
 	node scripts/gen-jwt-keys.mjs >> .env
 	@echo 'Created .env with fresh JWT keys. Optional: add OPENAI_API_KEY for real AI photo scan.'
 
-# Start the full stack (postgres + auth + meals + analytics + web; genai optional).
+# Build + start the full stack in the background (all docker-compose.yml services).
 up:
 	docker compose up --build -d
 

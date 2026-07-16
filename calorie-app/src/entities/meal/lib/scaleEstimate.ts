@@ -1,7 +1,7 @@
 import type { FoodEstimate } from '../model/types';
 import type { NutritionInfo } from '../../nutrition/model/types';
 
-export interface ScaledNutrition {
+interface ScaledNutrition {
   calories: number;
   proteinGrams: number;
   carbsGrams: number;

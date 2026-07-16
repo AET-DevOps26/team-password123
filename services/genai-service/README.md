@@ -123,10 +123,6 @@ pytest tests/test_smoke.py -v
 # Image expectation tests (requires running service + test-images/ directory)
 pytest tests/test_image_expectations.py -v
 
-# Gemini integration tests (requires GOOGLE_API_KEY env var)
-export GOOGLE_API_KEY=your-key
-pytest tests/test_genai_integration.py -v -m integration
-
 # Gemini primary + Nemotron backup fallback tests (unit tests need no keys)
 pytest tests/test_vision_fallback.py -v -m "not integration"
 
@@ -140,7 +136,6 @@ pytest tests/test_vision_fallback.py -v -m "integration and backup"
 | `test_nutrition_lookup.py` | No | No | Yes |
 | `test_smoke.py` | Yes (localhost:8084) | No | No |
 | `test_image_expectations.py` | Yes (localhost:8084) | No | No |
-| `test_genai_integration.py` | No | Yes (GOOGLE_API_KEY) | No (skip if no key) |
 | `test_vision_fallback.py` | No | No (unit); optional OPENROUTER for backup smoke | Unit tests yes; backup smoke skips without key/quota |
 
 ## Troubleshooting

@@ -56,10 +56,6 @@ export const IconWater = ({ size }: IconProps) => (
   </IconSvg>
 );
 
-export const IconBolt = ({ size }: IconProps) => (
-  <IconSvg size={size}><path d="M13 3 5 13h6l-1 8 8-10h-6z" /></IconSvg>
-);
-
 export const IconTarget = ({ size }: IconProps) => (
   <IconSvg size={size}>
     <circle cx="12" cy="12" r="8" />
@@ -69,8 +65,4 @@ export const IconTarget = ({ size }: IconProps) => (
 
 export const IconTrend = ({ size }: IconProps) => (
   <IconSvg size={size}><path d="M4 15l5-5 3.5 3.5L20 6M20 6h-4M20 6v4" /></IconSvg>
-);
-
-export const IconChevR = ({ size }: IconProps) => (
-  <IconSvg size={size}><path d="M9 6l6 6-6 6" /></IconSvg>
 );

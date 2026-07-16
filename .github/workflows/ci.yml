@@ -1,17 +1,23 @@
 name: CI
 
-# Continuous Integration: builds and tests every service on each PR and on
-# pushes to main. This workflow is the enforcement point for system stability —
-# branch protection on `main` should require these jobs as status checks.
+# CI + CD entry point: builds and tests every service on each PR and on pushes
+# to main. This workflow is the enforcement point for system stability — branch
+# protection on `main` should require these jobs as status checks.
+#
+# On push to main, the trailing `build-images` and `deploy-aet` jobs call the
+# reusable workflows of the same names (by FILE PATH, so a rename/move fails
+# the run loudly), giving the full gate CI → build → deploy in one run graph.
 on:
   push:
     branches: [main]
   pull_request:
 
-# Cancel superseded runs on the same ref to save runner minutes.
+# Cancel superseded PR runs to save runner minutes. Pushes to main queue
+# instead: a main run may be mid-deploy, and cancelling it would abort a Helm
+# rollout halfway.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -360,3 +366,27 @@ jobs:
           ignore-unfixed: true
           exit-code: '0'
           format: table
+
+  # ---------------------------------------------------------------------------
+  # CD chain — push to main only. Referenced by file path (uses:), so the
+  # dependency is checked by the runner itself: a failing test blocks the build,
+  # a failed build blocks the deploy, and a renamed workflow file fails the run
+  # loudly.
+  # ---------------------------------------------------------------------------
+  build-images:
+    name: Build & push images
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [backend, frontend, e2e, e2e-smoke, genai, helm, secret-scan, vuln-scan]
+    uses: ./.github/workflows/build-images.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+
+  deploy-aet:
+    name: Deploy to AET
+    needs: build-images
+    uses: ./.github/workflows/deploy-aet.yml
+    secrets: inherit
+    permissions:
+      contents: read

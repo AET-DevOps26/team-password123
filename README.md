@@ -76,7 +76,7 @@ Design docs live in [`docs/`](docs/): [`Problem Statement.md`](docs/Problem%20St
 
 | Layer | Technology |
 |-------|-----------|
-| Web client | React 18.2, TypeScript 5.3, Vite 5, Zustand 5, CSS Modules, Vitest |
+| Web client | React 19.2, TypeScript 5.9, Vite 8, Zustand 5, CSS Modules, Vitest |
 | Backend services | Java 21, Spring Boot 3.5.13 (Web MVC, Data JPA, Security, Actuator, Validation), Maven |
 | Auth | JJWT 0.13.0 (RS256), BCrypt — auth signs with `APP_JWT_PRIVATE_KEY`, other services verify with `APP_JWT_PUBLIC_KEY` |
 | Persistence | PostgreSQL 16, Flyway migrations, Hibernate `ddl-auto=validate` |
@@ -312,7 +312,7 @@ Gemini is reached via `LLM_PROVIDER=openai` plus a Gemini OpenAI-compatible `OPE
 
 | Component | Command | Coverage |
 |-----------|---------|----------|
-| Web client | `cd calorie-app && npm test` | Vitest, 39 unit tests (profile goals, mappers, health insight card). No full-page component tests. |
+| Web client | `cd calorie-app && npm test` | Vitest, 60 unit tests (profile goals, mappers, insights period/bars/dates, meal scaling, health insight card). No full-page component tests. |
 | Backend services | `cd services && mvn test` | JUnit 5 + Mockito, unit-only; the aggregator builds the shared common-security module first, then auth (JwtService, AuthService, UserService), meals (MealService, MealMapper, GenAiMealAnalyzer mapping) and analytics (AnalyticsService, GoalService) |
 | genai-service (unit) | `cd services/genai-service && pytest tests/test_nutrition_lookup.py -v` | Pure unit tests, no running server |
 | genai-service (vision) | `pytest tests/test_vision_fallback.py -v -m "not integration"` | Gemini primary + backup fallback (mocked, no keys) |

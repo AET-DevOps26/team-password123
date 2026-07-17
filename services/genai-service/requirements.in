@@ -9,7 +9,7 @@
 # FastAPI and async server. Kept as floors (not exact pins): the old
 # fastapi==0.104.1 pin carried starlette<0.28 (CVE-2024-47874) and cascaded
 # downgrades onto httpx, the Prometheus instrumentator, and OpenTelemetry.
-fastapi>=0.115
+fastapi>=0.139.2
 uvicorn>=0.30
 websockets>=12.0
 numpy==2.4.4

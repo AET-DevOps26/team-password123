@@ -63,7 +63,7 @@ jobs:
       # dispatch still pushes its immutable SHA tag.
       - name: Docker metadata (tags)
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ steps.repo.outputs.name }}/${{ matrix.name }}
           tags: |

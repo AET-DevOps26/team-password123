@@ -216,7 +216,7 @@ pytest==9.1.1
     # via
     #   -r requirements.in
     #   pytest-asyncio
-pytest-asyncio==0.21.1
+pytest-asyncio==1.4.0
     # via -r requirements.in
 python-dotenv==1.2.2
     # via -r requirements.in
@@ -279,6 +279,7 @@ typing-extensions==4.16.0
     #   opentelemetry-semantic-conventions
     #   pydantic
     #   pydantic-core
+    #   pytest-asyncio
     #   starlette
     #   typing-inspection
 typing-inspection==0.4.2

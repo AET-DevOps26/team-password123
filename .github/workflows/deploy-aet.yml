@@ -51,7 +51,7 @@ jobs:
       # Pin Helm: an unpinned setup-helm silently jumped 3.x -> 4.x, which
       # changed --wait semantics and broke deploys. Pin to the version that
       # already manages this release so the version can't drift under us again.
-      - uses: azure/setup-helm@v4
+      - uses: azure/setup-helm@v5
         with:
           version: v4.2.3
 

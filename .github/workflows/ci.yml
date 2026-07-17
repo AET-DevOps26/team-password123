@@ -325,7 +325,7 @@ jobs:
       - uses: actions/checkout@v7
 
       # Same pin as deploy-aet.yml, so CI validates with the Helm that deploys.
-      - uses: azure/setup-helm@v4
+      - uses: azure/setup-helm@v5
         with:
           version: v4.2.3
 

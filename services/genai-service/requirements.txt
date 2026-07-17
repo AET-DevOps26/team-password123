@@ -42,7 +42,7 @@ distro==1.9.0
     #   google-genai
     #   langsmith
     #   openai
-fastapi==0.139.0
+fastapi==0.139.2
     # via -r requirements.in
 fastembed==0.8.0
     # via -r requirements.in

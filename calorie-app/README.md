@@ -3,7 +3,7 @@
 React + TypeScript frontend for the nutrition tracking platform.
 
 - **Port**: 3000 (dev), 80 (production nginx)
-- **Framework**: Vite + React 18 + TypeScript 5
+- **Framework**: Vite + React 19 + TypeScript 5
 - **Architecture**: Feature-Sliced Design (FSD)
 - **State management**: Zustand
 - **Testing**: Vitest (unit) + Playwright (e2e)

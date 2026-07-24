@@ -363,7 +363,7 @@ jobs:
       # workflow — changes.
       - name: Detect Terraform changes
         id: changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             terraform:

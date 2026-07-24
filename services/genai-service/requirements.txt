@@ -216,7 +216,7 @@ pytest==9.1.1
     # via
     #   -r requirements.in
     #   pytest-asyncio
-pytest-asyncio==0.21.1
+pytest-asyncio==0.23.3
     # via -r requirements.in
 python-dotenv==1.2.2
     # via -r requirements.in

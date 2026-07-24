@@ -255,7 +255,7 @@ jobs:
 
       # Match the service Dockerfile (python:3.11-slim) so the pinned deps resolve.
       - name: Set up Python 3.11
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
           cache: pip

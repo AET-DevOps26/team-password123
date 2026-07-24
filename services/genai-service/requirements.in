@@ -18,7 +18,7 @@ numpy==2.4.4
 # absent: the code only imports langchain_core (HumanMessage) and
 # langchain_openai (ChatOpenAI), and the meta-package dragged in vulnerable
 # extras (text-splitters, old langsmith). 1.x floors clear the 2026 CVE batch.
-langchain-core>=1.0,<2
+langchain-core>=1.5.1,<2
 langchain-openai>=1.1.14,<2
 langchain-google-genai>=2.0.0
 # Transitive dep of langchain-core; floor past GHSA-f4xh-w4cj-qxq8.

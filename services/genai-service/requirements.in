@@ -22,7 +22,7 @@ langchain-core>=1.0,<2
 langchain-openai>=1.1.14,<2
 langchain-google-genai>=2.0.0
 # Transitive dep of langchain-core; floor past GHSA-f4xh-w4cj-qxq8.
-langsmith>=0.10.5
+langsmith>=0.10.10
 
 # RAG health insights: Weaviate vector store + local ONNX embeddings.
 # fastembed gives BAAI/bge-small-en-v1.5 (384-dim) with no torch dependency,

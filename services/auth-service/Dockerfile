@@ -1,4 +1,4 @@
-FROM maven:3-eclipse-temurin-26 AS build
+FROM maven:3-eclipse-temurin-27 AS build
 # Build context is services/ so the shared common-security module is available.
 WORKDIR /workspace
 COPY common-security/pom.xml common-security/pom.xml
